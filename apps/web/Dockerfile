@@ -11,6 +11,10 @@ EXPOSE 5173
 USER node
 CMD ["pnpm", "--filter", "@aegisforge/web", "dev"]
 FROM base AS build
+ARG VITE_SITE_URL=http://localhost:5173
+ARG VITE_SECURITY_CONTACT=
+ENV VITE_SITE_URL=$VITE_SITE_URL
+ENV VITE_SECURITY_CONTACT=$VITE_SECURITY_CONTACT
 RUN pnpm --filter @aegisforge/web build
 FROM nginxinc/nginx-unprivileged:1.28.0-alpine AS production
 COPY infra/nginx.conf /etc/nginx/conf.d/default.conf

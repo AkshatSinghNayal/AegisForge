@@ -5,7 +5,7 @@ import { Drawer, IconButton, Wordmark } from './index';
 const navigation = [
   { to: '/dev/ui', label: 'UI library' },
   { to: '/dev/motion', label: 'Motion lab' },
-  { to: '/', label: 'Service health' },
+  { to: '/status', label: 'Service health' },
 ];
 function Navigation({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   return (

@@ -4,7 +4,7 @@ export default defineConfig({
   workers: 2,
   use: { baseURL: 'http://127.0.0.1:4173' },
   projects: [
-    { name: 'production', testMatch: /health|production/ },
+    { name: 'production', testMatch: /health|production|marketing/ },
     {
       name: 'labs',
       testMatch: /labs/,

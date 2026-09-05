@@ -9,7 +9,7 @@ test('health root and keyboard refresh reflect dependency failure', async ({
       json: { status: available ? 'ready' : 'unavailable' },
     }),
   );
-  await page.goto('/');
+  await page.goto('/status');
   await expect(
     page.getByRole('heading', { name: 'Service health' }),
   ).toBeVisible();

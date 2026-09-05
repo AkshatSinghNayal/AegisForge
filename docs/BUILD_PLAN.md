@@ -11,7 +11,7 @@ These phase numbers are the proposed complete sequence because the supplied pack
 | 0     | Discovery, architecture, API contract, threat model, traceable tests; no production code                                                                                                                     | Master Context, synopsis, UI references |
 | 1     | Monorepo/tooling: React/TS/Vite, FastAPI, pnpm/uv lockfiles, Compose PostgreSQL/Redis, migration/test runners, CI, health skeleton, .env.example; clean install/check/build                                  | 0                                       |
 | 2     | Original design system, accessible primitives/shells, development-only UI and motion labs; public-only Lenis, GSAP story, reduced motion, responsive/accessibility/screenshot tests (explicit Phase 2 scope) | 1                                       |
-| 3     | Identity, rotating sessions, recovery, organizations, invitation/membership roles, tenant enforcement, audit foundations, authenticated shell; real auth/tenant tests                                        | 1, 2                                    |
+| 3     | Complete public marketing website, four-step desktop scrollytelling/mobile fallback, feature/docs/legal routes, static SEO metadata and browser acceptance (explicit Phase 3 scope)                          | 1, 2                                    |
 | 4     | Projects, members, targets, OpenAPI import, secret references, authorization metadata and versioned scan policies; target safety tests                                                                       | 3                                       |
 | 5     | Isolated worker/ZAP orchestration, jobs, cancellation, timeouts, schedules, confirmation and target validation; real authorized fixture scans and recovery tests                                             | 4                                       |
 | 6     | Evidence ingestion/redaction, normalization, fingerprinting, occurrences, lifecycle and scan results/history; partial-scan and tenant tests                                                                  | 5                                       |
@@ -22,7 +22,9 @@ These phase numbers are the proposed complete sequence because the supplied pack
 | 11    | Production AWS profile: EC2/RDS/ElastiCache/S3/CloudWatch, optional ALB, IaC, backup/restore, secret management and worker egress isolation; staging exercises                                               | 5, 9, 10                                |
 | 12    | Full regression/security/accessibility/performance review, operational runbooks, API/user docs, explicit demo seeding, academic evaluation and final handoff                                                 | 1-11                                    |
 
-Public routes: `/`, `/platform`, `/features/web-scanning`, `/features/api-scanning`, `/features/ai-analysis`, `/features/ci-cd`, `/features/reports`, `/pricing`, `/docs`, `/docs/getting-started`, `/docs/github-actions`, `/docs/api`, `/security`, `/privacy`, `/terms`.
+The explicit Phase 3 prompt supersedes the provisional identity phase. Identity, rotating sessions, organizations and authenticated product shell remain the next architectural prerequisite before targets; their phase number awaits the next explicit prompt. No next phase is automatically authorized.
+
+Public routes: `/`, `/platform`, `/features/web-scanning`, `/features/api-scanning`, `/features/ai-analysis`, `/features/ci-cd`, `/features/reports`, `/pricing`, `/docs`, `/docs/getting-started`, `/docs/architecture`, `/docs/authorization`, `/docs/policies`, `/docs/integrations`, `/security`, `/privacy`, `/terms`.
 
 Authentication routes: `/auth/sign-in`, `/auth/sign-up`, `/auth/forgot-password`, `/auth/reset-password`.
 

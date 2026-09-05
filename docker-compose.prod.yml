@@ -3,6 +3,9 @@ services:
   web:
     build:
       target: production
+      args:
+        VITE_SITE_URL: ${VITE_SITE_URL:-http://localhost:5173}
+        VITE_SECURITY_CONTACT: ${VITE_SECURITY_CONTACT:-}
     volumes: !reset []
     ports: !override ['127.0.0.1:8080:8080']
     environment: !reset {}

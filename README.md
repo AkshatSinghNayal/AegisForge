@@ -2,11 +2,19 @@
 
 DevSecOps Vulnerability Intelligence Engine for authorized web applications and REST APIs.
 
-Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Scanning, identity, domain data, AI and product pages belong to later phases. Local quality checks, browser tests and production package builds pass; live container verification remains blocked by the current host's missing Docker daemon. See the [verification record](docs/PHASE_STATUS.md).
+Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Scanning, identity, domain data and AI execution belong to later phases. Phase 3 adds the complete public marketing website. Local quality checks, browser tests and production package builds pass; live container verification remains blocked by the current host's missing Docker daemon. See the [verification record](docs/PHASE_STATUS.md).
 
 ## Design and motion laboratories
 
 Phase 2 adds an original wordmark, semantic dark tokens, accessible primitives and responsive shells. Run `pnpm --filter @aegisforge/web dev` and visit `/dev/ui` or `/dev/motion`. These routes are excluded from production. See [component and motion usage](docs/DESIGN_SYSTEM.md). No backend features or full product pages were added.
+
+## Public website (Phase 3)
+
+Run `pnpm --filter @aegisforge/web dev` and open `/`. Public routes cover the platform, five features, project packaging, searchable documentation and security/privacy/terms. The home story pins on desktop with GSAP scrub 0.8; mobile and reduced-motion preferences show all four steps in normal flow. Public navigation alone owns Lenis. The original cockpit is HTML/CSS and visibly illustrative; no findings, metrics, customers or connected integrations are fabricated.
+
+“Create a workspace” opens the local setup guide because registration is not implemented. The health utility remains at `/status`. Set `VITE_SITE_URL` to the actual deployment origin and `VITE_SECURITY_CONTACT` to a verified public email before publication. Both are validated public build settings; Compose forwards them into development and production build arguments. Build output includes per-route HTML metadata, sitemap, robots and JSON-LD; the localhost default disallows indexing. The content is client-rendered with a no-JavaScript notice. System fonts require no font download/preload; there are no raster images to load or resize. Routes are lazy-loaded and GSAP loads with the home story.
+
+Phase 3 does not deploy the application or clear Phase 1's live Docker gate. See [Phase 3 verification and limitations](docs/PHASE_STATUS.md#phase-3-public-website--2026-09-05).
 
 ## Quick start
 
@@ -24,7 +32,7 @@ make migrate
 
 `make setup` preserves an existing `.env`; otherwise it generates random local PostgreSQL/Redis passwords in a mode-0600 ignored file from `.env.example`. It installs frozen pnpm/uv dependencies and Chromium. On Linux, if Chromium reports missing OS libraries, run `pnpm --filter @aegisforge/web exec playwright install --with-deps chromium` with the necessary system permissions.
 
-Open [local service health](http://localhost:5173). Its refresh button calls the API through Vite's same-origin proxy. The page reports dependency failure honestly. The API exposes only `GET /health/live` (process alive, HTTP 200) and `GET /health/ready` (bounded PostgreSQL `SELECT 1` and Redis `PING`, HTTP 200 or 503). Both return a server-generated `X-Request-ID`; readiness does not expose dependency credentials or exception messages. API docs/OpenAPI routes are disabled in this phase.
+Open [local service health](http://localhost:5173/status). Its refresh button calls the API through Vite's same-origin proxy. The page reports dependency failure honestly. The API exposes only `GET /health/live` (process alive, HTTP 200) and `GET /health/ready` (bounded PostgreSQL `SELECT 1` and Redis `PING`, HTTP 200 or 503). Both return a server-generated `X-Request-ID`; readiness does not expose dependency credentials or exception messages. API docs/OpenAPI routes are disabled in this phase.
 
 ```sh
 curl --fail http://localhost:8000/health/live
@@ -59,7 +67,7 @@ make down
 
 The web container mounts `apps/web/src` read-only for Vite hot reload. Rebuild after dependency/configuration changes. API and worker use built source; rerun `make dev` after backend changes. The API Dockerfile and worker Dockerfile use non-root users. The worker registers no product tasks and receives no database credentials. Separate internal broker networks connect each process to Redis without connecting worker directly to API or PostgreSQL. This is a local topology, not Phase 5's execution-time scope/egress security boundary.
 
-Settings use the `AEGIS_` prefix and validated `dev`, `test`, `prod` profiles. All profiles require explicit connection URLs; production rejects DEBUG logging. Host-run API development needs real `AEGIS_DATABASE_URL` and `AEGIS_REDIS_URL` values; the Compose-only database and broker do not publish host ports. `.env` is not copied into images. `VITE_` values are public build-time browser configuration and must never contain secrets; the default empty API base uses the same-origin proxy. Lenis and animation libraries are installed but not activated on this operational root.
+Settings use the `AEGIS_` prefix and validated `dev`, `test`, `prod` profiles. All profiles require explicit connection URLs; production rejects DEBUG logging. Host-run API development needs real `AEGIS_DATABASE_URL` and `AEGIS_REDIS_URL` values; the Compose-only database and broker do not publish host ports. `.env` is not copied into images. `VITE_` values are public build-time browser configuration and must never contain secrets; the default empty API base uses the same-origin proxy. Lenis runs only in public marketing/laboratory layouts and is absent from `/status` and application layouts.
 
 ## Production-shaped local configuration
 

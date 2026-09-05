@@ -1,6 +1,6 @@
 # Phase status
 
-Current phase: **Phase 2 — Design system and motion laboratory implemented and verified**.
+Current phase: **Phase 3 — Public marketing website implemented and verified**.
 
 Phase 1 live Docker verification remains pending independently.
 
@@ -9,7 +9,7 @@ Phase 1 live Docker verification remains pending independently.
 - [x] Phase 0 - Documentation and acceptance verification complete; repository setup resolved
 - [ ] Phase 1 - Monorepo and executable tooling
 - [x] Phase 2 - Design system and development-only motion laboratory (explicit revised scope)
-- [ ] Phase 3 - Identity, organizations and application shell
+- [x] Phase 3 - Public marketing website and scrollytelling (explicit revised scope)
 - [ ] Phase 4 - Projects, targets and authorization
 - [ ] Phase 5 - Scan orchestration and isolated ZAP
 - [ ] Phase 6 - Evidence, findings and lifecycle
@@ -20,7 +20,7 @@ Phase 1 live Docker verification remains pending independently.
 - [ ] Phase 11 - Production infrastructure
 - [ ] Phase 12 - Final regression and handoff
 
-The user explicitly authorized Phase 2 design-system/laboratory work. Phase 3 and later remain unauthorized. Historical Phase 0/1 records below retain the authorization state at their original handoff.
+The user explicitly authorized Phase 3 public marketing website work. Identity and later implementation work remain outside this prompt. Historical Phase 0/1 records below retain the authorization state at their original handoff.
 
 ## Phase 0 historical discovery
 
@@ -138,3 +138,40 @@ Initial authoring syntax/type errors and a dropdown accessible-name test mismatc
 Inspected all four full-page screenshots for hierarchy, readable wrapping, grid/stack behavior, table containment and reduced-motion panels. Browser-automated manual-style checks exercise modal focus wrap/restoration, Escape, popover dismissal, mobile drawer navigation, normal pin creation, count-up, live reduced-motion changes and Lenis removal on app-shell navigation. No direct interactive human screen-reader review or non-Chromium browser certification is claimed. No supplied StackHawk media was available in this workspace; all identity/composition is original. Light-theme overrides are architecturally possible but not implemented or tested.
 
 Phase 1's live Docker/image/integration/migration gate remains pending because the host lacks Docker; Phase 2 frontend validation does not clear it. No schema changes require new migration tests. Phase 3 is the next planned implementation phase, requires an explicit prompt, and retains the outstanding Phase 1 infrastructure dependency. Stop after Phase 2.
+
+## Phase 3 public website — 2026-09-05
+
+Implemented the explicitly requested public frontend scope in `apps/web/src/marketing/`: home, shared public layout/cockpit/metadata, five dedicated feature routes, platform, project packaging, searchable docs and five child guides, security/privacy/terms, original responsive styles and four-step GSAP story. `src/Routes.tsx` owns lazy routes; health moved to `/status` and lab navigation follows it. Added `scripts/seo.mjs`, public environment validation, static metadata/sitemap/robots generation, Playwright marketing acceptance and configuration rejection tests. Updated README, BUILD_PLAN, DECISIONS, TEST_MATRIX and `.env.example`. Dockerfile and Compose forward the public site origin/contact settings into dev and production builds. No dependencies or lockfile resolutions changed, no backend schema changes and no deployment.
+
+Decisions: mint/cyan grid cockpit in original HTML/CSS; four steps across 320vh with scrub 0.8 and no snapping; normal-flow mobile/reduced-motion fallback; Lenis lifecycle limited to public layouts. Workspace CTAs lead to substantive setup docs because registration is unavailable. Every product specimen is illustrative and planned integrations are labeled. Security contact and canonical origin are validated public build settings. System fonts need no preload; there are no image assets requiring responsive/lazy loading. Page families are code-split; GSAP loads in the home chunk. Static per-route HTML provides SEO metadata before JavaScript; bodies are client-rendered with a no-JavaScript notice.
+
+### Commands and results
+
+The environment prefix selects the available Node 24/Python 3.12/uv toolchain:
+
+```sh
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache make check build test-e2e
+```
+
+- Formatter, ESLint, Ruff, strict TypeScript and mypy passed.
+- Vitest: 10 passed. Existing backend pytest: 9 passed, 3 real-service integration tests deselected; two unchanged upstream deprecation warnings.
+- Vite production bundle and API sdist/wheel passed. SEO generation completed for 17 public routes.
+- Initial browser regression: 27/29 passed; a React title with multiple children produced an empty title. Fixed to a single interpolated string; the next run passed 29/29 including axe.
+- Final expanded browser run: **30 passed** (52.7s), including all 17 routes, six responsive widths, axe home checks, pin transitions/cleanup, mobile/reduced-motion/short-height flow, CTA/search behavior, static SEO without JavaScript, trailing-slash routing and Lenis removal.
+
+Restricted Vite/browser startup failed with EPERM; approved external-sandbox execution succeeded. An initial formatter invocation included `.env.example`, which has no Prettier parser; configured repository formatting passes. The first expanded browser run passed 29/30: Playwright read empty text from the noscript element despite the notice being present; the check now verifies the original HTTP response alongside no-JavaScript title/canonical assertions. Initial script lint errors were fixed by importing Node URL. Route components moved out of the entry point to clear Fast Refresh warnings. Trailing-slash route normalization handles static directory hosting without selecting the wrong content.
+
+Final browser command after the last frontend adjustments (includes a fresh production build):
+
+```sh
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH pnpm --filter @aegisforge/web test-e2e
+COMPOSE=/tmp/aegis-tools/docker-compose python3 scripts/check_compose.py
+```
+
+Compose configuration assertions passed after the public build-setting wiring. Live image builds and Docker startup remain unavailable. Final frontend ESLint passed with no warnings; Git whitespace validation passed. The repository gate's browser portion initially failed as described above and was rerun successfully; it is not represented as a single uninterrupted green command.
+
+### Visual review and limitations
+
+Inspected the 390px mobile and 1440px desktop full-page home screenshots for typography, sequence, wrapping, technical-panel containment, original branding and stacked reduced-motion content. Browser checks exercise actual desktop pin transitions and cleanup, mobile navigation, route CTAs, search and accessibility. No supplied reference video exists in this workspace: the written alternating product-story rhythm is implemented, but exact video similarity cannot be verified. No human screen-reader test, non-Chromium certification or Lighthouse score is claimed. No real scanner findings, integrations, account creation or paid plans are presented as available.
+
+`VITE_SITE_URL` defaults to localhost with disallow-all robots. Set a real origin and verified `VITE_SECURITY_CONTACT` before public operation. Disclosure remains an explicit configuration placeholder as requested. Phase 1 Docker image/startup/integration/migration checks remain blocked by the missing daemon; frontend tests do not clear that gate. Next architectural work is identity/organizations/application shell, subject to an explicit next-phase prompt and the infrastructure gate. Stop after Phase 3.

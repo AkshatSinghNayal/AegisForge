@@ -53,3 +53,9 @@ Run configured formatter/linter, TypeScript/mypy, unit/integration tests and rel
 ## Phase 2 implemented coverage
 
 R20/R22: five component interaction tests cover Dialog, Dropdown, Tabs, Accordion and Sidebar. Chromium checks development labs at all seven requested widths, axe WCAG A/AA at 390/1440, four full-page screenshot baselines, real modal keyboard wrapping and focus restoration, popover dismissal and sidebar navigation, normal-motion pin/count-up and live reduced-motion cleanup. Production tests deny both development routes and retain the health journey. All displayed sample content is labeled illustrative/local; no requests execute scans. No backend schema or security boundary changes. See PHASE_STATUS for actual execution results.
+
+## Phase 3 public website acceptance
+
+`apps/web/e2e/marketing.spec.ts` covers all 17 public routes and unique metadata, internal destination inventory, setup/architecture CTAs, documentation search and empty state, six viewport widths (360–1920px), mobile drawer, normal desktop pin/crossfade, live reduced-motion teardown and stacked content, Lenis removal on health navigation, unknown docs, static metadata without JavaScript, trailing-slash routes, short desktop fallback, sitemap/robots, and axe WCAG A/AA checks on desktop/mobile home. Existing health and laboratory tests remain in the full regression. Frontend unit tests reject unsafe canonical origins and malformed public contact addresses. No domain change requires new database or scan-security integration tests in this phase.
+
+Screenshot outputs in `/tmp/aegis-home-{mobile,desktop}.png` support visual inspection and are not invented screenshot-regression baselines. No supplied reference video, direct screen-reader session, non-Chromium certification, Lighthouse measurement or live Docker verification is claimed.

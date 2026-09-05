@@ -8,6 +8,8 @@ services:
     ports: ['127.0.0.1:5173:5173']
     environment:
       API_PROXY_TARGET: http://api:8000
+      VITE_SITE_URL: ${VITE_SITE_URL:-http://localhost:5173}
+      VITE_SECURITY_CONTACT: ${VITE_SECURITY_CONTACT:-}
     volumes:
       - ./apps/web/src:/workspace/apps/web/src:ro
     depends_on:

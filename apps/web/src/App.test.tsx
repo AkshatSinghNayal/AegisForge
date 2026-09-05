@@ -27,6 +27,26 @@ describe('foundation', () => {
     ).toBeInTheDocument();
     expect(await screen.findByText(message)).toBeInTheDocument();
   });
+  it('rejects unsafe public configuration', () => {
+    for (const value of [
+      'javascript:alert(1)',
+      'https://user:secret@example.com',
+      'https://example.com/path',
+      'https://example.com/?token=x',
+    ])
+      expect(envSchema.safeParse({ VITE_SITE_URL: value }).success).toBe(false);
+    expect(
+      envSchema.safeParse({
+        VITE_SECURITY_CONTACT: 'a@example.com\\r\\nBcc:evil@example.com',
+      }).success,
+    ).toBe(false);
+    expect(
+      envSchema.safeParse({
+        VITE_SITE_URL: 'https://example.com',
+        VITE_SECURITY_CONTACT: 'security@example.com',
+      }).success,
+    ).toBe(true);
+  });
   it('rejects unsafe API schemes', () => {
     expect(
       envSchema.safeParse({ VITE_API_BASE_URL: 'javascript:alert(1)' }).success,
