@@ -49,3 +49,7 @@ Run configured formatter/linter, TypeScript/mypy, unit/integration tests and rel
 - R20 foundation only: root render, validated ready/error responses, unsafe API scheme rejection, keyboard refresh in Chromium. Public route/accessibility/motion coverage remains Phase 2.
 - R22: the root explicitly identifies Phase 1 limitations. `seed-demo` does not fabricate domain records. `.env.example` contains blank credential fields and safe descriptions; setup generates ignored local secrets.
 - Verification is recorded in PHASE_STATUS. Live integration tests and Docker builds exist but are not counted as passed without execution. There are no domain schema changes to validate yet; fresh/repeated Alembic runner checks remain in the live Compose CI gate.
+
+## Phase 2 implemented coverage
+
+R20/R22: five component interaction tests cover Dialog, Dropdown, Tabs, Accordion and Sidebar. Chromium checks development labs at all seven requested widths, axe WCAG A/AA at 390/1440, four full-page screenshot baselines, real modal keyboard wrapping and focus restoration, popover dismissal and sidebar navigation, normal-motion pin/count-up and live reduced-motion cleanup. Production tests deny both development routes and retain the health journey. All displayed sample content is labeled illustrative/local; no requests execute scans. No backend schema or security boundary changes. See PHASE_STATUS for actual execution results.

@@ -4,6 +4,10 @@ DevSecOps Vulnerability Intelligence Engine for authorized web applications and 
 
 Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Scanning, identity, domain data, AI and product pages belong to later phases. Local quality checks, browser tests and production package builds pass; live container verification remains blocked by the current host's missing Docker daemon. See the [verification record](docs/PHASE_STATUS.md).
 
+## Design and motion laboratories
+
+Phase 2 adds an original wordmark, semantic dark tokens, accessible primitives and responsive shells. Run `pnpm --filter @aegisforge/web dev` and visit `/dev/ui` or `/dev/motion`. These routes are excluded from production. See [component and motion usage](docs/DESIGN_SYSTEM.md). No backend features or full product pages were added.
+
 ## Quick start
 
 Prerequisites: Node.js 24 LTS, pnpm 11.19.0, uv 0.12.10, Python 3.12 (uv can download it), Make, and Docker Engine with Compose 2.24.4+ (tested configuration with Compose 5.5.1). Install Docker and uv using their official installers for your OS. No system package installation is performed by `make setup`.
@@ -44,7 +48,7 @@ make down
 | `make lint`             | Prettier, ESLint, Ruff lint and format check                                      |
 | `make typecheck`        | Strict TypeScript and mypy                                                        |
 | `make test`             | Frontend and backend unit/security tests                                          |
-| `make test-e2e`         | Chromium journey against a production Vite build                                  |
+| `make test-e2e`         | Production health/exclusion and dev lab Chromium tests                            |
 | `make test-integration` | Disposable test image; actual PostgreSQL/Redis readiness tests                    |
 | `make migrate`          | Alembic upgrade to head; no domain migrations exist yet                           |
 | `make seed-demo`        | Explain that no Phase 1 domain/demo data exists; no mutation                      |

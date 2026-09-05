@@ -1,12 +1,14 @@
 # Phase status
 
-Current phase: **Phase 1 - Foundation implemented; live Docker verification pending**.
+Current phase: **Phase 2 — Design system and motion laboratory implemented and verified**.
+
+Phase 1 live Docker verification remains pending independently.
 
 ## Execution checklist
 
 - [x] Phase 0 - Documentation and acceptance verification complete; repository setup resolved
 - [ ] Phase 1 - Monorepo and executable tooling
-- [ ] Phase 2 - Original public website and design system
+- [x] Phase 2 - Design system and development-only motion laboratory (explicit revised scope)
 - [ ] Phase 3 - Identity, organizations and application shell
 - [ ] Phase 4 - Projects, targets and authorization
 - [ ] Phase 5 - Scan orchestration and isolated ZAP
@@ -18,7 +20,7 @@ Current phase: **Phase 1 - Foundation implemented; live Docker verification pend
 - [ ] Phase 11 - Production infrastructure
 - [ ] Phase 12 - Final regression and handoff
 
-Phase 1 is explicitly authorized. Phase 2 and later remain unauthorized.
+The user explicitly authorized Phase 2 design-system/laboratory work. Phase 3 and later remain unauthorized. Historical Phase 0/1 records below retain the authorization state at their original handoff.
 
 ## Phase 0 historical discovery
 
@@ -101,3 +103,38 @@ Provide a working Docker Engine/Compose environment and run `make dev migrate te
 ### Final local handoff
 
 The final available checks pass: 4 frontend tests, 9 backend tests, 1 Chromium journey, formatter/lint/strict types, production web and API packages, and rendered Compose assertions. Actual Docker startup/image builds/integration/migrations remain blocked as described above. The phase is intentionally not marked complete. No Phase 2 work was started.
+
+## Phase 2 implementation and verification — 2026-09-05
+
+Implemented the explicitly requested frontend-only scope. Files: `apps/web/src/ui/index.tsx` (all requested primitives and original shield/anvil wordmark), `src/ui/shells.tsx` (responsive public/app shells and scoped Lenis), `src/dev/UiLab.tsx`, `src/dev/MotionLab.tsx`, `src/style.css` (semantic tokens and responsive styling), and compile-time development routes in `src/main.tsx`. Added component/browser tests, four screenshot baselines, axe 4.13.0 as an exact dev dependency and updated pnpm lock. Updated README, BUILD_PLAN, DECISIONS, TEST_MATRIX, DESIGN_SYSTEM and `.env.example` (no new runtime settings). No backend code, migrations, product pages or scan execution was added.
+
+Decisions: original charcoal/mint/ember identity, local system fonts, native semantic controls and top-layer overlays, 1024px sidebar breakpoint, isolated development imports, transform/opacity motion with full reduced-motion document flow. Full public pages in the provisional roadmap are superseded by this user's narrower Phase 2 prompt. All mocks are visibly illustrative.
+
+### Commands and results
+
+Commands used the available Node 24/uv toolchain prefix:
+
+```sh
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache make check build
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH pnpm --filter @aegisforge/web exec playwright test --update-snapshots
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH pnpm --filter @aegisforge/web exec playwright test
+```
+
+| Check                              | Result                                                                                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Prettier, ESLint, Ruff lint/format | Passed                                                                                                                             |
+| Strict TypeScript / mypy           | Passed                                                                                                                             |
+| Vitest / existing backend pytest   | 9 frontend passed (including 5 component interaction tests); 9 backend passed, 3 service integration tests deliberately excluded   |
+| Production web and API packages    | Passed; development lab text/GSAP absent from built JavaScript                                                                     |
+| Chromium browser suite             | 19 passed: health, two production exclusions, 14 viewport checks, modal/sidebar/popover interaction, motion/reduced-motion cleanup |
+| Axe accessibility smoke            | Zero WCAG A/AA violations for both labs at 390 and 1440px                                                                          |
+| Screenshot baselines               | Four full-page Chromium/Linux images: UI/motion at 390/1440px; visually reviewed and compared                                      |
+| Viewport overflow                  | No horizontal overflow at 360, 390, 768, 1024, 1280, 1440, 1920px                                                                  |
+
+Initial authoring syntax/type errors and a dropdown accessible-name test mismatch were fixed before the final gate. Browser testing exposed native dialog Shift+Tab reaching browser chrome; explicit wrapping fixed it. The decorative-arrow accessibility fix changed only the dropdown spacing in two UI screenshots; the reviewed baselines were updated. The final 44px wordmark touch target also adjusted its vertical alignment; the two motion screenshot diffs were reviewed and accepted. Restricted dependency installation failed on pnpm store access, browser startup failed inside the sandbox, and the existing backend test runner stalled there; approved unrestricted execution passed. Upstream backend deprecation warnings remain unchanged. These initial failures are not counted as passing checks.
+
+### Visual/manual review and limitations
+
+Inspected all four full-page screenshots for hierarchy, readable wrapping, grid/stack behavior, table containment and reduced-motion panels. Browser-automated manual-style checks exercise modal focus wrap/restoration, Escape, popover dismissal, mobile drawer navigation, normal pin creation, count-up, live reduced-motion changes and Lenis removal on app-shell navigation. No direct interactive human screen-reader review or non-Chromium browser certification is claimed. No supplied StackHawk media was available in this workspace; all identity/composition is original. Light-theme overrides are architecturally possible but not implemented or tested.
+
+Phase 1's live Docker/image/integration/migration gate remains pending because the host lacks Docker; Phase 2 frontend validation does not clear it. No schema changes require new migration tests. Phase 3 is the next planned implementation phase, requires an explicit prompt, and retains the outstanding Phase 1 infrastructure dependency. Stop after Phase 2.
