@@ -53,3 +53,13 @@ Decision: Phase 0 adds only Markdown documentation. No environment scaffold or d
 ## ADR-013: Repository connected after Phase 0
 
 On 2026-09-05 the user supplied `git@github.com:AkshatSinghNayal/AegisForge.git` and authorized setup. SSH read access succeeded. Preserve the remote initial commit `19ed322` (title-only README), attach local `main` to it, and track `origin/main`. Retain the expanded local README and all Phase 0 documents. The Git blocker in ADR-012 is resolved; its discovery record remains historical.
+
+## ADR-014: Phase 1 executable foundation
+
+The explicit Phase 1 prompt authorizes only monorepo/local tooling. Resolve stable packages and commit pnpm and uv locks. Node 24, pnpm 11.19.0, Python 3.12 and uv 0.12.10 are the supported toolchain. TypeScript 6.0.3 stays inside typescript-eslint 8.69.0's supported `<6.1` range; the registry's newer TypeScript 7 is incompatible. React 19.2.8, Vite 8.2.2, Vitest 5.0.0, FastAPI 0.141.1 and SQLAlchemy 2.0.52 were resolved; lockfiles are authoritative. Official image registries confirmed all selected image tags. [ZAP's official version manifest](https://raw.githubusercontent.com/zaproxy/zap-admin/master/ZapVersions.xml) identifies stable 2.17.0; the image is additionally pinned to its registry manifest digest.
+
+The root is a functional service-health utility, not a placeholder product page. Only two API health routes are enabled. Real PostgreSQL/Redis probes are bounded; failure produces HTTP 503 without exceptions or credentials. Server-generated request IDs avoid trusting caller headers. JSON logs allowlist event/status/ID/timestamp/level; arbitrary third-party messages and exception text are omitted to keep health logging free of secrets.
+
+Use a production override file (Compose `!reset`/`!override`, requiring 2.24.4+) rather than duplicate development/production services. Database and broker never publish host ports. Worker has a separate internal broker network and receives no database credentials. Redis bridges the two broker networks as a service, not a router. Worker/scanner cannot share API or database networks; the idle, disabled-by-profile ZAP service has `network_mode: none`. Per-scan authorization, runtime target egress enforcement and the runner remain Phase 5 work.
+
+Environment setup generates ignored local credentials once and does not overwrite existing files. No Phase 1 tables exist; Alembic has no domain revision and `seed-demo` explicitly makes no changes. CI owns automatic checks; no hooks are installed into protected Git metadata. Real container startup/migration/image builds remain a required verification gate when a Docker daemon is available. Passing package builds or Compose rendering do not substitute for that gate.

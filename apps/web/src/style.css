@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+:root {
+  font-family: system-ui, sans-serif;
+  color: #f1f5f9;
+  background: #0f172a;
+  color-scheme: dark;
+}
+button {
+  cursor: pointer;
+}

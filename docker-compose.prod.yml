@@ -1,0 +1,17 @@
+# Production-shaped local verification, not the Phase 11 deployment.
+services:
+  web:
+    build:
+      target: production
+    volumes: !reset []
+    ports: !override ['127.0.0.1:8080:8080']
+    environment: !reset {}
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/']
+  api:
+    environment:
+      AEGIS_PROFILE: prod
+    ports: !reset []
+  worker:
+    environment:
+      AEGIS_PROFILE: prod

@@ -1,0 +1,28 @@
+name: Foundation quality
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install -g pnpm@11.19.0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.10'
+          python-version: '3.12'
+      - run: make setup
+      - run: pnpm --filter @aegisforge/web exec playwright install --with-deps chromium
+      - run: pnpm check
+      - run: make build test-e2e compose-config
+      - run: make dev migrate test-integration
+      - run: make migrate
+      - run: docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+      - run: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
+      - run: curl --fail http://localhost:8080/health/ready
+      - if: always()
+        run: make down

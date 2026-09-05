@@ -1,0 +1,6 @@
+services:
+  api:
+    build:
+      dockerfile: apps/api/Dockerfile.test
+    environment:
+      AEGIS_PROFILE: test

@@ -1,0 +1,13 @@
+pnpm-lock.yaml
+uv.lock
+apps/api/uv.lock
+node_modules
+dist
+.venv
+playwright-report
+test-results
+
+# Preserve architecture baseline formatting.
+docs/API_CONTRACT.md
+docs/architecture/
+docs/security/

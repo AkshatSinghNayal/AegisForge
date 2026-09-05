@@ -1,0 +1,17 @@
+{
+  "name": "aegisforge",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "check": "make lint typecheck test",
+    "build": "pnpm --filter @aegisforge/web build && uv build --project apps/api",
+    "format": "prettier --write . && uv run --project apps/api ruff format apps/api",
+    "test-e2e": "pnpm --filter @aegisforge/web test-e2e"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  },
+  "engines": {
+    "node": ">=24 <25"
+  }
+}
