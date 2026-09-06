@@ -1,6 +1,8 @@
 # Phase status
 
-Current phase: **Phase 3 — Strict review completed; CONDITIONAL PASS with no unresolved implementation blockers**.
+Current phase: **Phase 3 implementation retained — retroactive Phase 0–2 review completed on 2026-09-06**.
+
+Retroactive verdicts: **Phase 0 PASS; Phase 1 PASS; Phase 2 CONDITIONAL PASS**. Phase 2 shared form-label and unavailable-clipboard blockers were reproduced and fixed; 49 browser tests pass. Phase 3 consumer links remain below the 44px design target (footer 23.77px, home outcome links 26.39px, docs masthead 15px), outside the permitted fix scope. Automated Chromium review is not human assistive-technology or cross-browser certification. See the newest section of [TEST_REPORT](TEST_REPORT.md).
 
 Phase 1 live Docker verification is complete as of 2026-09-06: all five default services healthy in development and production configurations, 3/3 real-service integration tests passed, migrations succeeded twice, and review containers/volumes/networks were removed. See [the final test report](TEST_REPORT.md).
 
@@ -196,3 +198,13 @@ Docker access initially used stale process group membership; `sg docker` activat
 Teardown `down --volumes --remove-orphans` succeeded. Label-filtered assertions confirmed **zero review containers, zero review volumes and zero review networks** afterward. Other projects and cached images were preserved. The opt-in idle ZAP profile was configuration-validated, not started; no target scan was run.
 
 See [TEST_REPORT](TEST_REPORT.md) for exact commands, reproduced failures and complete scope/limitation details. The original blocked integration notes above are historical; no required backend test remains unexecuted because of Docker availability.
+
+## Retroactive Phase 0–2 review — 2026-09-06
+
+Read the original Master Context and Phase 0/1/2 prompts from the earlier tasks, the separate phase commits and subsequent changes, architecture contracts, implementation and executable tests. Verified a clean export of `888ae88` with newly generated credentials and no copied dependency directories or data volumes. System dependency caches and Docker layers were reused.
+
+- Phase 0: **PASS** after correcting stale identity phase mappings, planned-versus-existing repository layout, AGENTS baseline wording and the design guide’s health URL. All 35 entity ownership/retention rows and 13 acyclic forward state edges checked; all three current Mermaid diagrams rendered. Deferred tenant/scanner/AI/report contracts are not claimed as implemented.
+- Phase 1: **PASS**. Frozen setup, quality and package builds passed. Fresh development and production Compose projects each had web/api/worker/postgres/redis healthy. Real-service integration: 3 passed; existing-head migration twice, temporary revision generation/upgrade/downgrade and unmocked Nginx browser health refresh passed. Remote hosted CI was not run; its local commands were exercised. No domain migration exists or is introduced.
+- Phase 2: **CONDITIONAL PASS** after fixing two reproduced shared-component defects. Final browser suite: 49 passed, including all requested widths, four unchanged screenshot baselines, 119 public axe/layout combinations, and 14 lab target/axe combinations. All measured visible enabled lab targets meet 44px; Phase 3 links listed above do not. Phase 3 remains unchanged. Chromium only; no human screen-reader certification.
+
+Updated AGENTS, README, BUILD_PLAN, DECISIONS, DESIGN_SYSTEM, TEST_MATRIX, this status and TEST_REPORT. Code changes are limited to Phase 2 primitives, their unit regressions and seven browser regression cases. `.env.example`, dependencies, backend and Phase 3 files required no changes. See TEST_REPORT for commands, failures and teardown evidence. No Phase 4 work started; identity remains an architectural prerequisite awaiting an explicit phase prompt.

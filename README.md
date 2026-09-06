@@ -14,7 +14,7 @@ Run `pnpm --filter @aegisforge/web dev` and open `/`. Public routes cover the pl
 
 “Create a workspace” opens the local setup guide because registration is not implemented. The health utility remains at `/status`. Set `VITE_SITE_URL` to the actual deployment origin and `VITE_SECURITY_CONTACT` to a verified public email before publication. Both are validated public build settings; Compose forwards them into development and production build arguments. Build output includes per-route HTML metadata, sitemap, robots and JSON-LD; the localhost default disallows indexing. The content is client-rendered with a no-JavaScript notice. System fonts require no font download/preload; there are no raster images to load or resize. Routes are lazy-loaded and GSAP loads with the home story.
 
-The Phase 3 review cleared the Phase 1 live Docker gate and removed its isolated test stack afterward. No public deployment was performed. See the [final review report](docs/TEST_REPORT.md) and [phase status](docs/PHASE_STATUS.md).
+The Phase 3 review cleared the Phase 1 live Docker gate; the retroactive Phase 0–2 audit independently repeated it from a clean export and removed its isolated stack afterward. Phase 2 form-label and clipboard defects were fixed. Direct measurements identified Phase 3 links below the 44px design target; those remain outside the audit’s fix scope. No public deployment was performed. See the [final review report](docs/TEST_REPORT.md) and [phase status](docs/PHASE_STATUS.md).
 
 ## Quick start
 

@@ -1,6 +1,6 @@
 # AegisForge design system v0.2
 
-Phase 2 is a frontend laboratory, not an operational product. Run `pnpm --filter @aegisforge/web dev` and visit `/dev/ui` and `/dev/motion`. Both modules are lazy imported behind Vite's compile-time `import.meta.env.DEV`; production builds omit the lab modules and render Page not found at both URLs. The existing `/` health utility remains functional. No new environment variables, backend features, authorization claims or domain data are introduced.
+Phase 2 is a frontend laboratory, not an operational product. Run `pnpm --filter @aegisforge/web dev` and visit `/dev/ui` and `/dev/motion`. Both modules are lazy imported behind Vite's compile-time `import.meta.env.DEV`; production builds omit the lab modules and render Page not found at both URLs. The health utility remains functional at `/status`; Phase 3 now owns `/`. No new environment variables, backend features, authorization claims or domain data are introduced.
 
 ## Identity and foundations
 

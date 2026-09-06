@@ -36,20 +36,20 @@ Each route ships with working behavior in its owning phase; do not introduce pla
 
 ## Synopsis module traceability
 
-| Synopsis module                           | Phases | Requirement/test IDs |
-| ----------------------------------------- | ------ | -------------------- |
-| 7.1 Authentication and project management | 3, 4   | R01, R02, R03        |
-| 7.2 Target configuration                  | 4      | R04, R05             |
-| 7.3 Vulnerability scanning                | 5, 6   | R06, R07, R08        |
-| 7.4 AI analysis                           | 7      | R09, R10             |
-| 7.5 Scan history and reports              | 6, 9   | R08, R11, R12        |
-| 7.6 CI/CD integration                     | 8, 10  | R13, R14, R15        |
-| 7.7 Dashboard and analytics               | 9      | R16                  |
-| 7.8 Cloud deployment and storage          | 11     | R17, R18             |
-| 7.9 Administration                        | 3, 10  | R02, R19             |
+| Synopsis module                           | Phases                          | Requirement/test IDs |
+| ----------------------------------------- | ------------------------------- | -------------------- |
+| 7.1 Authentication and project management | Identity prerequisite (TBD), 4  | R01, R02, R03        |
+| 7.2 Target configuration                  | 4                               | R04, R05             |
+| 7.3 Vulnerability scanning                | 5, 6                            | R06, R07, R08        |
+| 7.4 AI analysis                           | 7                               | R09, R10             |
+| 7.5 Scan history and reports              | 6, 9                            | R08, R11, R12        |
+| 7.6 CI/CD integration                     | 8, 10                           | R13, R14, R15        |
+| 7.7 Dashboard and analytics               | 9                               | R16                  |
+| 7.8 Cloud deployment and storage          | 11                              | R17, R18             |
+| 7.9 Administration                        | Identity prerequisite (TBD), 10 | R02, R19             |
 
 ## Phase-wide definition of done
 
 A phase requires its acceptance tests plus formatting, lint, strict types, unit/integration tests and relevant production build. Run E2E tests for changed journeys, tenant/security tests for changed boundaries, migrations against fresh and upgraded databases, and update documentation/configuration. A failed or unavailable required check blocks the corresponding release claim. Phase 1 supplies executable checks; see PHASE_STATUS for actual results and remaining infrastructure gates.
 
-Repository layout follows `apps/web`, `apps/api`, `packages/api-client`, `packages/eslint-config`, `packages/design-tokens`, `scanner`, `infra`, `docs` and `.github/workflows`. Do not scaffold these directories before Phase 1 unless they contain current documentation.
+Implemented layout: `apps/web`, `apps/api`, `infra`, `docs`, `scripts` and `.github/workflows`. Shared client/config/token packages and `scanner` are planned extractions when consumers or execution exist; they are not present in the foundation. Tokens and ESLint configuration currently live in `apps/web`.

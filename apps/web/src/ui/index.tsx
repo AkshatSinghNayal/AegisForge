@@ -75,7 +75,8 @@ export function Input({
   error,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }) {
-  const id = useId();
+  const generatedId = useId();
+  const id = props.id ?? generatedId;
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
@@ -97,7 +98,8 @@ export function Textarea({
   label,
   ...props
 }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) {
-  const id = useId();
+  const generatedId = useId();
+  const id = props.id ?? generatedId;
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
@@ -109,7 +111,8 @@ export function Select({
   label,
   ...props
 }: SelectHTMLAttributes<HTMLSelectElement> & { label: string }) {
-  const id = useId();
+  const generatedId = useId();
+  const id = props.id ?? generatedId;
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
@@ -530,10 +533,14 @@ export function CopyButton({ text }: { text: string }) {
     <Button
       variant="ghost"
       onClick={() => {
-        void navigator.clipboard.writeText(text).then(
-          () => setStatus('Copied'),
-          () => setStatus('Copy unavailable'),
-        );
+        void (async () => {
+          try {
+            await navigator.clipboard.writeText(text);
+            setStatus('Copied');
+          } catch {
+            setStatus('Copy unavailable');
+          }
+        })();
       }}
     >
       <span role="status">{status}</span>

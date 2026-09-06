@@ -2,7 +2,16 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import { Accordion, Dialog, Dropdown, Tabs } from './index';
+import {
+  Accordion,
+  Dialog,
+  Dropdown,
+  Tabs,
+  Input,
+  Textarea,
+  Select,
+  CopyButton,
+} from './index';
 import { AppShell } from './shells';
 describe('component interactions', () => {
   it('switches tabs with arrows and Home/End', async () => {
@@ -115,5 +124,35 @@ describe('component interactions', () => {
       )!,
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
+
+describe('reusable form and clipboard contracts', () => {
+  it('keeps caller-supplied IDs associated with labels and errors', () => {
+    render(
+      <>
+        <Input id="target" label="Target" error="Required" />
+        <Textarea id="notes" label="Notes" />
+        <Select id="mode" label="Mode">
+          <option>Passive</option>
+        </Select>
+      </>,
+    );
+    expect(screen.getByLabelText('Target')).toHaveAttribute('id', 'target');
+    expect(screen.getByLabelText('Target')).toHaveAccessibleDescription(
+      'Required',
+    );
+    expect(screen.getByLabelText('Notes')).toHaveAttribute('id', 'notes');
+    expect(screen.getByLabelText('Mode')).toHaveAttribute('id', 'mode');
+  });
+  it('reports an unavailable Clipboard API without claiming success', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(navigator, 'clipboard', 'get').mockReturnValue(
+      undefined as unknown as Clipboard,
+    );
+    render(<CopyButton text="safe example" />);
+    await user.click(screen.getByRole('button', { name: 'Copy' }));
+    expect(screen.getByRole('status')).toHaveTextContent('Copy unavailable');
+    vi.restoreAllMocks();
   });
 });
