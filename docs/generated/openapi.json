@@ -156,6 +156,9 @@
           "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "status": "ready"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/Health"
                 }
@@ -202,6 +205,19 @@
               }
             },
             "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "unavailable"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Dependencies unavailable"
           }
         },
         "summary": "Ready"

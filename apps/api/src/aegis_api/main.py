@@ -95,7 +95,18 @@ def create_app(
     async def live() -> Health:
         return Health(status="alive")
 
-    @app.get("/health/ready", response_model=Health)
+    @app.get(
+        "/health/ready",
+        response_model=Health,
+        responses={
+            200: {"content": {"application/json": {"example": {"status": "ready"}}}},
+            503: {
+                "model": Health,
+                "description": "Dependencies unavailable",
+                "content": {"application/json": {"example": {"status": "unavailable"}}},
+            },
+        },
+    )
     async def ready(request: Request, response: Response) -> Health:
         if not await request.app.state.probe.check():
             response.status_code = 503

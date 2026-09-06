@@ -195,12 +195,16 @@ def expected_version(if_match: str | None) -> int:
         and if_match[1:-1].isdigit()
     ):
         raise APIError(
-            400, "invalid_precondition", "Use a quoted positive resource version."
+            400,
+            "invalid_precondition",
+            "Use a quoted resource version between 1 and 2147483647.",
         )
     value = int(if_match[1:-1])
-    if value < 1:
+    if not 1 <= value <= 2_147_483_647:
         raise APIError(
-            400, "invalid_precondition", "Use a quoted positive resource version."
+            400,
+            "invalid_precondition",
+            "Use a quoted resource version between 1 and 2147483647.",
         )
     return value
 

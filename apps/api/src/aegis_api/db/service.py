@@ -60,6 +60,28 @@ class CommandService:
             )
         if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
             raise ValueError("Expected SHA-256 request digest")
+        # Roll back the receipt and callback writes even when the caller catches
+        # the error and commits unrelated work in its outer transaction.
+        async with self._session.begin_nested():
+            return await self._execute(
+                operation=operation,
+                key=key,
+                digest=digest,
+                resource_id=resource_id,
+                status=status,
+                create=create,
+            )
+
+    async def _execute(
+        self,
+        *,
+        operation: str,
+        key: str,
+        digest: str,
+        resource_id: UUID,
+        status: int,
+        create: Callable[[UUID], Awaitable[None]],
+    ) -> CommandResult:
         now = await self._session.scalar(select(func.clock_timestamp()))
         assert now is not None
         values = dict(
@@ -91,8 +113,13 @@ class CommandService:
                     IdempotencyRecord.key_hash == values["key_hash"],
                 )
                 .with_for_update()
+                .execution_options(populate_existing=True)
             )
             assert existing is not None
+            # Row locking can wait; compare expiry against the time after the
+            # lock and read refreshed values, not the session identity map.
+            now = await self._session.scalar(select(func.clock_timestamp()))
+            assert now is not None
             if existing.expires_at > now:
                 if existing.request_digest != digest:
                     raise APIError(

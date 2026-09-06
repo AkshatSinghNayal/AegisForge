@@ -18,7 +18,7 @@ The Phase 3 review cleared the Phase 1 live Docker gate; the retroactive Phase 0
 
 ## Database foundation (Phase 4)
 
-`make migrate` applies revision `0001`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; future authenticated dependencies must resolve it and enforce roles/project membership. No authentication, scan/report creation routes, secret storage, webhook receiver or delivery worker ships in this phase.
+`make migrate` applies revisions `0001`–`0002`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; future authenticated dependencies must resolve it and enforce roles/project membership. Revision 0002 rejects passing evaluations that contradict the persisted scan. No authentication, scan/report creation routes, secret storage, webhook receiver or delivery worker ships in this phase.
 
 Run `make schema-docs` to regenerate [OpenAPI](docs/generated/openapi.json), [convention schemas](docs/generated/conventions.schema.json) and the [database catalog](docs/generated/database-schema.md). `make schema-check` detects drift. `make test-integration` requires the isolated test profile and database-create permission: it provisions a uniquely named disposable database, tests upgrade/downgrade/re-upgrade and two-organization isolation, then drops only that database. Never run manual downgrades against retained data; revision 0001 downgrade removes the foundation.
 
@@ -66,7 +66,7 @@ make down
 | `make test`             | Frontend and backend unit/security tests                                          |
 | `make test-e2e`         | Production health/exclusion and dev lab Chromium tests                            |
 | `make test-integration` | Disposable test image; actual PostgreSQL/Redis readiness tests                    |
-| `make migrate`          | Alembic upgrade to head; applies Phase 4 revision 0001                            |
+| `make migrate`          | Alembic upgrade to head; applies Phase 4 revisions 0001–0002                      |
 | `make seed-demo`        | Explain that no demo seed is implemented; no mutation                             |
 | `make clean-generated`  | Remove only enumerated build/test caches; preserve .env, dependencies and volumes |
 | `make build`            | Web distribution plus API sdist/wheel                                             |

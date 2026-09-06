@@ -52,9 +52,57 @@ def test_migration_roundtrip(migrated_database: str) -> None:
 
     assert asyncio.run(tables()) == set(Base.metadata.tables) | {"alembic_version"}
     command.check(migration_config())
+
+    # Latest-revision downgrade must preserve the foundation and existing data.
+    async def marker(*, insert: bool = False) -> bool:
+        engine = create_async_engine(migrated_database, hide_parameters=True)
+        async with engine.begin() as conn:
+            if insert:
+                await conn.execute(
+                    text(
+                        "INSERT INTO organizations (name, slug, status, version) "
+                        "VALUES ('Synthetic migration marker', 'migration-marker', "
+                        "'active', 1)"
+                    )
+                )
+            found = await conn.scalar(
+                text(
+                    "SELECT count(*) FROM organizations WHERE slug = 'migration-marker'"
+                )
+            )
+        await engine.dispose()
+        return found == 1
+
+    async def guard_installed() -> bool:
+        engine = create_async_engine(migrated_database, hide_parameters=True)
+        async with engine.connect() as conn:
+            count = await conn.scalar(
+                text(
+                    "SELECT count(*) FROM pg_trigger "
+                    "WHERE tgname = 'policy_evaluations_scan_guard'"
+                )
+            )
+            function = await conn.scalar(
+                text("SELECT to_regprocedure('aegis_validate_passing_evaluation()')")
+            )
+        await engine.dispose()
+        assert (count == 1) == (function is not None)
+        return count == 1
+
+    assert asyncio.run(guard_installed())
+    assert asyncio.run(marker(insert=True))
     command.downgrade(migration_config(), "-1")
-    assert asyncio.run(tables()) == {"alembic_version"}
+    assert not asyncio.run(guard_installed())
+    assert asyncio.run(tables()) == set(Base.metadata.tables) | {"alembic_version"}
+    assert asyncio.run(marker())
     command.upgrade(migration_config(), "head")
+    command.upgrade(migration_config(), "head")
+    assert asyncio.run(marker())
+    assert asyncio.run(guard_installed())
+    command.check(migration_config())
+    # Retain the original empty-foundation roundtrip as well.
+    command.downgrade(migration_config(), "base")
+    assert asyncio.run(tables()) == {"alembic_version"}
     command.upgrade(migration_config(), "head")
     command.check(migration_config())
 

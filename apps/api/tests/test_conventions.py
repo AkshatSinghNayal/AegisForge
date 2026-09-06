@@ -137,6 +137,17 @@ def test_schema_catalog_contains_only_safe_responses() -> None:
     assert len(Base.metadata.tables) == 23
     api = json.loads(docs["openapi.json"])
     assert set(api["paths"]) == {"/health/live", "/health/ready"}
+    responses = api["paths"]["/health/ready"]["get"]["responses"]
+    assert responses["200"]["content"]["application/json"]["example"] == {
+        "status": "ready"
+    }
+    response = responses["503"]
+    assert response["content"]["application/json"]["example"] == {
+        "status": "unavailable"
+    }
+    assert response["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/Health"
+    }
     for name in [
         "password_hash",
         "token_hash",
@@ -150,3 +161,9 @@ def test_schema_catalog_contains_only_safe_responses() -> None:
         "created_at" in table.c and "updated_at" in table.c
         for table in Base.metadata.tables.values()
     )
+
+
+def test_version_precondition_rejects_postgres_integer_overflow() -> None:
+    with pytest.raises(APIError) as error:
+        expected_version('"2147483648"')
+    assert error.value.status == 400
