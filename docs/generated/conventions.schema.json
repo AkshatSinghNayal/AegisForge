@@ -1,0 +1,474 @@
+{
+  "ErrorResponse": {
+    "$defs": {
+      "Error": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "items": {
+              "$ref": "#/$defs/ErrorDetail"
+            },
+            "title": "Details",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "format": "uuid",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "Error",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "code"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "error": {
+        "$ref": "#/$defs/Error"
+      }
+    },
+    "required": [
+      "error"
+    ],
+    "title": "ErrorResponse",
+    "type": "object"
+  },
+  "EventCollection": {
+    "$defs": {
+      "EventSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "title": "Attempt",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "message_code": {
+            "title": "Message Code",
+            "type": "string"
+          },
+          "scan_id": {
+            "format": "uuid",
+            "title": "Scan Id",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "stage": {
+            "$ref": "#/$defs/ScanState"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "scan_id",
+          "sequence",
+          "stage",
+          "message_code",
+          "attempt"
+        ],
+        "title": "EventSummary",
+        "type": "object"
+      },
+      "Page": {
+        "additionalProperties": false,
+        "properties": {
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "next_cursor",
+          "has_more"
+        ],
+        "title": "Page",
+        "type": "object"
+      },
+      "ScanState": {
+        "enum": [
+          "draft",
+          "queued",
+          "validating_target",
+          "preparing_scanner",
+          "spidering",
+          "passive_scanning",
+          "active_scanning",
+          "collecting_results",
+          "normalizing",
+          "enriching",
+          "evaluating_policy",
+          "generating_report",
+          "completed",
+          "failed",
+          "cancelled",
+          "timed_out"
+        ],
+        "title": "ScanState",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "data": {
+        "items": {
+          "$ref": "#/$defs/EventSummary"
+        },
+        "title": "Data",
+        "type": "array"
+      },
+      "page": {
+        "$ref": "#/$defs/Page"
+      },
+      "request_id": {
+        "format": "uuid",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "data",
+      "page",
+      "request_id"
+    ],
+    "title": "Collection[EventSummary]",
+    "type": "object"
+  },
+  "EventQuery": {
+    "additionalProperties": false,
+    "properties": {
+      "cursor": {
+        "anyOf": [
+          {
+            "maxLength": 2048,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Cursor"
+      },
+      "limit": {
+        "default": 25,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "order": {
+        "default": "-created_at",
+        "enum": [
+          "created_at",
+          "-created_at"
+        ],
+        "title": "Order",
+        "type": "string"
+      },
+      "scan_id": {
+        "format": "uuid",
+        "title": "Scan Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "scan_id"
+    ],
+    "title": "EventQuery",
+    "type": "object"
+  },
+  "FindingCollection": {
+    "$defs": {
+      "FindingState": {
+        "enum": [
+          "new",
+          "recurring",
+          "changed",
+          "resolved",
+          "accepted_risk",
+          "false_positive"
+        ],
+        "title": "FindingState",
+        "type": "string"
+      },
+      "FindingSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "scanner_severity": {
+            "$ref": "#/$defs/Severity"
+          },
+          "state": {
+            "$ref": "#/$defs/FindingState"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "target_id",
+          "title",
+          "scanner_severity",
+          "state"
+        ],
+        "title": "FindingSummary",
+        "type": "object"
+      },
+      "Page": {
+        "additionalProperties": false,
+        "properties": {
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "next_cursor",
+          "has_more"
+        ],
+        "title": "Page",
+        "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "informational",
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "title": "Severity",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "data": {
+        "items": {
+          "$ref": "#/$defs/FindingSummary"
+        },
+        "title": "Data",
+        "type": "array"
+      },
+      "page": {
+        "$ref": "#/$defs/Page"
+      },
+      "request_id": {
+        "format": "uuid",
+        "title": "Request Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "data",
+      "page",
+      "request_id"
+    ],
+    "title": "Collection[FindingSummary]",
+    "type": "object"
+  },
+  "FindingQuery": {
+    "$defs": {
+      "FindingState": {
+        "enum": [
+          "new",
+          "recurring",
+          "changed",
+          "resolved",
+          "accepted_risk",
+          "false_positive"
+        ],
+        "title": "FindingState",
+        "type": "string"
+      },
+      "Severity": {
+        "enum": [
+          "informational",
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "title": "Severity",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "cursor": {
+        "anyOf": [
+          {
+            "maxLength": 2048,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Cursor"
+      },
+      "cwe": {
+        "anyOf": [
+          {
+            "exclusiveMinimum": 0,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Cwe"
+      },
+      "limit": {
+        "default": 25,
+        "maximum": 100,
+        "minimum": 1,
+        "title": "Limit",
+        "type": "integer"
+      },
+      "order": {
+        "default": "-created_at",
+        "enum": [
+          "created_at",
+          "-created_at"
+        ],
+        "title": "Order",
+        "type": "string"
+      },
+      "severity": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Severity"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "state": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/FindingState"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "target_id": {
+        "anyOf": [
+          {
+            "format": "uuid",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Target Id"
+      }
+    },
+    "title": "FindingQuery",
+    "type": "object"
+  }
+}

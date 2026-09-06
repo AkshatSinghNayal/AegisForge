@@ -11,3 +11,6 @@ test-results
 docs/API_CONTRACT.md
 docs/architecture/
 docs/security/
+
+# Reproducible generator formatting is verified by make schema-check.
+docs/generated/

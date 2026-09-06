@@ -39,12 +39,12 @@ migrate:
 	$(COMPOSE) run --rm api alembic upgrade head
 
 seed-demo:
-	@echo "Phase 1 has no domain schema or demo data to seed. No changes made."
+	@echo "No demo seed is implemented in Phase 4. Test factories are synthetic; no changes made."
 
 clean-generated:
 	python3 scripts/clean_generated.py
 
-check: lint typecheck test
+check: lint typecheck test schema-check
 
 build:
 	$(PNPM) --filter @aegisforge/web build
@@ -52,3 +52,10 @@ build:
 
 compose-config:
 	COMPOSE="$(COMPOSE)" python3 scripts/check_compose.py
+
+.PHONY: schema-docs schema-check
+schema-docs:
+	$(UV) run --project apps/api python -m aegis_api.schema_docs
+
+schema-check:
+	$(UV) run --project apps/api python -m aegis_api.schema_docs --check

@@ -243,3 +243,35 @@ The unit invocation deselected integration markers, and the integration invocati
 The original 30-test baseline passed before the stricter review. New tests reproduced malformed-origin validation, case-variant routing and footer-focus defects. A test fixture initially used an HTTP `import.meta.url` with a filesystem-only helper; it was corrected to an explicit resolved script path. Two React Testing Library query options were caught by strict TypeScript and removed. An interrupted exploratory browser run left two test servers; only those identified processes were stopped before rerunning. A previously declined final browser approval was superseded by the user's explicit Docker-resume/full-suite request; the complete final 42-test run passed.
 
 The initial missing-daemon and later stale-group errors are resolved, not current limitations. Existing Starlette/httpx and AnyIO deprecation warnings remain non-failing. No earlier failure or interrupted/declined run is counted as a pass. No next phase was started.
+
+## Phase 4 database/API foundation — 2026-09-06
+
+Scope: implement the explicitly requested persistence foundation before authentication/execution. All 22 entities plus durable idempotency, migration 0001, internal tenant repositories and convention schemas are present. See [PERSISTENCE](architecture/PERSISTENCE.md) for architectural limits and [generated database schema](generated/database-schema.md) for the file-level catalog. No business API endpoint, real scan, AI analysis, report or notification is claimed.
+
+Commands use the existing Node 24 runtime and uv executable where host defaults differ. Docker commands run with `sg docker -c` outside the sandbox to activate existing group membership. All database resources belong to the isolated Compose project `aegisforge-phase4`; tests create/drop uniquely named disposable databases and never downgrade the ordinary development database.
+
+| Command                                                                                                                                                              | Result                                                                                                                                                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sg docker -c 'docker compose -p aegisforge-phase4 up -d --wait postgres redis'`                                                                                     | PostgreSQL and Redis healthy.                                                                                                                                                                             |
+| `PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache make UV=/tmp/aegis-tools/uv check build` | PASS: Prettier, ESLint, Ruff check/format, TypeScript, strict mypy (14 source files), 20 frontend tests, 14 backend unit/security tests, schema-drift check, production web build, API wheel/sdist build. |
+| `UV_CACHE_DIR=/tmp/aegis-uv-cache /tmp/aegis-tools/uv run --project apps/api python -m aegis_api.schema_docs`                                                        | Generated current-route OpenAPI, reusable convention JSON schemas and full PostgreSQL catalog.                                                                                                            |
+
+The integration suite verifies empty-database upgrade, latest-revision downgrade, repeated re-upgrade and Alembic metadata parity; scoped uniqueness/FKs/deletion; two-tenant read/add/CAS denial; all-entity fixture graph, immutable identity/history and direct-SQL timestamps; UTC/enums and response privacy; stable finding/event pagination; signed-cursor tampering/filter binding; scan/report/webhook idempotency scope, mismatch, expiry, concurrent retry and rollback. API boundary tests exercise sanitized 404/403/422/500 responses with server-owned request IDs/no-store and production docs denial. The existing browser health journey uses HTTP fixtures, not a real database-backed authenticated product journey.
+
+Development failures were corrected: the first PostgreSQL migration run found generated unique-constraint name collisions (16 existing/new non-database tests passed, 9 setup errors). Names now include every constrained column. The next run passed 26 tests with one test-only missing import failure; that was fixed, followed by 28 passing backend tests. Final verification adds explicit same-organization wrong-scan artifact/report FK rejection. Intermediate Ruff/mypy findings were fixed. Initial sandbox `sg` could not open its audit interface; the approved outside-sandbox invocation succeeded.
+
+Existing Starlette/httpx and AnyIO deprecation warnings remain. Browser logs may report unavailable local `/health/ready` during the deliberately unavailable health route journey; this is not a database test. No dependency upgrade was needed. Source/schema manual inspection is separate from application test results; no human screen-reader or new visual certification is claimed. Runtime authorization, project permissions, RLS/database grants, secret encryption/storage adapters, target verification, execution, retention/outbox and deliveries await their owning phases.
+
+Final rebuilt-image command:
+
+`sg docker -c 'docker compose -p aegisforge-phase4 -f docker-compose.yml -f docker-compose.test.yml run --rm --build api pytest -q --tb=short'`
+
+**PASS: 29 backend tests (14 unit/security, 15 integration), 9.45 seconds**, including migration roundtrip/drift, event pagination and same-scan provenance rejection. The image was rebuilt from the final source/migration/test files with frozen dependencies; no source mounts were used for this final run. Two pre-existing dependency deprecation warnings remain.
+
+`PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH pnpm --filter @aegisforge/web test-e2e`: **56 passed in 4.4 minutes**, including existing public accessibility/layout/keyboard/motion and lab regressions. Chromium only.
+
+`sg docker -c 'make compose-config'`: development/production configuration and isolation assertions passed; scanner remains opt-in, digest-pinned, networkless and unstarted.
+
+`sg docker -c 'docker compose -p aegisforge-phase4 -f docker-compose.yml -f docker-compose.test.yml down --volumes --remove-orphans'`: removes only the temporary verification stack and its volumes/networks. Development application data is preserved.
+
+Final outcome: Phase 4 complete. No authentication or scan execution was added and no next phase was started. Next prerequisite is explicitly authorized authentication/authorization work.

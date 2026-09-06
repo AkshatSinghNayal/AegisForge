@@ -2,7 +2,7 @@
 
 DevSecOps Vulnerability Intelligence Engine for authorized web applications and REST APIs.
 
-Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Scanning, identity, domain data and AI execution belong to later phases. Phase 3 adds the complete public marketing website. Local quality checks, browser tests and production package builds pass; live development/production container health, all three real-service integration tests and repeated migrations passed on 2026-09-06. See the [verification record](docs/PHASE_STATUS.md).
+Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Phase 4 adds the PostgreSQL domain schema and internal API conventions. Scanning, identity and AI execution belong to later phases. Phase 3 adds the complete public marketing website. Local quality checks, browser tests and production package builds pass; live development/production container health, all three real-service integration tests and repeated migrations passed on 2026-09-06. See the [verification record](docs/PHASE_STATUS.md).
 
 ## Design and motion laboratories
 
@@ -15,6 +15,14 @@ Run `pnpm --filter @aegisforge/web dev` and open `/`. Public routes cover the pl
 “Create a workspace” opens the local setup guide because registration is not implemented. The health utility remains at `/status`. Set `VITE_SITE_URL` to the actual deployment origin and `VITE_SECURITY_CONTACT` to a verified public email before publication. Both are validated public build settings; Compose forwards them into development and production build arguments. Build output includes per-route HTML metadata, sitemap, robots and JSON-LD; the localhost default disallows indexing. The content is client-rendered with a no-JavaScript notice. System fonts require no font download/preload; there are no raster images to load or resize. Routes are lazy-loaded and GSAP loads with the home story.
 
 The Phase 3 review cleared the Phase 1 live Docker gate; the retroactive Phase 0–2 audit independently repeated it from a clean export and removed its isolated stack afterward. Phase 2 form-label and clipboard defects were fixed. The subsequent authorized touch-target fix expands the flagged footer, outcome and docs masthead link hit areas to at least 44px without enlarging text; dedicated browser regressions cover all seven widths. No public deployment was performed. See the [final review report](docs/TEST_REPORT.md) and [phase status](docs/PHASE_STATUS.md).
+
+## Database foundation (Phase 4)
+
+`make migrate` applies revision `0001`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; future authenticated dependencies must resolve it and enforce roles/project membership. No authentication, scan/report creation routes, secret storage, webhook receiver or delivery worker ships in this phase.
+
+Run `make schema-docs` to regenerate [OpenAPI](docs/generated/openapi.json), [convention schemas](docs/generated/conventions.schema.json) and the [database catalog](docs/generated/database-schema.md). `make schema-check` detects drift. `make test-integration` requires the isolated test profile and database-create permission: it provisions a uniquely named disposable database, tests upgrade/downgrade/re-upgrade and two-organization isolation, then drops only that database. Never run manual downgrades against retained data; revision 0001 downgrade removes the foundation.
+
+See [persistence usage and limits](docs/architecture/PERSISTENCE.md). All factories are synthetic and no seed command inserts data automatically.
 
 ## Quick start
 
@@ -32,7 +40,7 @@ make migrate
 
 `make setup` preserves an existing `.env`; otherwise it generates random local PostgreSQL/Redis passwords in a mode-0600 ignored file from `.env.example`. It installs frozen pnpm/uv dependencies and Chromium. On Linux, if Chromium reports missing OS libraries, run `pnpm --filter @aegisforge/web exec playwright install --with-deps chromium` with the necessary system permissions.
 
-Open [local service health](http://localhost:5173/status). Its refresh button calls the API through Vite's same-origin proxy. The page reports dependency failure honestly. The API exposes only `GET /health/live` (process alive, HTTP 200) and `GET /health/ready` (bounded PostgreSQL `SELECT 1` and Redis `PING`, HTTP 200 or 503). Both return a server-generated `X-Request-ID`; readiness does not expose dependency credentials or exception messages. API docs/OpenAPI routes are disabled in this phase.
+Open [local service health](http://localhost:5173/status). Its refresh button calls the API through Vite's same-origin proxy. The page reports dependency failure honestly. The API exposes only `GET /health/live` (process alive, HTTP 200) and `GET /health/ready` (bounded PostgreSQL `SELECT 1` and Redis `PING`, HTTP 200 or 503). Both return a server-generated `X-Request-ID`; readiness does not expose dependency credentials or exception messages. Development/test expose `/api/v1/docs` and `/api/v1/openapi.json`; production disables both. Business endpoints remain unavailable.
 
 ```sh
 curl --fail http://localhost:8000/health/live
@@ -58,8 +66,8 @@ make down
 | `make test`             | Frontend and backend unit/security tests                                          |
 | `make test-e2e`         | Production health/exclusion and dev lab Chromium tests                            |
 | `make test-integration` | Disposable test image; actual PostgreSQL/Redis readiness tests                    |
-| `make migrate`          | Alembic upgrade to head; no domain migrations exist yet                           |
-| `make seed-demo`        | Explain that no Phase 1 domain/demo data exists; no mutation                      |
+| `make migrate`          | Alembic upgrade to head; applies Phase 4 revision 0001                            |
+| `make seed-demo`        | Explain that no demo seed is implemented; no mutation                             |
 | `make clean-generated`  | Remove only enumerated build/test caches; preserve .env, dependencies and volumes |
 | `make build`            | Web distribution plus API sdist/wheel                                             |
 | `make compose-config`   | Validate dev/prod/scanner Compose and network/port invariants                     |

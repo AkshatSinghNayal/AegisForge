@@ -65,3 +65,7 @@ A fingerprint uses normalized target-relative endpoint, method, parameter/locati
 ## Persistence and deletion behavior
 
 Transactions atomically create scan/events/outbox; constraints prevent cross-tenant relationships. Policy/config snapshots are immutable and redacted. Raw evidence access requires a separately audited administrative permission and authorized safe retrieval tooling; ordinary UI/download endpoints expose only redacted artifacts. Backups use encryption and least privilege; deletion jobs reconcile database references, S3/filesystem objects and secret-store entries with retryable progress.
+
+## Phase 4 executable foundation
+
+The requested 22 core entities plus IdempotencyRecord now have SQLAlchemy models and revision 0001. Other catalog entities remain future designs. [Generated schema](../generated/database-schema.md) is the exact column/constraint/index inventory; [persistence architecture](PERSISTENCE.md) records implementation choices and scope limits. In particular, project assignments use organization-member IDs, project ownership of scans/findings derives through targets, API keys have one project scope, and destinations have one optional project scope. No runtime RLS, authentication, grants/ownership verification, encryption adapter, retention jobs or execution is claimed by the schema foundation.

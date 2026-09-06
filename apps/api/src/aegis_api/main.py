@@ -5,9 +5,19 @@ from typing import Literal
 from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
+from starlette.exceptions import HTTPException
 from starlette.middleware.base import RequestResponseEndpoint
 
+from aegis_api.conventions import (
+    APIError,
+    ErrorResponse,
+    api_error_handler,
+    error_response,
+    http_error_handler,
+    validation_error_handler,
+)
 from aegis_api.dependencies import DependencyProbe, InfrastructureProbe
 from aegis_api.logging import configure_logging, correlation_id
 from aegis_api.settings import Settings, get_settings
@@ -31,7 +41,23 @@ def create_app(
         finally:
             await app.state.probe.close()
 
-    app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(
+        title="AegisForge API",
+        version="0.4.0",
+        lifespan=lifespan,
+        docs_url="/api/v1/docs" if config.profile != "prod" else None,
+        redoc_url=None,
+        openapi_url="/api/v1/openapi.json" if config.profile != "prod" else None,
+        responses={
+            400: {"model": ErrorResponse},
+            404: {"model": ErrorResponse},
+            422: {"model": ErrorResponse},
+            500: {"model": ErrorResponse},
+        },
+    )
+    app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(HTTPException, http_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
 
     @app.middleware("http")
     async def correlate(
@@ -56,7 +82,12 @@ def create_app(
             logging.getLogger("aegis.requests").error(
                 "", extra={"event": "request_failed", "status_code": 500}
             )
-            return Response(status_code=500, headers={"X-Request-ID": request_id})
+            response = error_response(
+                500, "internal_error", "Request could not be completed."
+            )
+            response.headers["X-Request-ID"] = request_id
+            response.headers["Cache-Control"] = "no-store"
+            return response
         finally:
             correlation_id.reset(token)
 

@@ -4,14 +4,17 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from aegis_api.db.models import Base
 from aegis_api.settings import get_settings
 
-# No domain tables in Phase 1. Introduce metadata and migrations with their feature.
+target_metadata = Base.metadata
 
 
 def offline() -> None:
     context.configure(
-        url=get_settings().database_url.get_secret_value(), literal_binds=True
+        url=get_settings().database_url.get_secret_value(),
+        literal_binds=True,
+        target_metadata=target_metadata,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -26,7 +29,11 @@ async def online() -> None:
     async with engine.connect() as connection:
 
         def run_migrations(sync_connection):  # type: ignore[no-untyped-def]
-            context.configure(connection=sync_connection)
+            context.configure(
+                connection=sync_connection,
+                target_metadata=target_metadata,
+                compare_type=True,
+            )
             with context.begin_transaction():
                 context.run_migrations()
 

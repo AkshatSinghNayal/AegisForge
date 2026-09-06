@@ -128,3 +128,9 @@ Team and `/admin/users` screens use membership endpoints; `/admin/policies` uses
 GitHub Actions builds and serves a reachable authorized test target, creates/starts a scan, polls events/gate and returns the deterministic result. Active CI runs use previously explicitly confirmed bounded grants; an API key alone is not an active confirmation. Required GitHub checks and deployment policy must be configured by the repository owner.
 
 Initial CI adapter exit contract: pass=0, warn=2, fail=1. Only pass is a successful required check; warn remains a distinct non-success result with its reason codes. Transport failure, polling deadline and unavailable evaluation exit 1. This fail-closed default can be changed only through an explicit versioned policy/adapter decision, never by AI output.
+
+## Phase 4 implementation boundary
+
+The route tables above remain planned. Phase 4 implements persistence and reusable conventions only; current executable routes are health plus development/test `/api/v1/docs` and `/api/v1/openapi.json`. See [current OpenAPI](generated/openapi.json), [convention schemas](generated/conventions.schema.json) and [persistence contract](architecture/PERSISTENCE.md).
+
+Current error objects contain exactly code, message, details, request_id inside error; the proposed retryable field above is deferred. Details are empty unless explicitly allowlisted; validation inputs and locations are not echoed. Readiness 503 retains its original safe health response. Findings filters use `target_id`, `severity`, `state`, `cwe`; event filters require `scan_id`. Ordering is `order=created_at|-created_at`, with UUID tie-breaker. Cursor binding includes limit and filters. Missing version preconditions are 428, stale CAS is 412. These primitives expose no unauthenticated domain routes. Policy replacement is a new immutable version, never an in-place PATCH.
