@@ -1,8 +1,8 @@
 # Phase status
 
-Current phase: **Phase 3 implementation retained — retroactive Phase 0–2 review completed on 2026-09-06**.
+Current phase: **Phase 3 — authorized touch-target follow-up completed on 2026-09-06**.
 
-Retroactive verdicts: **Phase 0 PASS; Phase 1 PASS; Phase 2 CONDITIONAL PASS**. Phase 2 shared form-label and unavailable-clipboard blockers were reproduced and fixed; 49 browser tests pass. Phase 3 consumer links remain below the 44px design target (footer 23.77px, home outcome links 26.39px, docs masthead 15px), outside the permitted fix scope. Automated Chromium review is not human assistive-technology or cross-browser certification. See the newest section of [TEST_REPORT](TEST_REPORT.md).
+Phase 0 and Phase 1 remain **PASS**. The Phase 2 consumer touch-target condition **R012-04 is resolved**: footer, home outcome and docs masthead links now have at least 44px width/height at 360/390/768/1024/1280/1440/1920px, using padding and minimum dimensions without increasing text size. Automated Chromium review is not human assistive-technology or cross-browser certification. See the newest section of [TEST_REPORT](TEST_REPORT.md).
 
 Phase 1 live Docker verification is complete as of 2026-09-06: all five default services healthy in development and production configurations, 3/3 real-service integration tests passed, migrations succeeded twice, and review containers/volumes/networks were removed. See [the final test report](TEST_REPORT.md).
 
@@ -208,3 +208,11 @@ Read the original Master Context and Phase 0/1/2 prompts from the earlier tasks,
 - Phase 2: **CONDITIONAL PASS** after fixing two reproduced shared-component defects. Final browser suite: 49 passed, including all requested widths, four unchanged screenshot baselines, 119 public axe/layout combinations, and 14 lab target/axe combinations. All measured visible enabled lab targets meet 44px; Phase 3 links listed above do not. Phase 3 remains unchanged. Chromium only; no human screen-reader certification.
 
 Updated AGENTS, README, BUILD_PLAN, DECISIONS, DESIGN_SYSTEM, TEST_MATRIX, this status and TEST_REPORT. Code changes are limited to Phase 2 primitives, their unit regressions and seven browser regression cases. `.env.example`, dependencies, backend and Phase 3 files required no changes. See TEST_REPORT for commands, failures and teardown evidence. No Phase 4 work started; identity remains an architectural prerequisite awaiting an explicit phase prompt.
+
+## Authorized touch-target follow-up — 2026-09-06
+
+**PASS for R012-04:** expanded footer, home outcome and docs masthead anchor hit areas through padding and 44px minimum width/height, preserving text size. Added seven targeted browser regressions asserting actual bounding-box dimensions and nonempty/expected link groups. The test reproduced the original failures at 360px before the fix, then passed at all seven required widths.
+
+Final verification: **56 browser tests passed (5.8 minutes)**, including 119 public route/width axe and overflow combinations with no violations, all seven new target-size cases and existing lab/screenshot/keyboard/motion checks. Formatter/lint/strict types, 20 frontend tests, 9 backend unit/security tests and web/API builds passed. Backend tests and API build required approved retries after sandbox restrictions; Docker integration was not rerun for this CSS-only change. See TEST_REPORT for exact commands and failed-attempt accounting.
+
+The previous Phase 2 consumer touch-target condition is resolved by this explicitly authorized Phase 3 follow-up. Human assistive-technology and non-Chromium testing remain unclaimed. Changed marketing.css, marketing-targets.spec.ts, README, DECISIONS, PHASE_STATUS and TEST_REPORT; no runtime settings, dependencies or next-phase work.

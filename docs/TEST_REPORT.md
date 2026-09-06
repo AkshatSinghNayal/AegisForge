@@ -1,3 +1,48 @@
+# Touch-target correction — 2026-09-06
+
+**PASS: R012-04 resolved.** The user authorized correcting the three Phase 3 link groups previously excluded from the retroactive audit’s fix scope. All three now meet the design system’s minimum **44px width and height** at **360, 390, 768, 1024, 1280, 1440 and 1920px**. This supersedes the outstanding target-size condition below; historical audit results are retained as historical evidence. Chromium automation remains the verification scope, not human screen-reader or cross-browser certification.
+
+## Changes and regression evidence
+
+`apps/web/src/marketing/marketing.css` gives footer, outcome and docs masthead anchors flex alignment, `min-height: 44px`, `min-width: 44px` and vertical padding. Footer links replace external margins with 10px vertical padding; outcome and masthead links use 8px padding. Text size, weight, colors and destinations remain unchanged. Hit areas are real anchor boxes, not overlapping pseudo-elements.
+
+`apps/web/e2e/marketing-targets.spec.ts` adds seven production-browser cases. Each reads `getBoundingClientRect()` and asserts both dimensions are at least 44px for every footer anchor on home/docs/getting-started, both home outcome links, and the masthead on docs index/getting-started. It waits for lazy rendering, requires visible nonempty groups, and checks exact counts for outcome/masthead links, preventing absent elements from silently passing.
+
+The corrected test failed before the CSS fix at 360px, reproducing the original heights (footer 23.765625px, outcome 26.390625px and masthead 15px). The same assertions pass after the fix at all seven widths. Existing public page accessibility/overflow checks were rerun across all **17 routes × 7 widths = 119 combinations**, with **zero axe violations and no horizontal overflow**. WCAG tags: 2/2.1 A/AA and 2.2 AA. These axe checks complement the stricter explicit 44px assertions.
+
+## Actual commands and results
+
+Commands ran from the repository root with the installed toolchain:
+
+```sh
+export PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH
+export UV_CACHE_DIR=/tmp/aegis-uv-cache
+pnpm --filter @aegisforge/web exec playwright test marketing-targets -g 'at 360'
+make check
+uv run --project apps/api pytest -c apps/api/pyproject.toml apps/api/tests -m 'not integration'
+pnpm --filter @aegisforge/web exec playwright test --fully-parallel
+uv build --project apps/api
+pnpm exec prettier --check .
+git diff --check
+```
+
+| Check                                                | Actual result                                                                                                                                                                                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Pre-fix targeted regression                          | Exit 1, reproduced all three undersized groups after correcting an initial lazy-render timing issue.                                                                                                                           |
+| Prettier, ESLint, Ruff lint/format, TypeScript, mypy | Passed; mypy checked 6 source files.                                                                                                                                                                                           |
+| Frontend unit tests                                  | 20 passed.                                                                                                                                                                                                                     |
+| Backend unit/security tests                          | 9 passed, 3 integration tests deliberately deselected; separate approved retry completed in 3.70s.                                                                                                                             |
+| Full Playwright suite                                | **56 passed**, 5.8 minutes, including all seven new touch-target cases, 119 public axe/layout combinations, lab accessibility, four unchanged screenshot baselines, keyboard navigation, modal/sidebar and motion regressions. |
+| Web production build                                 | Passed as Playwright web-server prerequisite: TypeScript, Vite and SEO generation.                                                                                                                                             |
+| API sdist/wheel build                                | Passed on approved retry.                                                                                                                                                                                                      |
+| Final documentation formatting and diff whitespace   | Passed.                                                                                                                                                                                                                        |
+
+The first sandbox browser invocation could not start its server; approved execution succeeded. An initial test queried footer count before lazy content arrived; it was corrected to wait for the first visible anchor before reproducing the real sizing failures. `make check` passed frontend/lint/types but stalled in sandboxed backend TestClient tests; that run was interrupted (exit 130), not claimed as a complete pass. The separate approved backend retry passed. The first API build failed on sandbox PyPI DNS access; approved retry produced both artifacts. Non-failing Starlette/AnyIO warnings remain. One browser navigation to service health logged an expected unavailable local API proxy because this frontend run did not start Docker; all browser assertions passed.
+
+No backend code, dependencies, runtime settings or database schema changed. Docker integration was not repeated for this CSS/test-only correction; its earlier results below are historical. README, ADR-019 and PHASE_STATUS now identify the target-size finding as resolved. No next phase started.
+
+---
+
 # Retroactive Phase 0–2 audit — 2026-09-06
 
 This section supersedes earlier completion claims for Phases 0–2. The historical Phase 3 report is retained below. No Phase 3 implementation was changed and Phase 4 was not started.
