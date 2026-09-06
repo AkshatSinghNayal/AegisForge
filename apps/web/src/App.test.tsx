@@ -27,6 +27,11 @@ describe('foundation', () => {
     ).toBeInTheDocument();
     expect(await screen.findByText(message)).toBeInTheDocument();
   });
+  it('rejects malformed origins without throwing', () => {
+    expect(envSchema.safeParse({ VITE_SITE_URL: 'not-a-url' }).success).toBe(
+      false,
+    );
+  });
   it('rejects unsafe public configuration', () => {
     for (const value of [
       'javascript:alert(1)',

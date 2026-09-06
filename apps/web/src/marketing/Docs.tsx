@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { docs } from './content';
 import { Metadata } from './Shared';
 export default function Docs() {
-  const { slug } = useParams();
+  const { slug: routeSlug } = useParams();
+  const slug = routeSlug?.toLowerCase();
   const [query, setQuery] = useState('');
   const doc = docs.find((d) => d.slug === slug);
   const matches = docs.filter((d) =>

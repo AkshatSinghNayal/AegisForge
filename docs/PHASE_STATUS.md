@@ -1,13 +1,13 @@
 # Phase status
 
-Current phase: **Phase 3 — Public marketing website implemented and verified**.
+Current phase: **Phase 3 — Strict review completed; CONDITIONAL PASS with no unresolved implementation blockers**.
 
-Phase 1 live Docker verification remains pending independently.
+Phase 1 live Docker verification is complete as of 2026-09-06: all five default services healthy in development and production configurations, 3/3 real-service integration tests passed, migrations succeeded twice, and review containers/volumes/networks were removed. See [the final test report](TEST_REPORT.md).
 
 ## Execution checklist
 
 - [x] Phase 0 - Documentation and acceptance verification complete; repository setup resolved
-- [ ] Phase 1 - Monorepo and executable tooling
+- [x] Phase 1 - Monorepo and executable tooling; live Docker gate resolved during Phase 3 review
 - [x] Phase 2 - Design system and development-only motion laboratory (explicit revised scope)
 - [x] Phase 3 - Public marketing website and scrollytelling (explicit revised scope)
 - [ ] Phase 4 - Projects, targets and authorization
@@ -88,7 +88,7 @@ PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/
 | `COMPOSE=/tmp/aegis-tools/docker-compose python3 scripts/check_compose.py`                 | Dev/prod configuration and network/credential/port assertions passed; scanner profile is opt-in, digest-pinned, without network/ports                        |
 | Official registry manifest checks for all 7 image tags                                     | HTTP 200; ZAP digest recorded in Compose                                                                                                                     |
 | `/tmp/aegis-tools/docker-compose up --build -d --wait` with approved escalation            | Exit 1: no Docker socket at `/var/run/docker.sock`; daemon not installed/running in this environment                                                         |
-| Docker image builds, live services, real-service integration and fresh/repeated migrations | **Unavailable**, blocked by missing Docker daemon; not counted as passing                                                                                    |
+| Docker image builds, live services, real-service integration and fresh/repeated migrations | Original run unavailable; **passed on 2026-09-06** during the Phase 3 review                                                                                 |
 
 Initial checks exposed TypeScript/ESLint incompatibility, an obsolete Redis stub package, pytest config discovery from the root, and the default Node runtime mismatch. These were corrected. The passing backend run reports two upstream deprecation warnings (Starlette's httpx compatibility and AnyIO portal alias); no failing tests. After the final secret-input protection, backend Ruff and strict mypy passed, all 9 backend tests passed (3 real-service tests excluded), and the API sdist/wheel rebuilt successfully. Frontend, browser and Compose checks passed after their last changes. Local environment setup was additionally checked in an isolated temporary directory: mode 0600, nonempty generated credentials, and byte-for-byte preservation on a second run.
 
@@ -96,13 +96,13 @@ Initial checks exposed TypeScript/ESLint incompatibility, an obsolete Redis stub
 
 Reviewed the health root's status/error copy and keyboard flow (browser-automated), secret-free JSON log allowlist, blank example credentials, setup's preserve-existing behavior, Compose production overrides, non-root images and scanner isolation. No visual browser inspection, container startup, scanner operation or deployment has been claimed. The ZAP health check measures its idle process only. Domain migrations, demo data and per-target scan controls remain deferred.
 
-### Remaining gate and next phase
+### Original infrastructure gate — resolved on 2026-09-06
 
-Provide a working Docker Engine/Compose environment and run `make dev migrate test-integration`, repeat `make migrate`, then build/start the production override and verify `/health/ready`. CI contains these gates but has not been run remotely. Phase 1 must remain unchecked until the live infrastructure gate passes. Phase 2 is architecturally next but is not started or declared unblocked for execution.
+The originally outstanding gate was executed successfully on 2026-09-06: development and production image builds/startup, all default service health checks, real PostgreSQL/Redis tests, repeated migrations and the production `/health/ready` proxy. Phase 1 is now checked complete. Remote CI execution is not claimed; the local gate is documented in TEST_REPORT.
 
 ### Final local handoff
 
-The final available checks pass: 4 frontend tests, 9 backend tests, 1 Chromium journey, formatter/lint/strict types, production web and API packages, and rendered Compose assertions. Actual Docker startup/image builds/integration/migrations remain blocked as described above. The phase is intentionally not marked complete. No Phase 2 work was started.
+The final available checks pass: 4 frontend tests, 9 backend tests, 1 Chromium journey, formatter/lint/strict types, production web and API packages, and rendered Compose assertions. At the original handoff Docker verification was unavailable. That gate is now complete with actual successful startup, image builds, integration tests and repeated migrations recorded below; the earlier partial handoff is superseded.
 
 ## Phase 2 implementation and verification — 2026-09-05
 
@@ -137,7 +137,7 @@ Initial authoring syntax/type errors and a dropdown accessible-name test mismatc
 
 Inspected all four full-page screenshots for hierarchy, readable wrapping, grid/stack behavior, table containment and reduced-motion panels. Browser-automated manual-style checks exercise modal focus wrap/restoration, Escape, popover dismissal, mobile drawer navigation, normal pin creation, count-up, live reduced-motion changes and Lenis removal on app-shell navigation. No direct interactive human screen-reader review or non-Chromium browser certification is claimed. No supplied StackHawk media was available in this workspace; all identity/composition is original. Light-theme overrides are architecturally possible but not implemented or tested.
 
-Phase 1's live Docker/image/integration/migration gate remains pending because the host lacks Docker; Phase 2 frontend validation does not clear it. No schema changes require new migration tests. Phase 3 is the next planned implementation phase, requires an explicit prompt, and retains the outstanding Phase 1 infrastructure dependency. Stop after Phase 2.
+At the Phase 2 handoff, live infrastructure verification was outstanding. The Phase 3 review on 2026-09-06 completed it using Docker. Phase 2 remains unchanged; no schema changes were introduced.
 
 ## Phase 3 public website — 2026-09-05
 
@@ -168,10 +168,31 @@ PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/
 COMPOSE=/tmp/aegis-tools/docker-compose python3 scripts/check_compose.py
 ```
 
-Compose configuration assertions passed after the public build-setting wiring. Live image builds and Docker startup remain unavailable. Final frontend ESLint passed with no warnings; Git whitespace validation passed. The repository gate's browser portion initially failed as described above and was rerun successfully; it is not represented as a single uninterrupted green command.
+Compose configuration assertions passed after the public build-setting wiring. Live development/production image builds and startup subsequently passed on 2026-09-06. Final frontend ESLint passed with no warnings; Git whitespace validation passed. The repository gate's browser portion initially failed as described above and was rerun successfully; it is not represented as a single uninterrupted green command.
 
 ### Visual review and limitations
 
 Inspected the 390px mobile and 1440px desktop full-page home screenshots for typography, sequence, wrapping, technical-panel containment, original branding and stacked reduced-motion content. Browser checks exercise actual desktop pin transitions and cleanup, mobile navigation, route CTAs, search and accessibility. No supplied reference video exists in this workspace: the written alternating product-story rhythm is implemented, but exact video similarity cannot be verified. No human screen-reader test, non-Chromium certification or Lighthouse score is claimed. No real scanner findings, integrations, account creation or paid plans are presented as available.
 
-`VITE_SITE_URL` defaults to localhost with disallow-all robots. Set a real origin and verified `VITE_SECURITY_CONTACT` before public operation. Disclosure remains an explicit configuration placeholder as requested. Phase 1 Docker image/startup/integration/migration checks remain blocked by the missing daemon; frontend tests do not clear that gate. Next architectural work is identity/organizations/application shell, subject to an explicit next-phase prompt and the infrastructure gate. Stop after Phase 3.
+`VITE_SITE_URL` defaults to localhost with disallow-all robots. Set a real origin and verified `VITE_SECURITY_CONTACT` before public operation. Disclosure remains an explicit configuration placeholder as requested. Phase 1 Docker image/startup/integration/migration checks passed in the strict review below. Next architectural work is identity/organizations/application shell, subject to an explicit next-phase prompt. Stop after Phase 3.
+
+## Phase 3 strict review and Docker gate resolution — 2026-09-06
+
+**Verdict: CONDITIONAL PASS.** All confirmed implementation blockers were fixed and the complete final regression passed. The remaining limits concern visual-reference verification, browser/accessibility certification and public-deployment configuration, not a missing Docker daemon. No next-phase implementation was started.
+
+Reviewed the original Phase 3 requirements, commit `8581b10`, its diff, public route implementations, configuration, tests and earlier handoff. Fixes are confined to Phase 3:
+
+- Normalize case-variant public paths and documentation slugs before content lookup and canonical generation. `/SECURITY` previously crashed; other uppercase routes could select pricing instead of their intended content. Explicit case-variant regressions pass.
+- Move focus to the new page/anchor heading after client navigation, including footer keyboard navigation and mobile drawer navigation. Both regressions pass.
+- Correct the setup guide to invoke the environment-creation script directly. Copying the blank example first prevented credentials from being generated and could overwrite existing local configuration. A temporary-directory regression verifies credential generation and preservation on repeat.
+- Share the validated environment schema between browser and SEO build, safely reject malformed URLs, and fail builds for invalid contacts with field-only diagnostics. Invalid scheme/origin/credential/header-injection cases and positive configured SEO output are tested.
+- Expose a complete nonvisual workflow summary so hidden pinned panels do not hide steps from screen-reader navigation. Visual mock panels are decorative to assistive technology; the summary has every step and evidence-boundary row. Unit and browser accessibility regressions pass.
+- Add the requested small mobile in-view story transitions while retaining normal flow and reduced-motion behavior.
+
+Final local verification: Prettier, ESLint, Ruff, strict TypeScript and mypy passed; **18 frontend tests**, **9 backend unit/security tests**, **3 real-service integration tests**, web/API package builds and **42 Playwright tests** passed. Axe checked all **17 public routes × 7 widths = 119 combinations**, using WCAG 2 A/AA, 2.1 A/AA and 2.2 AA tags, with zero violations. Widths: 360, 390, 768, 1024, 1280, 1440 and 1920px. Browser checks also cover the two requested defects, complete nonvisual workflow, mobile animation/menu behavior, pin containment/cleanup, reduced motion, static SEO, search and CTAs. Screenshots were inspected at the four requested review widths and additional overview captures at 360/1024/1920px.
+
+Docker access initially used stale process group membership; `sg docker` activated the user's already-configured group without changing system permissions. The isolated Compose project `aegisforge-phase3-review` had no pre-existing containers or volumes. `docker compose config --quiet` passed. Development `up --build -d --wait --wait-timeout 240` passed with web/API/worker/PostgreSQL/Redis healthy. All 3 real-service tests passed, including separately unreachable database and Redis returning 503. `alembic upgrade head` succeeded twice against the real database (no domain revisions exist yet). Production override image builds/startup passed with all five services healthy; Nginx served all 17 routes with the configured localhost:8080 canonical origin, `/health/live` returned 200/alive, and `/health/ready` returned 200/ready.
+
+Teardown `down --volumes --remove-orphans` succeeded. Label-filtered assertions confirmed **zero review containers, zero review volumes and zero review networks** afterward. Other projects and cached images were preserved. The opt-in idle ZAP profile was configuration-validated, not started; no target scan was run.
+
+See [TEST_REPORT](TEST_REPORT.md) for exact commands, reproduced failures and complete scope/limitation details. The original blocked integration notes above are historical; no required backend test remains unexecuted because of Docker availability.

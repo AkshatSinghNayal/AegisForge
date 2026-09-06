@@ -74,7 +74,7 @@ const content = {
 };
 export default function Legal() {
   const { pathname: routePath } = useLocation();
-  const pathname = routePath.replace(/\/+$/, '');
+  const pathname = routePath.toLowerCase().replace(/\/+$/, '');
   const key = pathname.slice(1) as keyof typeof content;
   const page = content[key];
   const raw = env.VITE_SECURITY_CONTACT;

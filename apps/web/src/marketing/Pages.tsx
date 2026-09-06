@@ -3,7 +3,7 @@ import { Cockpit, CTA, FinalCTA, Metadata } from './Shared';
 import { features, steps } from './content';
 export default function Pages() {
   const { pathname: routePath } = useLocation();
-  const pathname = routePath.replace(/\/+$/, '');
+  const pathname = routePath.toLowerCase().replace(/\/+$/, '');
   const feature = features.find((f) => pathname === `/features/${f.slug}`);
   if (feature)
     return (

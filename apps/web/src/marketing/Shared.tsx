@@ -1,10 +1,18 @@
 import { env } from '@/env';
-import { useEffect, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import Lenis from 'lenis';
 import { Drawer, IconButton, Wordmark } from '@/ui';
 import { features } from './content';
 import './marketing.css';
+const RouteFocusContext = createContext<RefObject<string> | null>(null);
 export function CTA() {
   return (
     <div className="m-actions">
@@ -131,9 +139,25 @@ export function Metadata({
   title: string;
   description: string;
 }) {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
+  const previousRoute = useContext(RouteFocusContext);
+  useEffect(() => {
+    const key = pathname + hash;
+    if (!previousRoute || previousRoute.current === key) return;
+    const frame = requestAnimationFrame(() => {
+      const target = hash ? document.getElementById(hash.slice(1)) : null;
+      const heading =
+        target?.querySelector<HTMLElement>('h1, h2') ??
+        document.querySelector<HTMLElement>('main h1');
+      heading?.setAttribute('tabindex', '-1');
+      heading?.focus({ preventScroll: true });
+      previousRoute.current = key;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [pathname, hash, previousRoute]);
   const origin = env.VITE_SITE_URL;
-  const url = new URL(pathname.replace(/\/+$/, '') || '/', origin).href;
+  const url = new URL(pathname.toLowerCase().replace(/\/+$/, '') || '/', origin)
+    .href;
   return (
     <>
       <title>{`${title} | AegisForge`}</title>
@@ -167,6 +191,7 @@ export default function MarketingLayout() {
   const [open, setOpen] = useState(false);
   const [solid, setSolid] = useState(false);
   const { pathname, hash } = useLocation();
+  const previousRoute = useRef(pathname + hash);
   useEffect(() => {
     const scroll = () => setSolid(window.scrollY > 24);
     scroll();
@@ -240,7 +265,9 @@ export default function MarketingLayout() {
           Create a workspace ↗
         </Link>
       </Drawer>
-      <Outlet />
+      <RouteFocusContext value={previousRoute}>
+        <Outlet />
+      </RouteFocusContext>
       <footer className="m-footer">
         <div>
           <Wordmark />

@@ -1,17 +1,14 @@
+import { envSchema } from '../src/env-schema.ts';
 import { URL } from 'node:url';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { loadEnv } from 'vite';
-const env = loadEnv('production', '../..', 'VITE_');
-const origin = new URL(env.VITE_SITE_URL || 'http://localhost:5173');
-if (
-  !['https:', 'http:'].includes(origin.protocol) ||
-  origin.username ||
-  origin.password ||
-  origin.pathname !== '/' ||
-  origin.search ||
-  origin.hash
-)
-  throw new Error('VITE_SITE_URL must be an HTTP(S) origin');
+const parsed = envSchema.safeParse(loadEnv('production', '../..', 'VITE_'));
+if (!parsed.success) {
+  throw new Error(
+    `Invalid public configuration: ${parsed.error.issues.map((issue) => issue.path.join('.')).join(', ')}`,
+  );
+}
+const origin = new URL(parsed.data.VITE_SITE_URL);
 const routes = {
   '/': [
     'Scan. Understand. Enforce.',

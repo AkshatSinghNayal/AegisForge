@@ -33,6 +33,20 @@ export default function Home() {
       );
     });
     media.add(
+      '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
+      () => {
+        el.querySelectorAll('.story-stage').forEach((stage) => {
+          gsap.from(stage.children, {
+            y: 16,
+            opacity: 0,
+            duration: 0.5,
+            stagger: 0.08,
+            scrollTrigger: { trigger: stage, start: 'top 90%' },
+          });
+        });
+      },
+    );
+    media.add(
       '(min-width: 1024px) and (min-height: 760px) and (prefers-reduced-motion: no-preference)',
       () => {
         const section = el.querySelector('.m-story')!;
@@ -159,7 +173,22 @@ export default function Home() {
             <div className="story-progress" />
           </div>
         </div>
-        <div className="story-deck">
+        <ol className="sr-only" aria-label="Complete workflow">
+          {steps.map((step) => (
+            <li key={step.title}>
+              <h3>{step.title}</h3>
+              <p>
+                {step.headline} {step.text}
+              </p>
+              <ul>
+                {step.rows.map((row) => (
+                  <li key={row}>{row}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
+        <div className="story-deck" aria-hidden="true">
           {steps.map((s, i) => (
             <article className="story-stage" key={s.title}>
               <div className="story-copy">

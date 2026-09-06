@@ -77,3 +77,9 @@ Original mint/cyan technical panels frame HTML/CSS cockpit specimens. Desktop us
 Workspace CTAs lead to substantive local setup documentation and disclose unavailable registration. Feature/integration descriptions distinguish the planned architecture from the current health-only backend. Pricing is example project packaging with no purchase flow. Legal notices describe this release, not an operational scanning service.
 
 `VITE_SITE_URL` and `VITE_SECURITY_CONTACT` are validated public build configuration. Localhost remains the default and emits disallow-all robots. Build-generated per-route HTML provides metadata before JavaScript, with client metadata on navigation; page bodies remain client-rendered. Use system fonts without network font loading. No raster product screenshots or external images are needed, so image optimization/font preload do not apply. No Lighthouse score is claimed. Preserve `/status` as the functional health route and development-only labs.
+
+## ADR-017: Strict Phase 3 review and completed infrastructure gate
+
+The Phase 3 review corrects only confirmed defects: case-normalized public routing/canonicals, navigation focus, accessible nonvisual story content, mobile reveals, shared build/browser configuration validation and the setup-guide command. Build diagnostics identify invalid setting names without echoing inputs. The public environment schema is shared with the Node 24 SEO generator. No dependencies, domain schema or next-phase features were added.
+
+On 2026-09-06 the user supplied working Docker and authorized the full local gate. Existing user group membership was activated with `sg docker` for the older agent process. An isolated review project passed development/production service health, all live integration tests, repeated migrations and production proxy checks, then was removed with its volumes/networks. Earlier ADR references to unavailable Docker verification are historical and superseded by TEST_REPORT.

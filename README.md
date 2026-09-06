@@ -2,7 +2,7 @@
 
 DevSecOps Vulnerability Intelligence Engine for authorized web applications and REST APIs.
 
-Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Scanning, identity, domain data and AI execution belong to later phases. Phase 3 adds the complete public marketing website. Local quality checks, browser tests and production package builds pass; live container verification remains blocked by the current host's missing Docker daemon. See the [verification record](docs/PHASE_STATUS.md).
+Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Scanning, identity, domain data and AI execution belong to later phases. Phase 3 adds the complete public marketing website. Local quality checks, browser tests and production package builds pass; live development/production container health, all three real-service integration tests and repeated migrations passed on 2026-09-06. See the [verification record](docs/PHASE_STATUS.md).
 
 ## Design and motion laboratories
 
@@ -14,7 +14,7 @@ Run `pnpm --filter @aegisforge/web dev` and open `/`. Public routes cover the pl
 
 “Create a workspace” opens the local setup guide because registration is not implemented. The health utility remains at `/status`. Set `VITE_SITE_URL` to the actual deployment origin and `VITE_SECURITY_CONTACT` to a verified public email before publication. Both are validated public build settings; Compose forwards them into development and production build arguments. Build output includes per-route HTML metadata, sitemap, robots and JSON-LD; the localhost default disallows indexing. The content is client-rendered with a no-JavaScript notice. System fonts require no font download/preload; there are no raster images to load or resize. Routes are lazy-loaded and GSAP loads with the home story.
 
-Phase 3 does not deploy the application or clear Phase 1's live Docker gate. See [Phase 3 verification and limitations](docs/PHASE_STATUS.md#phase-3-public-website--2026-09-05).
+The Phase 3 review cleared the Phase 1 live Docker gate and removed its isolated test stack afterward. No public deployment was performed. See the [final review report](docs/TEST_REPORT.md) and [phase status](docs/PHASE_STATUS.md).
 
 ## Quick start
 

@@ -127,7 +127,7 @@ export const docs = [
     slug: 'getting-started',
     title: 'Create a workspace',
     text: 'Workspace registration is not available in this project release. Prepare your local environment now; account and organization creation belong to a later implementation phase.',
-    code: 'cp .env.example .env\npython3 scripts/setup_env.py\nmake dev\nmake migrate',
+    code: 'python3 scripts/setup_env.py\nmake dev\nmake migrate',
     note: 'Run these commands from the repository after installing the toolchain listed in README. Docker Engine must be running. The current executable backend exposes health checks only; it does not run scans.',
   },
   {
