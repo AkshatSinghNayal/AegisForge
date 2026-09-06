@@ -93,3 +93,7 @@ A clean `git archive HEAD` export passed frozen setup and quality/build checks; 
 ## ADR-019: Public link touch-target correction
 
 The user explicitly authorized fixing R012-04 after the retroactive review. Keep existing type sizes, colors and destinations. Use flex-aligned link boxes with minimum 44px height/width and vertical padding for footer links, home outcome links and the docs masthead. Footer padding replaces external margins so spacing belongs to the clickable anchor. Add browser assertions on actual rendered bounding boxes at all seven required widths, with nonempty/count checks to prevent missing selectors from passing. Existing full public axe and overflow checks remain the accessibility gate. No backend, dependency, runtime configuration or next-phase changes.
+
+## ADR-020: Observability infrastructure scaffold
+
+Add pinned Prometheus 3.14.0 and Grafana 13.2.1 services using official images, a dedicated internal observability network, no host ports, read-only configuration mounts and named persistent volumes. Prometheus starts with an empty scrape list. Grafana provisions a stable default datasource UID at `http://prometheus:9090`. No targets, dashboards or alerts are introduced; Phases 16/17 remain deferred. Versions were resolved from the [Prometheus downloads](https://prometheus.io/download/) and [Grafana downloads](https://grafana.com/grafana/download?platform=docker) pages. No application/schema changes or new runtime variables are needed.

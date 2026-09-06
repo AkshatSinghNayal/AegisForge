@@ -101,3 +101,5 @@ ZAP 2.17.0 is digest-pinned behind the `scanner` profile, with no network and no
 `apps/web` owns frontend configuration, source and browser tests; `apps/api` owns the uv project, settings, logging, dependency probes, Alembic runner and tests. `infra` holds the local proxy configuration; `scripts` contains environment setup and configuration/cleanup helpers. Shared packages are deferred until they have real contents. CI is the automatic quality gate; local Git hooks are not installed or modified.
 
 The architecture baseline and original remote README history are preserved. No later phase starts automatically.
+
+Prometheus and Grafana also start with Compose, using persistent named volumes and a dedicated internal network with no published ports in either configuration. Grafana automatically provisions its Prometheus datasource; scrape targets, dashboards and alerts remain deferred to Phases 16/17. See [containers](docs/architecture/CONTAINERS.md#observability-scaffold).

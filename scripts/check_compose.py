@@ -22,12 +22,20 @@ for mode, args in (
     rendered = config(*args)
     services = rendered["services"]
     assert "zap" not in services, "Scanner must be opt-in"
-    for service in ("postgres", "redis", "worker"):
+    for service in ("postgres", "redis", "worker", "prometheus", "grafana"):
         assert not services[service].get("ports"), f"{service} publishes host ports"
     assert not set(services["worker"]["networks"]) & set(services["api"]["networks"])
     assert "AEGIS_DATABASE_URL" not in services["worker"]["environment"]
-    for network in ("database", "api_broker", "worker_broker"):
+    for network in ("database", "api_broker", "worker_broker", "observability"):
         assert rendered["networks"][network]["internal"]
+    for name, destination in (("prometheus", "/prometheus"), ("grafana", "/var/lib/grafana")):
+        service = services[name]
+        assert set(service["networks"]) == {"observability"}
+        assert any(
+            mount["type"] == "volume" and mount["source"] == f"{name}_data"
+            and mount["target"] == destination for mount in service["volumes"]
+        )
+        assert any(mount["type"] == "bind" and mount.get("read_only") for mount in service["volumes"])
     if mode == "prod":
         assert not services["api"].get("ports")
         assert not services["web"].get("volumes")
