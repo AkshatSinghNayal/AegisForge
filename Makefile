@@ -59,3 +59,7 @@ schema-docs:
 
 schema-check:
 	$(UV) run --project apps/api python -m aegis_api.schema_docs --check
+
+.PHONY: test-auth-e2e
+test-auth-e2e:
+	COMPOSE="$(COMPOSE)" python3 scripts/test_auth_e2e.py

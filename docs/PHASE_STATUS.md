@@ -1,28 +1,19 @@
 # Phase status
 
-Current phase: **Phase 3 — authorized touch-target follow-up completed on 2026-09-06**.
+Current phase: **Phase 5 — authentication, organizations, RBAC and onboarding complete (2026-09-07)**.
 
-Phase 0 and Phase 1 remain **PASS**. The Phase 2 consumer touch-target condition **R012-04 is resolved**: footer, home outcome and docs masthead links now have at least 44px width/height at 360/390/768/1024/1280/1440/1920px, using padding and minimum dimensions without increasing text size. Automated Chromium review is not human assistive-technology or cross-browser certification. See the newest section of [TEST_REPORT](TEST_REPORT.md).
-
-Phase 1 live Docker verification is complete as of 2026-09-06: all five default services healthy in development and production configurations, 3/3 real-service integration tests passed, migrations succeeded twice, and review containers/volumes/networks were removed. See [the final test report](TEST_REPORT.md).
+Phases 0–4 remain complete under their explicit prompts. Phase 5 supersedes the provisional scanner-orchestration entry: it adds identity/session lifecycle, organization membership/ownership controls, server-enforced roles and project scopes, the protected product shell, and backend-derived onboarding progress. No scanner or later phase has been started.
 
 ## Execution checklist
 
-- [x] Phase 0 - Documentation and acceptance verification complete; repository setup resolved
-- [x] Phase 1 - Monorepo and executable tooling; live Docker gate resolved during Phase 3 review
-- [x] Phase 2 - Design system and development-only motion laboratory (explicit revised scope)
-- [x] Phase 3 - Public marketing website and scrollytelling (explicit revised scope)
-- [ ] Phase 4 - Projects, targets and authorization
-- [ ] Phase 5 - Scan orchestration and isolated ZAP
-- [ ] Phase 6 - Evidence, findings and lifecycle
-- [ ] Phase 7 - Advisory AI providers
-- [ ] Phase 8 - Deterministic gates and GitHub CI
-- [ ] Phase 9 - Analytics and reports
-- [ ] Phase 10 - Notifications and administration
-- [ ] Phase 11 - Production infrastructure
-- [ ] Phase 12 - Final regression and handoff
+- [x] Phase 0 — documentation baseline
+- [x] Phase 1 — executable tooling and infrastructure verification
+- [x] Phase 2 — design system and development laboratories
+- [x] Phase 3 — public website and touch-target follow-up
+- [x] Phase 4 — database foundation and API conventions, including strict-review corrections
+- [x] Phase 5 — identity, organizations, RBAC and onboarding; security/browser/regression gates passed
 
-The user explicitly authorized Phase 3 public marketing website work. Identity and later implementation work remain outside this prompt. Historical Phase 0/1 records below retain the authorization state at their original handoff.
+Project/target workflows are the next architectural prerequisite. Their scope and phase number require the next explicit user prompt. Historical records below retain the state at their original handoff; current Phase 5 behavior is documented in [AUTHENTICATION](AUTHENTICATION.md).
 
 ## Phase 0 historical discovery
 
@@ -252,3 +243,13 @@ Commands now own a rollback savepoint and refresh locked receipt state/time. New
 Verification: 50 backend tests (15 unit/security, 35 integration), 20 frontend tests and 56 Chromium E2E tests passed; lint/format/strict types, schema-drift and builds passed. See TEST_REPORT for exact commands, intermediate failures, final run details and cleanup. Manual inspection of the new Swagger documentation at 390/768/1280/1440px found no page overflow; expanded disclosures and keyboard navigation worked. No marketing UI changed.
 
 Exact non-blocking limitation: stock development/test Swagger UI has low-contrast labels (GET badge 2.31:1, OpenAPI link 3.30:1, Expand all 1.92:1) and controls below the project's 44px target preference; narrow response columns are cramped at 390px. It is not accessibility-certified and remains disabled in production. This does not block the database/authentication prerequisite work; public exposure or an accessibility-compliance claim for these docs requires remediation. Existing third-party deprecation warnings and the intentionally deferred authentication/RLS/runtime execution boundaries remain documented, not counted as completed capabilities. Stop after this review.
+
+## Phase 5 final handoff — 2026-09-07
+
+**PASS for the explicitly requested phase.** Implemented registration/verification-ready identity, short-lived opaque access credentials, hashed rotating refresh families, replay rejection, sign-out/all-session revocation, single-use password recovery, Redis throttling, CSRF and `/auth/me`. Organization creation/list/read/rename/deactivation, invitation acceptance, member roles/deactivation and owner transfer enforce current server-side membership. Resource summaries enforce tenant/project assignments. Authentication and membership events retain sanitized audit provenance.
+
+The frontend includes identity pages, protected refresh bootstrap, organization switching, a compact/collapsible/mobile sidebar, Configure/Scan/Review cards and backend-derived checklist progress. Organization/team/session controls are functional. Public workspace CTAs open registration. SMTP configuration, same-origin proxies and a disposable real-backend E2E runner are documented and included in CI.
+
+Verification: 16 backend unit/security tests, 50 distinct integration tests (49-case full run plus the final 15-case authentication rerun covering the added onboarding case), 20 frontend unit tests, and 60 distinct Chromium tests (56 public/design-system tests plus 4 separately enabled auth journeys) passed. Formatting, lint, strict types, schema drift, production web/API builds and Compose isolation checks passed. The API package was rebuilt after the final onboarding filter. See TEST_REPORT for exact commands, intermediate failures and cleanup. Desktop/mobile screenshot review and onboarding axe verification passed; no human assistive-technology or cross-browser certification is claimed.
+
+Limits: SMTP must be configured to receive links; delivery retries are not implemented. The screenshot reference was absent, so the written shell requirements govern. Project/target creation, scans, CI setup, policy evaluation and report generation remain deferred; onboarding does not fabricate completion. All temporary test containers and volumes were removed. No deployment or next phase was started. Next unblocked architectural work is project/target workflows under a separate explicit prompt.

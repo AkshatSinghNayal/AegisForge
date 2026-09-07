@@ -136,3 +136,8 @@ The route tables above remain planned. Phase 4 implements persistence and reusab
 Current error objects contain exactly code, message, details, request_id inside error; the proposed retryable field above is deferred. Details are empty unless explicitly allowlisted; validation inputs and locations are not echoed. Readiness 503 retains its original safe health response. Findings filters use `target_id`, `severity`, `state`, `cwe`; event filters require `scan_id`. Ordering is `order=created_at|-created_at`, with UUID tie-breaker. Cursor binding includes limit and filters. Missing version preconditions are 428, stale CAS is 412. These primitives expose no unauthenticated domain routes. Policy replacement is a new immutable version, never an in-place PATCH.
 
 Phase 4 strict review adds revision 0002 to reject passing snapshots that contradict the referenced scan, an internal command savepoint and refreshed locked idempotency receipts. If-Match values must fit PostgreSQL INTEGER (1–2147483647). Current OpenAPI explicitly declares the established readiness 503 Health response. No new domain route is exposed.
+
+
+## Phase 5 implemented identity surface
+
+[Authentication operations](AUTHENTICATION.md) and generated OpenAPI define the mounted Phase 5 endpoints, cookie/CSRF handshake, organization role restrictions and permission-filtered resource summaries. Global identity audits are separate from tenant-bound membership audits. Organization DELETE is deactivation, not evidence deletion. Previously planned scanner, report-generation and integration-write routes remain unmounted.

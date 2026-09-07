@@ -126,7 +126,7 @@ export const docs = [
   {
     slug: 'getting-started',
     title: 'Create a workspace',
-    text: 'Workspace registration is not available in this project release. Prepare your local environment now; account and organization creation belong to a later implementation phase.',
+    text: 'Create an account at /auth/sign-up, then sign in to your organization workspace. For local development, start the services and apply migrations first.',
     code: 'python3 scripts/setup_env.py\nmake dev\nmake migrate',
     note: 'Run these commands from the repository after installing the toolchain listed in README. Docker Engine must be running. The current executable backend exposes health checks only; it does not run scans.',
   },
@@ -135,7 +135,7 @@ export const docs = [
     title: 'Architecture',
     text: 'The public React site is separate from the authenticated application. The planned FastAPI control plane queues isolated worker jobs; ZAP observations feed separate evidence, guidance and policy records.',
     code: 'Authorized target → isolated ZAP worker\nZAP → restricted artifacts → redacted observations\nRedacted evidence → advisory Gemini analysis\nEvidence + completeness + policy version → gate',
-    note: 'The scanner runner, tenant authorization and policy engine are planned boundaries, not deployed capabilities in this release.',
+    note: 'Organization and project authorization are enforced by the API. The scanner runner and policy engine remain planned capabilities.',
   },
   {
     slug: 'authorization',

@@ -16,7 +16,7 @@ const RouteFocusContext = createContext<RefObject<string> | null>(null);
 export function CTA() {
   return (
     <div className="m-actions">
-      <Link className="button primary" to="/docs/getting-started">
+      <Link className="button primary" to="/auth/sign-up">
         Create a workspace <span aria-hidden="true">↗</span>
       </Link>
       <Link className="button secondary" to="/platform#architecture">
@@ -245,7 +245,7 @@ export default function MarketingLayout() {
         </Link>
         <div className="m-desktop">
           {nav}
-          <Link className="button primary" to="/docs/getting-started">
+          <Link className="button primary" to="/auth/sign-up">
             Get started ↗
           </Link>
         </div>
@@ -261,7 +261,7 @@ export default function MarketingLayout() {
         title="Explore AegisForge"
       >
         {nav}
-        <Link to="/docs/getting-started" onClick={() => setOpen(false)}>
+        <Link to="/auth/sign-up" onClick={() => setOpen(false)}>
           Create a workspace ↗
         </Link>
       </Drawer>

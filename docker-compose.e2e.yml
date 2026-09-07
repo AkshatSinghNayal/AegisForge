@@ -1,0 +1,15 @@
+# Isolated real-backend browser fixture; only use with scripts/test_auth_e2e.py.
+services:
+  api:
+    build:
+      dockerfile: apps/api/Dockerfile.test
+    environment:
+      AEGIS_PROFILE: test
+      AEGIS_APP_ORIGIN: http://127.0.0.1:5174
+      AEGIS_COOKIE_SECURE: false
+      AEGIS_AUTH_RATE_LIMIT: 100
+      AEGIS_SMTP_HOST: ''
+    command:
+      - sh
+      - -c
+      - alembic upgrade head && uvicorn aegis_api.main:create_app --factory --host 0.0.0.0 --port 8000 --no-access-log

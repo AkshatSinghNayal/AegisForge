@@ -310,3 +310,51 @@ Revision 0001 was not edited or replaced. Revision 0002 preserves historical eva
 Final post-example verification: the rebuilt-image backend command above passed **50 tests in 24.35 seconds** (two existing deprecation warnings). The final `make UV=/tmp/aegis-tools/uv lint typecheck schema-check` with the documented Node/uv environment prefixes passed, followed by `UV_CACHE_DIR=/tmp/aegis-uv-cache /tmp/aegis-tools/uv run --project apps/api pytest -c apps/api/pyproject.toml apps/api/tests -m 'not integration'` (**15 passed**) and `UV_CACHE_DIR=/tmp/aegis-uv-cache /tmp/aegis-tools/uv build --project apps/api` (wheel/sdist built). No executable changes followed these checks.
 
 `sg docker -c 'make compose-config'` passed development/production/scanner isolation assertions. `sg docker -c 'docker compose -p aegisforge-phase4-review -f docker-compose.yml -f docker-compose.test.yml down --volumes --remove-orphans'` removed only the review project's containers, volumes and networks. The temporary localhost API process was stopped; the browser viewport override was reset and the review tab closed. Other development data was preserved. Final review scope remains Phase 4 only.
+
+## Phase 5 — authentication, organizations, RBAC and onboarding — 2026-09-07
+
+Implemented the explicitly requested phase. No scanner execution, external mail transmission, deployment or next-phase work was performed. No subagents were used. The reference screenshot was unavailable; desktop/mobile screenshots were inspected against the written requirements and existing AegisForge design system.
+
+### Changes and decisions
+
+Added `auth.py`, `auth_models.py`, `organizations.py`, migration `0003`, and `test_auth.py`; updated user verification metadata, API lifespan/routes/settings, Alembic registration and generated schema documents. Added `product/Auth.tsx`, `Workspace.tsx`, `client.ts`, `product.css`, auth browser tests and routes. Updated public registration CTAs, Vite/nginx API proxies, Compose identity configuration, the disposable browser runner/Make target and CI. README, decisions, phase status, API contract, test matrix, `.env.example` and AUTHENTICATION operations are current. Existing dependency locks remain unchanged because no new dependencies were needed.
+
+Opaque access/refresh values are random and hashed at rest. Salted scrypt, user-row serialized session rotation/reset, family replay revocation, single-use recovery, exact-Origin/CSRF protection and Redis rate counters enforce identity boundaries. Tenant membership is checked live; organization locks protect role/deactivation/ownership changes. Existing tenant/project records determine resource visibility and onboarding; only completed, complete baseline scans satisfy the scan step. Active GitHub integration state determines the CI step. Details and limitations are in ADR-023 and AUTHENTICATION.
+
+### Commands and results
+
+The environment uses Node 24 from `/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin` and uv/Compose from `/tmp/aegis-tools`; `UV_CACHE_DIR=/tmp/aegis-uv-cache`. Docker commands used `sg docker` to activate existing group membership. FastAPI TestClient/browser execution and Python build dependency access required approved sandbox escalation.
+
+| Command                                                                                                                                     | Final result                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PATH=<Node24>:/tmp/aegis-tools:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache make check build`                                                    | PASS: Prettier, ESLint, Ruff formatting/lint, strict TypeScript/mypy, 20 frontend unit tests, 16 backend unit/security tests, schema drift, Vite production build and API sdist/wheel      |
+| `sg docker -c '/tmp/aegis-tools/docker-compose -p aegis-phase5 -f docker-compose.yml -f docker-compose.test.yml run --rm --build api'`      | PASS: 49 integration tests, including 14 Phase 5 cases and 35 existing database/infrastructure/review cases; fresh migrations, downgrade/re-upgrade and metadata parity                    |
+| Same isolated Compose runner with current `apps/api/src` and `apps/api/tests` mounted read-only; `pytest -m integration tests/test_auth.py` | PASS: final 15 Phase 5 integration cases, including the added positive baseline/CI progress test. Together with unchanged existing integration cases, 50 distinct integration cases passed |
+| `sg docker -c 'PATH=<Node24>:/tmp/aegis-tools:$PATH make test-auth-e2e COMPOSE=/tmp/aegis-tools/docker-compose'`                            | PASS: all 4 real-backend Chromium journeys; fresh isolated API/PostgreSQL/Redis migrations and automatic resource cleanup                                                                  |
+| `pnpm --filter @aegisforge/web test-e2e`                                                                                                    | PASS: 56 public/design-system Chromium tests; 4 auth tests deliberately skipped here and passed separately in the dedicated real-backend run                                               |
+| `COMPOSE=/tmp/aegis-tools/docker-compose python3 scripts/check_compose.py`                                                                  | PASS: development/production configuration, private infrastructure networks, opt-in digest-pinned disconnected scanner                                                                     |
+| Final changed-file formatting, backend Ruff/mypy and Compose checks                                                                         | PASS after final GitHub onboarding filter and runtime setting forwarding                                                                                                                   |
+
+Exact current-source authentication invocation:
+
+```sh
+sg docker -c '/tmp/aegis-tools/docker-compose -p aegis-phase5 -f docker-compose.yml -f docker-compose.test.yml run --rm -v /home/akshat/Desktop/aegis-4th-year/apps/api/src:/app/src:ro -v /home/akshat/Desktop/aegis-4th-year/apps/api/tests:/app/tests:ro api pytest -m integration tests/test_auth.py'
+```
+
+### Failures corrected during implementation
+
+Initial integration failures were five UUID JSON serialization mistakes in tests, corrected before successful reruns. Existing convention tests were updated for the new OpenAPI version/route set and 28-table metadata. Browser runs caught duplicate sibling keys, indistinguishable sidebar/checklist landmarks, an exact-text selector that included a status glyph, and form filling before a route transition completed. Keys/landmarks were corrected and browser tests now wait for the destination heading. The final isolated auth run passed all four flows. A passwordless-account review also added explicit denial even if the dummy comparison happens to match. Missing filesystem/network capabilities initially stalled TestClient and blocked the Python build backend download; approved execution completed both. An intermediate format gate preceded formatting of the updated E2E test; the completed gate passed. These failures are not counted as passes.
+
+### Visual and security review
+
+Inspected full-page screenshots at 1280px desktop and 390px mobile. Desktop has a compact fixed sidebar, cyan active navigation, organization header, three cards and right checklist. Mobile uses stacked cards/checklist with a keyboard-closeable drawer. Axe reported zero violations on the authenticated onboarding page after landmark correction. Registration/login/logout, protected reload bootstrap, organization creation/switching, live progress refresh, desktop collapse and mobile drawer flows were browser-automated. This is not human assistive-technology or cross-browser certification.
+
+API coverage includes real foreign organization/project/target IDs, all role decisions for mounted organization endpoints, assigned-project reads, immediate deactivation, invite email binding/single use, ownership transfer, reset expiry/single use/all-session revocation, access expiry, secure cookie flags, generic recovery/failure messages, Redis throttling, CSRF and simultaneous refresh replay revoking the winning family. Future scanner/policy/integration mutation routes do not exist; their shared action policy is unit-tested rather than claimed as endpoint-tested.
+
+SMTP delivery was not exercised against an external provider. A configured mail service is required to receive verification, recovery and invite links; unconfigured delivery is recorded without exposing tokens. Durable mail retries, project/target CRUD, scanner execution, policy evaluation and full report workflows remain deferred. Existing Starlette/AnyIO deprecation and Node color-environment warnings remain non-failing.
+
+### Cleanup
+
+The dedicated E2E command removed its uniquely named containers/networks/volumes. The manually started API was stopped, and `sg docker -c '/tmp/aegis-tools/docker-compose -p aegis-phase5 down --volumes --remove-orphans'` removed only the Phase 5 synthetic integration services and volumes. No existing development data was deleted. Screenshot artifacts remain under `/tmp/aegis-phase5-workspace.png` and `/tmp/aegis-phase5-mobile.png`; they are not committed product assets.
+
+Final result: Phase 5 PASS. The complete general browser run finished with **56 passed / 4 intentionally skipped** in 3.7 minutes; the dedicated auth runner had **4 passed** in 40.7 seconds. `UV_CACHE_DIR=/tmp/aegis-uv-cache uv build --project apps/api --offline` successfully rebuilt the final API source as an sdist and wheel. Final formatting/type/Compose checks passed after runtime-setting forwarding and the CI production-origin override. Stop at Phase 5.

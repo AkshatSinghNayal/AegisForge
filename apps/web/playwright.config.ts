@@ -4,6 +4,11 @@ export default defineConfig({
   workers: 2,
   use: { baseURL: 'http://127.0.0.1:4173' },
   projects: [
+    {
+      name: 'auth',
+      testMatch: /auth.spec/,
+      use: { baseURL: 'http://127.0.0.1:5174' },
+    },
     { name: 'production', testMatch: /health|production|marketing/ },
     {
       name: 'labs',

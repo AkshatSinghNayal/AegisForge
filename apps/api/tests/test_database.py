@@ -91,9 +91,18 @@ def test_migration_roundtrip(migrated_database: str) -> None:
 
     assert asyncio.run(guard_installed())
     assert asyncio.run(marker(insert=True))
-    command.downgrade(migration_config(), "-1")
+    command.downgrade(migration_config(), "0001")
     assert not asyncio.run(guard_installed())
-    assert asyncio.run(tables()) == set(Base.metadata.tables) | {"alembic_version"}
+    assert asyncio.run(tables()) == (
+        set(Base.metadata.tables)
+        - {
+            "access_credentials",
+            "identity_tokens",
+            "identity_audits",
+            "invitations",
+            "mail_deliveries",
+        }
+    ) | {"alembic_version"}
     assert asyncio.run(marker())
     command.upgrade(migration_config(), "head")
     command.upgrade(migration_config(), "head")

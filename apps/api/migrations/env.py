@@ -4,6 +4,7 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
+import aegis_api.auth_models  # noqa: F401
 from aegis_api.db.models import Base
 from aegis_api.settings import get_settings
 

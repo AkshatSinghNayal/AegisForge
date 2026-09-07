@@ -97,6 +97,7 @@ def parent(
 
 class User(Base):
     __tablename__ = "users"
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     normalized_email: Mapped[str] = mapped_column(String(320), unique=True)
     password_hash: Mapped[str | None] = mapped_column(Text)
     display_name: Mapped[str] = mapped_column(String(120))

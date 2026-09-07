@@ -67,3 +67,19 @@ See [TEST_REPORT](TEST_REPORT.md). The expanded marketing review checks all 17 r
 ## Phase 4 implemented coverage
 
 R02/R18/R21: real PostgreSQL disposable-database upgrade/downgrade/re-upgrade and Alembic metadata-drift checks; two-organization factories; composite FK/unique/delete behavior; tenant repository get/add/CAS denial; immutable graph/history and timestamp triggers; signed cursor boundaries, equal timestamps and foreign-filter emptiness; idempotency scan/report/webhook operation scopes, payload conflict, TTL, concurrent retry and rollback. R08/R13 foundation guards separate evidence/advice/policy and forbid passing incomplete snapshots. R22 factories use synthetic `.invalid` targets with disabled external actions and no actual secrets. API E2E boundary tests check sanitized HTTP/validation/unexpected errors, correlation headers and production docs denial. Authentication/project permissions, execution and browser CRUD journeys remain deferred; they are not claimed by these tests.
+
+## Phase 5 implemented acceptance mapping
+
+| Requirement                                                                                 | Executable evidence                                                                 |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Password storage, role action matrix                                                        | `test_auth.py::test_password_hash_and_policy`                                       |
+| Registration, verification, refresh rotation/replay and logout                              | `test_registration_rotation_replay_logout`                                          |
+| Reset expiry/single use and all-session revocation                                          | `test_reset_expiry_single_use_revokes_all`                                          |
+| Brute-force counters, generic failures and CSRF                                             | `test_rate_limit_and_csrf`                                                          |
+| Every role, foreign organizations/object IDs, assigned-project visibility, deactivation     | `test_role_endpoints_and_real_foreign_ids` (four roles)                             |
+| Invite email binding/reuse and ownership transfer                                           | `test_invite_binding_single_use_and_ownership`                                      |
+| Registration/login/logout/protected route/bootstrap/onboarding/switcher/mobile/collapse     | `apps/web/e2e/auth.spec.ts` via `make test-auth-e2e`                                |
+| Simultaneous refresh replay, secure cookies, access expiry, complete member mutation matrix | Additional `test_auth.py` integration cases                                         |
+| Existing provenance and migration regression                                                | Existing database and Phase 4 review suites, including upgrade/downgrade/re-upgrade |
+
+Future policy/integration/scanner mutation permissions are tested as authorization policy only; nonexistent future endpoints are not reported as endpoint-tested. SMTP test delivery is captured locally in the API tests, not sent to external recipients.

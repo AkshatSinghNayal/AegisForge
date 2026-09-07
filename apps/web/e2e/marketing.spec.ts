@@ -40,7 +40,12 @@ test('all public routes, metadata and internal links resolve', async ({
   }
   expect(titles.size).toBe(routes.length);
   expect(
-    [...links].filter((link) => !routes.includes(link) && link !== '/status'),
+    [...links].filter(
+      (link) =>
+        !routes.includes(link) &&
+        link !== '/status' &&
+        link !== '/auth/sign-up',
+    ),
   ).toEqual([]);
 });
 test('critical CTA, architecture anchor and documentation search', async ({
@@ -49,9 +54,11 @@ test('critical CTA, architecture anchor and documentation search', async ({
   await page.goto('/');
   await page.getByRole('link', { name: 'Create a workspace' }).first().click();
   await expect(
-    page.getByRole('heading', { name: 'Create a workspace', exact: true }),
+    page.getByRole('heading', { name: 'Build with confidence.', exact: true }),
   ).toBeVisible();
-  await expect(page.getByText(/registration is not available/)).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Create account', exact: true }),
+  ).toBeVisible();
   await page.goto('/');
   await page
     .getByRole('link', { name: 'View the architecture' })

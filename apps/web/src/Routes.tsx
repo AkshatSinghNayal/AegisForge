@@ -1,6 +1,8 @@
 import { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { App } from '@/App';
+const Auth = lazy(() => import('@/product/Auth'));
+const Workspace = lazy(() => import('@/product/Workspace'));
 const UiLab = import.meta.env.DEV ? lazy(() => import('@/dev/UiLab')) : null;
 const MotionLab = import.meta.env.DEV
   ? lazy(() => import('@/dev/MotionLab'))
@@ -13,6 +15,8 @@ const Legal = lazy(() => import('@/marketing/Legal'));
 export function RootRoutes() {
   return (
     <Routes>
+      <Route path="/auth/:action" element={<Auth />} />
+      <Route path="/app/*" element={<Workspace />} />
       <Route path="/status" element={<App />} />
       <Route element={<MarketingLayout />}>
         <Route path="/" element={<Home />} />
