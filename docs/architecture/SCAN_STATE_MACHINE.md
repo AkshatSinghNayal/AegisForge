@@ -62,3 +62,11 @@ stateDiagram-v2
 ```
 
 The diagram shows forward execution only. The universal terminal edges are defined precisely above to avoid a visually dense diagram; they apply to every listed nonterminal state, including draft.
+
+## Phase 7 mock-only implementation
+
+The graph and terminal guards above are now enforced by the orchestration service. The sole executable adapter is a network-free `mock-v1` fixture. Its collection/normalization/enrichment/evaluation/report stages simulate lifecycle checkpoints on an explicitly labeled demo scan; they do not satisfy the real evidence/report guards above. Its completion remains partial with an effective fail gate, and cannot resolve findings or complete onboarding. Real adapter implementation must fulfill all production guards before enabling target traffic. See [orchestration contract](../SCAN_ORCHESTRATION.md).
+
+## Phase 8 real evidence collection
+
+The opt-in ZAP provider now executes through isolated worker jobs. Sanitized progress advances execution stages while preserving one job/fence. For real scans only, successful immutable artifact collection permits `collecting_results -> completed` with completeness `partial`, pending downstream component statuses and effective gate `fail / evaluation_unavailable`. This phase-specific terminal path does not satisfy the future normalization/evaluation/report guards. Mock scans retain their labeled lifecycle simulation. See [scanner execution](../SCANNER.md).

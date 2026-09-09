@@ -121,7 +121,7 @@ def test_error_boundary_and_openapi() -> None:
             assert body["request_id"] == response.headers["X-Request-ID"]
             assert response.headers["Cache-Control"] == "no-store"
             assert "synthetic-secret-canary" not in response.text
-        assert client.get("/api/v1/openapi.json").json()["info"]["version"] == "0.5.0"
+        assert client.get("/api/v1/openapi.json").json()["info"]["version"] == "0.6.0"
     config = settings().model_copy(update={"profile": "prod"})
     with TestClient(create_app(config)) as client:
         assert client.get("/api/v1/openapi.json").status_code == 404
@@ -134,7 +134,7 @@ def test_schema_catalog_contains_only_safe_responses() -> None:
     from aegis_api.schema_docs import documents
 
     docs = documents()
-    assert len(Base.metadata.tables) == 28
+    assert len(Base.metadata.tables) == 29
     api = json.loads(docs["openapi.json"])
     assert {"/health/live", "/health/ready", "/api/v1/auth/me"} <= set(api["paths"])
     responses = api["paths"]["/health/ready"]["get"]["responses"]

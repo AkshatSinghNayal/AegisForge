@@ -2,7 +2,7 @@
 
 DevSecOps Vulnerability Intelligence Engine for authorized web applications and REST APIs.
 
-Phase 1 supplies a React service-health view, a FastAPI health API, a Celery worker foundation, and local PostgreSQL/Redis infrastructure. Phase 4 adds the PostgreSQL domain schema and internal API conventions. Scanning, identity and AI execution belong to later phases. Phase 3 adds the complete public marketing website. Local quality checks, browser tests and production package builds pass; live development/production container health, all three real-service integration tests and repeated migrations passed on 2026-09-06. See the [verification record](docs/PHASE_STATUS.md).
+Phases 1–7 provide the React/FastAPI foundation, design system, public website, PostgreSQL domain schema, authentication and organization RBAC, projects, authorized targets, encrypted local secret references, immutable policies, and mock-only scan orchestration with live progress. Real target scanning, AI execution and security policy evaluation remain future work. See the [phase status](docs/PHASE_STATUS.md) and [Phase 7 verification report](docs/PHASE7_TEST_REPORT.md).
 
 ## Design and motion laboratories
 
@@ -18,7 +18,7 @@ The Phase 3 review cleared the Phase 1 live Docker gate; the retroactive Phase 0
 
 ## Database foundation (Phase 4)
 
-`make migrate` applies revisions `0001`–`0003`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; authenticated dependencies resolve it and enforce roles/project membership. Revision 0002 rejects passing evaluations that contradict the persisted scan. Phase 5 adds authentication and organization APIs. Scan/report creation routes, restricted secret storage, webhook receivers and delivery workers remain deferred.
+`make migrate` applies revisions `0001`–`0005`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; authenticated dependencies resolve it and enforce roles/project membership. Revision 0002 rejects passing evaluations that contradict the persisted scan. Phase 5 adds authentication and organization APIs. Phase 6 adds project/target/policy configuration and encrypted local secret references. Phase 7 adds mock-only scan orchestration and live SSE. Real scanner/report execution, managed production secret providers, webhook receivers and delivery workers remain deferred.
 
 Run `make schema-docs` to regenerate [OpenAPI](docs/generated/openapi.json), [convention schemas](docs/generated/conventions.schema.json) and the [database catalog](docs/generated/database-schema.md). `make schema-check` detects drift. `make test-integration` requires the isolated test profile and database-create permission: it provisions a uniquely named disposable database, tests upgrade/downgrade/re-upgrade and two-organization isolation, then drops only that database. Never run manual downgrades against retained data; revision 0001 downgrade removes the foundation.
 
@@ -115,3 +115,17 @@ Prometheus and Grafana also start with Compose, using persistent named volumes a
 ## Phase 5 identity and onboarding
 
 Run `make migrate`, then open `/auth/sign-up`. Short-lived access credentials remain in browser memory; rotating refresh cookies are HttpOnly and Secure in production. Organization membership and project permissions are enforced by the API. `/app/getting-started` reads actual persisted progress and includes organization/team/session controls. SMTP must be configured to receive verification, reset and invite links; an unset host sends nothing and never logs tokens. See [AUTHENTICATION](docs/AUTHENTICATION.md) for settings, API routes, RBAC, limits and `make test-auth-e2e`. No scanning or later phase was started.
+
+## Phase 6 project and target configuration
+
+Open `/app/projects`, `/app/targets` and `/app/policies` after signing in. Projects support settings, member assignments, archive/restore and real scan/finding summaries. Targets use a four-step authorized setup wizard with backend URL/OpenAPI validation and masked credential references. Policy edits create immutable versions. No scanner executes in this phase.
+
+New `make setup` runs generate the local encryption key. For an existing `.env`, run `python3 scripts/configure_secret_key.py` and rebuild the API to enable local credentials. Never replace an existing key without migrating encrypted references. See [configuration setup and boundaries](docs/CONFIGURATION.md) and [verification status](docs/PHASE_STATUS.md). `make test-auth-e2e` includes real project/target setup against a disposable HTTP fixture.
+
+## Scan orchestration (Phase 7)
+
+[Scan orchestration](docs/SCAN_ORCHESTRATION.md) documents idempotent creation, one-use active grants, durable dispatch, fenced Celery jobs, cancellation/deadlines, bounded safe retries and live SSE replay. Enable the network-free demo provider explicitly; the default missing scanner fails visibly. Demo completion always retains a failing effective gate and produces no security findings or report. See [verification](docs/PHASE7_TEST_REPORT.md). Phase 8 adds real execution through the separate opt-in scanner runtime below.
+
+## Isolated ZAP scanner (Phase 8)
+
+[Scanner setup and responsible use](docs/SCANNER.md) covers the digest-pinned ZAP 2.17.0 worker adapter, separately isolated containers, target-only HTTP/TLS gateway, authorization leases, resource limits, encrypted immutable evidence and the opt-in vulnerable training profile. The default provider remains disabled; internet active scans are refused. Real collection stays partial with a failing effective gate until later processing phases are explicitly implemented. See [Phase 8 verification](docs/PHASE8_TEST_REPORT.md).

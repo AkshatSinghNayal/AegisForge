@@ -1,4 +1,9 @@
 import { defineConfig } from '@playwright/test';
+const devServer = {
+  command: 'pnpm dev --port 5174 --strictPort',
+  url: 'http://127.0.0.1:5174',
+  reuseExistingServer: false,
+};
 export default defineConfig({
   testDir: './e2e',
   workers: 2,
@@ -6,7 +11,7 @@ export default defineConfig({
   projects: [
     {
       name: 'auth',
-      testMatch: /auth.spec/,
+      testMatch: /auth.spec|configuration.spec|scans.spec/,
       use: { baseURL: 'http://127.0.0.1:5174' },
     },
     { name: 'production', testMatch: /health|production|marketing/ },
@@ -16,16 +21,15 @@ export default defineConfig({
       use: { baseURL: 'http://127.0.0.1:5174' },
     },
   ],
-  webServer: [
-    {
-      command: 'pnpm build && pnpm preview --port 4173',
-      url: 'http://127.0.0.1:4173',
-      reuseExistingServer: false,
-    },
-    {
-      command: 'pnpm dev --port 5174 --strictPort',
-      url: 'http://127.0.0.1:5174',
-      reuseExistingServer: false,
-    },
-  ],
+  webServer:
+    process.env.AEGIS_E2E_AUTH === '1'
+      ? [devServer]
+      : [
+          {
+            command: 'pnpm build && pnpm preview --port 4173',
+            url: 'http://127.0.0.1:4173',
+            reuseExistingServer: false,
+          },
+          devServer,
+        ],
 });

@@ -1,0 +1,65 @@
+# Explicit opt-in. Use a dedicated/rootless scanner Docker daemon socket.
+# Never expose this socket to API/web or give ZAP infrastructure network access.
+services:
+  api:
+    environment:
+      AEGIS_SCANNER_PROVIDER: zap
+      AEGIS_ZAP_DISPATCH_KEY: ${AEGIS_ZAP_DISPATCH_KEY:?Configure a dispatch Fernet key}
+  scanner-worker:
+    profiles: [scanner-runtime]
+    image: aegisforge-scanner-worker:phase8
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.scanner
+    group_add: ['${AEGIS_SCANNER_SOCKET_GID:?Set the scanner socket group ID}']
+    environment:
+      AEGIS_PROFILE: ${AEGIS_PROFILE:-dev}
+      AEGIS_SCANNER_PROVIDER: zap
+      AEGIS_REDIS_URL: redis://:${REDIS_PASSWORD:?Run make setup first}@redis:6379/0
+      AEGIS_ZAP_DISPATCH_KEY: ${AEGIS_ZAP_DISPATCH_KEY:?Configure a dispatch Fernet key}
+      AEGIS_ZAP_SECRET_KEY: ${AEGIS_LOCAL_SECRET_KEY:-}
+      AEGIS_ZAP_ARTIFACT_KEY: ${AEGIS_ZAP_ARTIFACT_KEY:?Configure a separate artifact Fernet key}
+      AEGIS_ZAP_ALLOWLIST: ${AEGIS_ZAP_ALLOWLIST:-[]}
+      AEGIS_ZAP_EGRESS_NETWORK: ${AEGIS_ZAP_EGRESS_NETWORK:-bridge}
+      AEGIS_ZAP_CPUS: ${AEGIS_ZAP_CPUS:-1}
+      AEGIS_ZAP_MEMORY: ${AEGIS_ZAP_MEMORY:-2g}
+      AEGIS_ZAP_POLL_SECONDS: ${AEGIS_ZAP_POLL_SECONDS:-2}
+      AEGIS_ZAP_REDACTION_PATTERNS: ${AEGIS_ZAP_REDACTION_PATTERNS:-[]}
+    volumes:
+      - ${AEGIS_SCANNER_SOCKET:?Set a dedicated scanner daemon socket}:/var/run/docker.sock
+      - scanner_artifacts:/var/lib/aegis/artifacts
+    networks: [worker_broker]
+    depends_on:
+      redis: { condition: service_healthy }
+    cpus: 1
+    mem_limit: 1g
+    pids_limit: 128
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    healthcheck:
+      test: ['CMD', 'python', '-c', 'import aegis_api.zap.provider']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  scanner-reaper:
+    profiles: [scanner-runtime]
+    image: aegisforge-scanner-worker:phase8
+    group_add: ['${AEGIS_SCANNER_SOCKET_GID:?Set the scanner socket group ID}']
+    command: ['python', '-m', 'aegis_api.zap.reaper']
+    environment:
+      AEGIS_REDIS_URL: redis://unused:6379/0
+    network_mode: none
+    volumes:
+      - ${AEGIS_SCANNER_SOCKET:?Set a dedicated scanner daemon socket}:/var/run/docker.sock
+    cpus: 0.25
+    mem_limit: 256m
+    pids_limit: 64
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    healthcheck:
+      test: ['CMD', 'python', '-c', 'import os; os.kill(1,0)']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  scanner_artifacts:

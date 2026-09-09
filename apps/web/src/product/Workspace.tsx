@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { z } from 'zod';
 import { Button, Drawer, Input, Wordmark } from '@/ui';
 import {
@@ -11,6 +11,8 @@ import {
   type Me,
 } from './client';
 import './product.css';
+import Configuration from './Configuration';
+import Scans from './Scans';
 const progressSchema = z.object({
   create_project: z.boolean(),
   register_target: z.boolean(),
@@ -32,13 +34,13 @@ const checklist = [
     key: 'create_project',
     title: 'Create project',
     text: 'Group your application and its security evidence in a project.',
-    to: '/docs/getting-started',
+    to: '/app/projects',
   },
   {
     key: 'register_target',
     title: 'Register target',
     text: 'Record target scope and current ownership authorization before testing.',
-    to: '/docs/authorization',
+    to: '/app/targets',
   },
   {
     key: 'run_safe_baseline',
@@ -55,6 +57,7 @@ const checklist = [
 ] as const;
 export default function Workspace() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [me, setMe] = useState<Me | null>(null);
   const [organizationId, setOrganizationId] = useState('');
   const [error, setError] = useState('');
@@ -111,7 +114,20 @@ export default function Workspace() {
         <NavLink to="/app/getting-started" onClick={() => setOpen(false)}>
           ◈ <span>Getting started</span>
         </NavLink>
-        <a href="#organization" onClick={() => setOpen(false)}>
+        {['projects', 'targets', 'policies', 'scans'].map((path) => (
+          <NavLink
+            key={path}
+            to={`/app/${path}`}
+            onClick={() => setOpen(false)}
+          >
+            {path[0]?.toUpperCase()}
+            {path.slice(1)}
+          </NavLink>
+        ))}
+        <a
+          href="/app/getting-started#organization"
+          onClick={() => setOpen(false)}
+        >
           ◎ <span>Organization</span>
         </a>
       </nav>
@@ -171,41 +187,57 @@ export default function Workspace() {
           <span>{me.display_name}</span>
         </header>
         <main id="main" className="workspace-main">
-          <p className="eyebrow">WORKSPACE / GETTING STARTED</p>
-          <h1>A clear path to your first scan.</h1>
-          <p className="muted">
-            Set the scope. Gather evidence. Make informed decisions.
-          </p>
-          {error && <p role="alert">{error}</p>}
-          {!me.email_verified && (
-            <p className="workspace-notice">
-              Email verification is pending. Open the verification link sent to
-              your email.
-            </p>
-          )}
-          {org ? (
-            <Onboarding key={org.id} organizationId={org.id} />
+          {org && location.pathname.startsWith('/app/scans') ? (
+            <Scans key={org.id} org={org.id} role={org.role} />
+          ) : org &&
+            /^\/app\/(projects|targets|policies)/.test(location.pathname) ? (
+            <Configuration
+              key={org.id}
+              org={org.id}
+              role={org.role}
+              userId={me.id}
+            />
           ) : (
-            <p>Create an organization below to begin.</p>
+            <>
+              <p className="eyebrow">WORKSPACE / GETTING STARTED</p>
+              <h1>A clear path to your first scan.</h1>
+              <p className="muted">
+                Set the scope. Gather evidence. Make informed decisions.
+              </p>
+              {error && <p role="alert">{error}</p>}
+              {!me.email_verified && (
+                <p className="workspace-notice">
+                  Email verification is pending. Open the verification link sent
+                  to your email.
+                </p>
+              )}
+              {org ? (
+                <Onboarding key={org.id} organizationId={org.id} />
+              ) : (
+                <p>Create an organization below to begin.</p>
+              )}
+              <OrganizationSettings
+                key={`settings-${organizationId}`}
+                me={me}
+                organizationId={organizationId}
+                onRefresh={async () => {
+                  const result = await request('/auth/me', meSchema);
+                  setMe(result);
+                  if (
+                    !result.organizations.some((o) => o.id === organizationId)
+                  )
+                    setOrganizationId(result.organizations[0]?.id ?? '');
+                }}
+              />
+              <section className="workspace-security">
+                <h2>Session security</h2>
+                <p>Sign out on every device, including this one.</p>
+                <Button variant="secondary" onClick={() => void signOut(true)}>
+                  Revoke all sessions
+                </Button>
+              </section>
+            </>
           )}
-          <OrganizationSettings
-            key={`settings-${organizationId}`}
-            me={me}
-            organizationId={organizationId}
-            onRefresh={async () => {
-              const result = await request('/auth/me', meSchema);
-              setMe(result);
-              if (!result.organizations.some((o) => o.id === organizationId))
-                setOrganizationId(result.organizations[0]?.id ?? '');
-            }}
-          />
-          <section className="workspace-security">
-            <h2>Session security</h2>
-            <p>Sign out on every device, including this one.</p>
-            <Button variant="secondary" onClick={() => void signOut(true)}>
-              Revoke all sessions
-            </Button>
-          </section>
         </main>
       </div>
       <Drawer

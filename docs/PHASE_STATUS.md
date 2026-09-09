@@ -1,8 +1,8 @@
 # Phase status
 
-Current phase: **Phase 5 — authentication, organizations, RBAC and onboarding complete (2026-09-07)**.
+Current phase: **Phase 7 — mock scan orchestration and live progress complete (2026-09-08)**.
 
-Phases 0–4 remain complete under their explicit prompts. Phase 5 supersedes the provisional scanner-orchestration entry: it adds identity/session lifecycle, organization membership/ownership controls, server-enforced roles and project scopes, the protected product shell, and backend-derived onboarding progress. No scanner or later phase has been started.
+Phases 0–6 remain complete under their explicit prompts and reviews. Phase 7 adds the durable job lifecycle, authorization/idempotency/grant checks, isolated mock Celery provider, cancellation/deadlines/retries, ordered SSE and scan list/wizard/live UI. No ZAP or later-phase security processing is connected.
 
 ## Execution checklist
 
@@ -12,8 +12,10 @@ Phases 0–4 remain complete under their explicit prompts. Phase 5 supersedes th
 - [x] Phase 3 — public website and touch-target follow-up
 - [x] Phase 4 — database foundation and API conventions, including strict-review corrections
 - [x] Phase 5 — identity, organizations, RBAC and onboarding; security/browser/regression gates passed
+- [x] Phase 6 — projects, targets, secret references and scan policies; security/migration/browser/regression gates passed
+- [x] Phase 7 — mock scan lifecycle, durable dispatch, live SSE and scan UI; backend/frontend/live-worker checks passed
 
-Project/target workflows are the next architectural prerequisite. Their scope and phase number require the next explicit user prompt. Historical records below retain the state at their original handoff; current Phase 5 behavior is documented in [AUTHENTICATION](AUTHENTICATION.md).
+The next phase requires an explicit user prompt; real isolated scanner execution remains unimplemented. Historical records below retain their original handoff state. Current behavior is documented in [AUTHENTICATION](AUTHENTICATION.md), [CONFIGURATION](CONFIGURATION.md) and [SCAN_ORCHESTRATION](SCAN_ORCHESTRATION.md).
 
 ## Phase 0 historical discovery
 
@@ -253,3 +255,55 @@ The frontend includes identity pages, protected refresh bootstrap, organization 
 Verification: 16 backend unit/security tests, 50 distinct integration tests (49-case full run plus the final 15-case authentication rerun covering the added onboarding case), 20 frontend unit tests, and 60 distinct Chromium tests (56 public/design-system tests plus 4 separately enabled auth journeys) passed. Formatting, lint, strict types, schema drift, production web/API builds and Compose isolation checks passed. The API package was rebuilt after the final onboarding filter. See TEST_REPORT for exact commands, intermediate failures and cleanup. Desktop/mobile screenshot review and onboarding axe verification passed; no human assistive-technology or cross-browser certification is claimed.
 
 Limits: SMTP must be configured to receive links; delivery retries are not implemented. The screenshot reference was absent, so the written shell requirements govern. Project/target creation, scans, CI setup, policy evaluation and report generation remain deferred; onboarding does not fabricate completion. All temporary test containers and volumes were removed. No deployment or next phase was started. Next unblocked architectural work is project/target workflows under a separate explicit prompt.
+
+## Phase 6 final handoff — 2026-09-07
+
+Implemented project CRUD/settings/ownership/member assignments and archive/restore; scoped project scan/finding/target overview; four URL/OpenAPI target types and the four-step setup wizard; per-hop DNS/address validation with pinned connections, metadata/private/transition-address protection and bounded OpenAPI sanitization; local encrypted API-key/bearer/basic references with masked responses; administrator-controlled internal-test policy exceptions; baseline/API-passive/authorized-active presets and immutable custom-policy revisions. Migration 0004 preserves earlier schema history and adds tenant-safe owner/policy references. No ZAP execution, AI analysis, gate evaluation or later phase was started.
+
+Files, rationale, exact commands, intermediate corrections and operational limits are recorded in [PHASE6_TEST_REPORT](PHASE6_TEST_REPORT.md). Final results: Prettier/ESLint/Ruff, strict TypeScript/mypy, generated schemas, 21 frontend tests, 142 backend tests (83 unit/security + 59 integration), production Vite/API artifacts, 5 real-backend auth/setup Playwright tests and 56 existing browser regressions passed. The general browser command skips the 5 backend-dependent tests, which passed in their separate real-backend run; skips are not counted as passes. Fresh/repeated migrations, downgrade/re-upgrade, retained data and metadata drift passed against PostgreSQL. Dev/prod Compose assertions and local key-helper checks passed. Two existing upstream Starlette/AnyIO deprecation warnings remain.
+
+Viewed the desktop target and 390px project screenshots; desktop/mobile axe checks passed and layouts showed no clipping. No direct screen-reader session, non-Chromium verification, remote CI or deployment is claimed. Local credentials require AEGIS_LOCAL_SECRET_KEY and are refused in production; AWS/OAuth adapters remain future interfaces. Lists are bounded to 200 records; project finding counts and recent scan queries cover all targets. Future execution must re-enforce current ownership, DNS/scope/egress and a one-use active confirmation. The disposable browser and integration stacks were removed.
+
+Git commit blocked: `git add` failed with exit 128 because `.git/index.lock` could not be created on the read-only protected Git metadata. No commit was created and no Git permissions or protected metadata were modified. Stop at Phase 6; the next phase is unblocked only for work explicitly requested next.
+
+## Phase 6 strict review — 2026-09-08
+
+**CONDITIONAL PASS — safe to begin the next explicitly authorized phase.** Fixed confirmed blockers in OpenAPI named-field sanitization/original-document validation/reference preflight, archived-project credential revocation and target deactivation, stale target display after failed fetches, fragmented request buffering, legacy-policy responses/preset initialization, and configuration primary-link hover contrast. Added focused security/failure-path and UI regressions. No ZAP execution or next-phase work started.
+
+Verification: formatting/lint, strict TypeScript/mypy, generated-schema drift and web/API builds passed; **22 frontend tests and 161 backend tests (98 unit/security, 63 integration)** passed. Real-backend Playwright: **5 passed**, including **52 axe/overflow checks across 13 states at 390/768/1280/1440px**. Screenshots/contact sheets were visually inspected at every requested width; no further layout blockers found. General browser regression: **55 passed, 1 component-lab page-load timeout, 5 backend-dependent skips**; that unchanged case then passed **3/3 isolated repetitions**. The skipped cases passed in the real-backend run. The full regression run is not claimed as entirely green. Compose assertions and whitespace checks passed; disposable test services were removed.
+
+Exact non-blocking limitations: the isolated component-lab timeout did not reproduce and its cause remains unconfirmed; configuration lists cap results at 200 without pagination; browser verification is Chromium/axe/visual inspection, without human screen-reader or other-engine certification; protected read-only Git metadata prevents creating a commit. Production managed secrets/OAuth and executor-time authorization/egress remain explicitly deferred phase boundaries. See [TEST_REPORT](TEST_REPORT.md#phase-6-strict-review--2026-09-08) for exact commands, failures, fixes and final results. Stop after this review.
+
+## Phase 7 final handoff — 2026-09-08
+
+Implemented the explicitly requested mock-first scan orchestration and live progress scope. Scan creation returns 202 with transactional idempotency, tenant/project authorization, current target/policy/reference validation, quotas and one-use active grants. API-side coordinators persist stage dispatch intent, allocate append-only sequence events and apply fenced results; broker-only Celery workers enforce duplicate/same-scan admission. Cancellation, deadlines, bounded safe-stage retries and SSE replay/reconnect are functional. The frontend includes scan history, the review wizard and a responsive sanitized terminal timeline.
+
+Verification and exact commands are in [PHASE7_TEST_REPORT](PHASE7_TEST_REPORT.md): 176-case full backend pass plus the final 16-case scan rerun including an actual process-kill test (**177 distinct backend tests**); **24 frontend tests**; **6 distinct real-backend Playwright journeys**, including the real Celery pipeline, offline/reconnect, cancellation and desktop/mobile axe checks. Formatting, strict types, schema drift, Compose isolation and production builds passed; intermediate failures and permitted retries are documented. Final general browser regression and cleanup results are recorded in the report.
+
+Viewed the 390px and 1280px live-scan screenshots; no clipping found. Mock completion remains partial/mock/report-failed with an effective fail gate and no real security evidence/evaluation/report IDs. Real ZAP, runner egress/termination, Gemini, production secret adapters and security processing are deferred. PostgreSQL/API outages delay reconciliation; durable deadlines apply on recovery. Lists cap at 200 and browser certification is Chromium/axe/visual only. No deployment or next phase started.
+
+## Phase 8 handoff — 2026-09-09
+
+Implemented isolated worker-only ZAP execution with a digest-pinned 2.17.0 image, explicit allowlist, fresh worker-side DNS validation, scoped HTTP/TLS gateway, resource/concurrency/time limits, private management API, revocable leases and cleanup/reaper paths. The mock adapter remains available for tests/demo. Real collection stores encrypted immutable raw artifacts and sanitized progress; completion remains partial with a failing unavailable gate. No downstream findings, AI, policy or reports are fabricated.
+
+Verification: **232 backend tests passed** with seven opt-in live skips, **47 focused scanner tests passed** after the final DNS fix, **25 frontend tests passed**, and **all seven distinct live ZAP scenarios passed across a five-pass/two-failure run and the corrected two-case rerun**. The real-backend mock scan browser journey passed, including desktop/mobile axe checks. Lint, strict types, schema drift and the final scanner image build passed. Exact commands, intermediate failures, final checks and limitations are in [PHASE8_TEST_REPORT](PHASE8_TEST_REPORT.md); setup and responsible-use requirements are in [SCANNER](SCANNER.md).
+
+Operational limits include local encrypted object storage, operator-managed retention, no production managed-secret adapter, and no claimed live AJAX/full HTTPS ZAP or browser-to-ZAP journey. Internet active scans remain refused. No deployment or next phase was started; further work requires a separate explicit prompt.
+
+Final web/API builds and Compose isolation assertions passed. Disposable test services were removed. Commit blocked: `git add` returned exit 128 because protected `.git/index.lock` is read-only; no Git metadata permissions were changed. Stop at Phase 8.
+
+## Phase 8 strict review — 2026-09-09
+
+**CONDITIONAL PASS — safe to begin the next explicitly authorized phase.** Fixed confirmed scope-normalization, deadline/lease, gateway-statistics, artifact-permission, credential-redaction and crawl/rule-policy blockers. AJAX now fails and cleans up if it stops with no observations. Bounded Firefox profile/WebDriver storage, writable temporary cache and a 512-process ZAP ceiling enable the isolated browser while preserving the read-only root, CPU/memory/network limits and private management API.
+
+Verification: **248 backend tests passed, 8 opt-in skips**; final focused scanner suite **63 passed**; **25 frontend tests passed** on the unchanged one-worker rerun. All **eight distinct live ZAP scenarios passed across runs**, including the final AJAX and network/lost-lease pair (**2 passed in 127.80 seconds**). Real-backend mock browser journey: **1 passed**, with **36 axe/overflow checks across nine states at 390/768/1280/1440px**, plus visual inspection at all four widths. Formatting/lint, strict types, schema drift, web/API builds, final scanner image build and Compose assertions passed. Exact chronology, commands and intermediate failures are in [TEST_REPORT](TEST_REPORT.md#phase-8-strict-review--2026-09-09).
+
+Non-blocking limitations: no production managed-secret adapter; local encrypted object storage requires operator key/retention management and has no S3/download lifecycle; production requires a dedicated/rootless execution daemon. Full browser-to-ZAP and full HTTPS ZAP journeys remain unverified; live AJAX is now verified, superseding the original handoff limitation. Browser certification is Chromium/axe/visual only. The default-parallel frontend timing failure has an unconfirmed cause; two upstream backend deprecation warnings remain. Protected read-only Git metadata prevents a commit.
+
+Review services were stopped after automatic approval review rejected volume/orphan deletion; containers and volumes were retained. No Docker containers were running and preview/backend ports 5173/5174/4173/8000 had no listeners at handoff. Application data was preserved. Completion remains partial with a failing unavailable gate; no downstream results are fabricated. No deployment or next phase started. Stop after this review.
+
+## Phase 8 Git handoff clarification — 2026-09-09
+
+The earlier commit blocker was the execution sandbox’s read-only rule for `.git`, not incorrect Unix ownership or a stale lock. Explicitly authorized escalated Git staging succeeded without changing filesystem permissions or repository configuration. The commit records the complete verified Phase 6–8 working state because HEAD previously stopped at Phase 5; see [commit inventory](PHASE8_COMMIT_MANIFEST.md) for its exact file scope. Earlier statements that a commit remains blocked are superseded by this handoff once the commit is verified. No Phase 9 work is included.
+
+Secret verification is limited to real local worker decryption with a fake scanner runtime, separate configuration/redaction tests, and unauthenticated live scans. Authenticated real-ZAP delivery and a full saved-reference-to-target journey are not claimed. Cloud secret adapters and cloud artifact lifecycle are unimplemented. See [scanner verification boundary](SCANNER.md) for details.

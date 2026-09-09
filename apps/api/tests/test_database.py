@@ -101,6 +101,7 @@ def test_migration_roundtrip(migrated_database: str) -> None:
             "identity_audits",
             "invitations",
             "mail_deliveries",
+            "scan_confirmations",
         }
     ) | {"alembic_version"}
     assert asyncio.run(marker())

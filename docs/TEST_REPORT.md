@@ -358,3 +358,178 @@ SMTP delivery was not exercised against an external provider. A configured mail 
 The dedicated E2E command removed its uniquely named containers/networks/volumes. The manually started API was stopped, and `sg docker -c '/tmp/aegis-tools/docker-compose -p aegis-phase5 down --volumes --remove-orphans'` removed only the Phase 5 synthetic integration services and volumes. No existing development data was deleted. Screenshot artifacts remain under `/tmp/aegis-phase5-workspace.png` and `/tmp/aegis-phase5-mobile.png`; they are not committed product assets.
 
 Final result: Phase 5 PASS. The complete general browser run finished with **56 passed / 4 intentionally skipped** in 3.7 minutes; the dedicated auth runner had **4 passed** in 40.7 seconds. `UV_CACHE_DIR=/tmp/aegis-uv-cache uv build --project apps/api --offline` successfully rebuilt the final API source as an sdist and wheel. Final formatting/type/Compose checks passed after runtime-setting forwarding and the CI production-origin override. Stop at Phase 5.
+
+## Phase 6 strict review — 2026-09-08
+
+Reviewed the explicit Phase 6 prompt, the working-tree diff against `f7d82a2`, new/untracked implementation files, migration 0004, response schemas, existing/new tests and PHASE6_TEST_REPORT. No ZAP process or next-phase implementation was started.
+
+### Confirmed defects fixed
+
+- OpenAPI sanitization treated API/schema names as metadata: properties named `default`, `description`, `example`, `enum`, `servers` or `x-field`, and default responses, could disappear. The sanitizer now distinguishes named maps, validates the original document after reference/depth preflight, and validates the sanitized result. Malformed original fields cannot become acceptable through redaction. A nested property named `components` cannot hide an external reference from preflight; its regression asserts that the schema validator is never called.
+- Archived projects prevented credential revocation and target deactivation. Those actions now remain available with the same tenant, project-membership and role checks. New configuration remains prohibited while archived.
+- Failed navigation/refetch could leave the previous target visible. Loaded data and errors are now bound to their request path, and failed loads clear stale data.
+- Request buffering retained one object per chunk and replayed with quadratic list removal. It now accumulates the bounded bytes and replays one body. A 10,000-fragment regression verifies this behavior.
+- Legacy policy detail could reach an incompatible response schema and fail with 500. It now returns 409; preset initialization creates a current immutable version without rewriting the legacy row.
+- The configuration primary-link hover inherited mint text on mint background (axe measured 1.12:1). A scoped hover foreground restores the dark button text.
+
+Added failure-path coverage for timeouts, TLS failures, server errors, missing redirect destinations, downgrade redirects, redirect loops, unsupported content types, compressed responses, oversized fetched documents, malformed original OpenAPI, foreign-target/credential mutations, foreign authorization owners, missing encryption keys and archived-project revocation. Existing SSRF address/rebinding/redirect, RBAC, secret-redaction, policy immutability and migration integration cases remain in the full suite.
+
+### Browser inspection
+
+The real-backend setup test passed all four widths (390, 768, 1280, 1440px) for 13 states: project list, new project, project overview, project settings, policy list, active policy editor, target list, wizard Basics/Scope/Authentication, failed Review, validated Review and target detail. All 52 axe/overflow checks passed. Full-page screenshots and four-width contact sheets were visually inspected; no clipping or horizontal page overflow was observed. Active warnings, masked authentication, wrapped actions, empty states and backend rejection feedback remain visible. Policy detail reuses the inspected editor; a separate detail-route screenshot was not captured.
+
+The journey rejects a loopback URL even under an internal-test policy, keeps registration disabled, resets consent after editing, validates the corrected synthetic fixture, saves an OpenAPI target with encrypted authentication, revokes its credential, edits project settings, and archives/restores the project. No real target was scanned. Captures are `/tmp/phase6-review-{state}-{width}.png`, with contact sheets `/tmp/contact-{state}.png`; these temporary artifacts are not committed baselines.
+
+### Failed/intermediate checks
+
+The first browser run reproduced the contrast defect (4 passed, setup failed); the corrected run passed all 5 in 2.5 minutes. The first combined quality run hit the existing wizard test's five-second timeout during concurrent image building; using zero artificial per-keystroke delay made the focused test and complete 22-test frontend suite pass. Ruff also caught and fixed one new test import-order issue.
+
+One new rollback assertion initially used the shared-session test dependency, which deliberately lacks production request rollback. The corrected test exercises the production session dependency and passes; no production transaction workaround was added. The first legacy-policy fixture attempted an UPDATE and was correctly rejected by the immutability trigger; the corrected fixture inserts a legacy record. A malformed TLS exception in a test double was also corrected. These are test-fixture failures, not evidence of application success or additional production defects.
+
+### Final verification commands and results
+
+The environment uses bundled Node and uv/pnpm tools. `sg docker` activates existing Docker group membership; it does not change socket or system permissions. Test commands requiring subprocess/network permissions ran outside the filesystem sandbox against disposable services.
+
+```sh
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache make check build
+sg docker -c '/tmp/aegis-tools/docker-compose -p aegis-phase6-review -f docker-compose.yml -f docker-compose.test.yml run --rm --build api'
+sg docker -c '/tmp/aegis-tools/docker-compose -p aegis-phase6-review -f docker-compose.yml -f docker-compose.test.yml run --rm --no-deps -v /home/akshat/Desktop/aegis-4th-year/apps/api/src:/app/src:ro -v /home/akshat/Desktop/aegis-4th-year/apps/api/tests:/app/tests:ro api pytest'
+sg docker -c 'PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH COMPOSE=/tmp/aegis-tools/docker-compose make test-auth-e2e'
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH make test-e2e
+COMPOSE=/tmp/aegis-tools/docker-compose python3 scripts/check_compose.py
+PATH=/tmp/aegis-tools:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache uv run --project apps/api ruff check apps/api
+PATH=/tmp/aegis-tools:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache uv run --project apps/api mypy --config-file apps/api/pyproject.toml apps/api/src
+PATH=/tmp/aegis-tools:$PATH UV_CACHE_DIR=/tmp/aegis-uv-cache uv build --project apps/api
+sg docker -c '/tmp/aegis-tools/docker-compose -p aegis-phase6-review -f docker-compose.yml -f docker-compose.test.yml down --volumes --remove-orphans'
+git diff --check
+```
+
+`make check build` passed Prettier, ESLint, Ruff check/format, strict TypeScript, mypy (22 source files), 22 frontend tests, the then-current 97 backend unit/security tests, generated-schema drift checks, and web/API package builds. After the final reference-preflight regression, Ruff, mypy and API packaging passed again; the final complete backend run used read-only source/test mounts with locked image dependencies and passed **161 tests in 89.48 seconds: 98 unit/security and 63 integration**. Do not add overlapping local/container counts. Existing Starlette/httpx and AnyIO deprecation warnings remain.
+
+Real-backend Playwright: **5 passed in 2.5 minutes**, including 52 Phase 6 axe/overflow combinations. Compose dev/prod/isolation assertions passed and the scanner configuration remains opt-in with no network or published ports. The browser runner removed its disposable stack automatically. The separate integration review stack was removed with the command above; existing application data was preserved.
+
+### Non-blocking limits and handoff
+
+Configuration lists are capped at 200 records without cursor pagination. Browser coverage is Chromium plus axe and visual inspection; direct screen-reader testing, other engines and remote CI are unclaimed. Local encrypted credentials are development/test only and require a stable configured key; the production managed-secret adapter and OAuth implementation are explicitly future interfaces. Executor-time scope/egress checks, active one-use confirmation and ZAP execution remain requirements of later authorized phases, not capabilities claimed by this configuration phase.
+
+The earlier `git add` attempt failed because protected `.git/index.lock` is read-only. No commit was created, and protected Git metadata/permissions were not changed. This is a handoff limitation, not an application defect. No next phase was started.
+
+### Final verdict
+
+**CONDITIONAL PASS — safe to begin the next explicitly authorized phase.** All confirmed Phase 6 blockers above are fixed and covered by passing regressions.
+
+The general `make test-e2e` run finished with **55 passed, 1 failed, 5 skipped in 5.0 minutes**. The failure was the unchanged component-lab `ui fits 1280` case: its `h1` was not found within five seconds after navigation. The five skipped real-backend cases passed separately above. The exact isolated rerun command was:
+
+```sh
+PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH pnpm --filter @aegisforge/web test-e2e --project=labs --grep 'ui fits 1280' --repeat-each=3 --workers=1
+```
+
+All **3 repetitions passed in 23.0 seconds**, with each test taking 1.1 seconds. No lab implementation, timeout or assertion was changed. The intermittent load timeout's cause remains unconfirmed and is a non-blocking test limitation; the original full run is not relabeled as green. All 56 distinct general browser cases have passing evidence across the run and targeted reruns. All 119 public route/width axe checks passed in the general run.
+
+Final documentation formatting, backend formatting and `git diff --check` passed. A Docker label-filtered container query returned no integration-review containers after teardown. Review changes are confined to the six defect areas listed above, their unit/integration/browser regressions, CONFIGURATION, PHASE6_TEST_REPORT, PHASE_STATUS and this report. No dependencies, schema migration or next-phase behavior were added by the strict review.
+
+## Phase 7 — 2026-09-08
+
+See [PHASE7_TEST_REPORT](PHASE7_TEST_REPORT.md) for mock-only orchestration verification, exact commands, intermediate failures/corrections, real Celery/SSE browser evidence, process-kill/Redis failure checks, screenshots, cleanup and limitations. No real ZAP or later phase was started.
+
+## Phase 8 — 2026-09-09
+
+See [PHASE8_TEST_REPORT](PHASE8_TEST_REPORT.md) for isolated ZAP verification, exact commands, actual passive/authorized-active/OpenAPI fixture scans, timeout/cancellation/crash/cleanup, denied canary traffic, redaction, immutable PostgreSQL records and the mock browser regression. The report distinguishes the full live run's two DNS-startup failures from the passing affected rerun. No internet scan, deployment or later phase was started.
+
+## Phase 8 strict review — 2026-09-09
+
+### Review scope and confirmed blockers
+
+Reviewed the explicit Phase 8 requirements, current tracked diff and untracked Phase 6–8 implementation files, scanner contracts, dispatch/coordinator authorization, worker admission, Docker/gateway isolation, artifact persistence/migration, tests and PHASE8_TEST_REPORT. Preserved prior uncommitted work. Rechecked current official [Docker guidance](https://www.zaproxy.org/docs/docker/about/), [network API](https://www.zaproxy.org/docs/desktop/addons/network/api/), [spider depth semantics](https://www.zaproxy.org/docs/desktop/addons/spider/options/) and [AJAX API](https://github.com/zaproxy/zap-api-python/blob/main/src/zapv2/ajaxSpider.py).
+
+Confirmed and fixed these Phase 8 blockers:
+
+1. Path exclusions accepted ambiguous repeated slashes, encoded slashes and semicolon traversal forms that servers can normalize differently. The gateway now rejects these forms before any upstream connection. Real HTTP/TLS destination-assertion tests cover the bypass inputs.
+2. Rate reservations remained usable after authorization/deadline expiry; a slow request body could also delay sending beyond authorization. The gateway now rechecks its lease/deadline after rate waits and body reads. Tests cover both lease and time expiration, with an assertion that no upstream socket is opened.
+3. Rejected transfer/upgrade framing could leave an earlier successful gateway statistics file unchanged. All such failures now persist the failure flag, and statistics use atomic replacement under the budget lock to prevent torn concurrent reads.
+4. Recursive directory creation applied mode 0700 only to the leaf. The artifact root, organization and scan directories are now explicitly secured at 0700; object files remain 0600 and write-once.
+5. Redaction removed full authorization values but could retain standalone Bearer tokens or decoded Basic passwords. It now redacts credential components and encoded variants. New receipts identify `zap-redaction-v2`, retaining compatibility with historical version 1 receipts.
+6. Crawl policies were not faithfully enforced: URL `spider=none` still crawled, zero depth became ZAP's unlimited-depth sentinel, and AJAX ignored the policy depth. Incompatible no-crawl/zero-depth URL policies now fail before startup; both URL crawlers receive positive policy depth. No-crawl OpenAPI import remains supported.
+7. Requested active rule IDs were never checked against the installed inventory. Missing rules now fail rather than allowing an apparent successful active stage without the requested rule. The scanner inventory response is Pydantic-validated.
+
+The first seven new regressions reproduced blockers 1–4, two further tests reproduced blocker 5, and four policy tests reproduced blockers 6–7. Two additional slow-body expiry tests cover the corrected send boundary. These 15 added cases plus the earlier 47 scanner cases passed as **62 focused tests**. During the redaction fix, the existing custom-pattern test caught an accidental local-variable overwrite; this was corrected before the passing rerun. No failed reproduction is counted as a pass.
+
+Changes are confined to `zap/gateway.py`, `zap/artifacts.py`, `zap/contracts.py`, `zap/provider.py`, scanner tests and review/setup documentation. No new dependency, schema migration, UI feature or next-phase behavior was introduced. Existing tenant-scoped immutable artifact/dispatch integration remains tested; failed/partial collection still cannot produce a passing gate.
+
+### Commands
+
+From the repository root, with the bundled Node runtime and `/tmp/aegis-tools` on PATH and `UV_CACHE_DIR=/tmp/aegis-uv-cache`:
+
+```sh
+make lint typecheck test schema-check build
+apps/api/.venv/bin/pytest -c apps/api/pyproject.toml apps/api/tests/test_phase8_review.py apps/api/tests/test_zap.py -q
+pnpm --filter @aegisforge/web test --maxWorkers=1
+make lint typecheck schema-check build
+sg docker -c 'docker build -f apps/api/Dockerfile.scanner -t aegisforge-scanner-worker:phase8 .'
+sg docker -c 'python3 scripts/check_compose.py'
+sg docker -c 'docker compose -p aegis-phase8-review -f docker-compose.yml -f docker-compose.test.yml run --rm --build api pytest -q'
+sg docker -c 'docker compose -p aegis-phase8-review -f docker-compose.yml -f docker-compose.test.yml run --rm -v /home/akshat/Desktop/aegis-4th-year/apps/api/src:/app/src:ro -v /home/akshat/Desktop/aegis-4th-year/apps/api/tests:/app/tests:ro api pytest -q'
+sg docker -c 'AEGIS_RUN_ZAP_LIVE=1 apps/api/.venv/bin/pytest -c apps/api/pyproject.toml apps/api/tests/test_zap_live.py -v --tb=short'
+sg docker -c 'PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/tmp/aegis-tools:$PATH python3 scripts/test_auth_e2e.py scans.spec.ts --workers=1'
+```
+
+The first combined check encountered the deliberately added failing security regressions. After fixes, another combined run stopped on an unchanged configuration unit test's five-second timeout (**24 passed, 1 timed out**); all **25 frontend tests passed** on the one-worker rerun without changing its timeout or assertions. Concurrent machine load is a possible cause, not a proven diagnosis. Static checks and builds were run separately after that interruption. The original combined run is not relabeled green.
+
+### Responsive and accessibility review
+
+The real-backend mock scan browser journey passed **1/1 in 2.7 minutes**. It exercised PostgreSQL/Redis/Celery, SSE replay and reconnect, cancellation and non-passing completion. It performed **36 successful axe/overflow checks across nine states at 390, 768, 1280 and 1440px**. Inspected current screenshots/contact sheets at all four widths, including wizard, consent, final review, running timeline, history and cancellation; no additional layout blocker was found. Screenshot names retain the existing test prefix `/tmp/phase7-review-{state}-{width}.png`; review sheets are `/tmp/phase8-review-ui-{width}.jpg`.
+
+This is Chromium/axe plus visual inspection, not a human screen-reader or other-engine certification. No product UI changed in Phase 8 or this review. Browser orchestration uses the mock provider; actual ZAP and the API/database dispatch/artifact handoff are verified separately. No browser-to-real-ZAP journey or full HTTPS ZAP scan is claimed; the gateway has real loopback TLS scope tests.
+
+### Verified review results
+
+Final full backend: **247 passed, 8 opt-in live skips in 150.00 seconds**, including PostgreSQL/Redis integration, tenant denial, migration/immutability and all 15 new review regressions. The live skips are exercised separately. Earlier full runs passed 232 and then 243 cases before the later policy regressions; these overlapping counts are not added together. The final focused scanner suite passed **62/62**. Two existing upstream Starlette/AnyIO deprecation warnings remain.
+
+Final Prettier/ESLint/Ruff formatting and lint, strict TypeScript/mypy, schema drift, Vite production build, API wheel/source distribution, scanner image build and Compose isolation assertions passed. No timeout/assertion was relaxed. Frontend results and the intermediate timeout are recorded above. The seven-case real ZAP suite passed **7/7 in 492.28 seconds** after the gateway/artifact fixes; it began before the final crawl/rule-policy checks, so those receive an additional targeted run below.
+
+### Resumed AJAX verification
+
+The previous review was interrupted for the user's local preview request. The final AJAX mount rerun had no retained result when review resumed, so it was rerun rather than assumed successful. The prior real active rerun passed after the inventory check. AJAX first exposed a false collection success with zero browser observations; a new regression now requires failure and cleanup in that case. Filtered fixture diagnostics identified read-only Firefox profile storage and non-executable bundled WebDriver storage. Bounded profile/WebDriver mounts were added without relaxing the read-only root, capabilities, network isolation or CPU/memory limits.
+
+On resumption, Ruff/format/mypy and **63 focused scanner tests passed**, the scanner image rebuilt, and the final full backend run passed **248 tests, 8 opt-in skips, 2 existing upstream warnings in 77.88 seconds**. The additional case is the zero-observation AJAX failure regression; no overlapping run counts are added. The mounted-browser AJAX rerun still failed closed with `scanner_discovery_failed` after 196.93 seconds, so AJAX remains under investigation at this checkpoint. No passing AJAX result is claimed here.
+
+The remaining AJAX failure was isolated without disabling Firefox sandboxing or relaxing egress. Firefox reported no writable font cache; `XDG_CACHE_HOME=/tmp/browser-cache` now uses the existing bounded temporary filesystem. The subsequent run intermittently lost Docker control execution. Runtime measurement showed **256 processes at the 256-process ceiling and approximately 888 MiB of a 2 GiB memory limit**, with no Docker OOM event. ZAP's process ceiling is now a bounded **512** to accommodate Firefox and control processes; the gateway stays at 256. CPU/memory limits, dropped capabilities, no-new-privileges, read-only root, private API and network allowlist remain enforced. A resource-observation rerun passed AJAX **1/1 in 84.11 seconds**, proving positive browser observations. Permanent tests assert the cache and process arguments and reject a stopped AJAX spider with zero observations. Temporary diagnostic logging was removed.
+
+The diagnostic-only run was interrupted after its useful evidence was collected. Automatic approval review rejected an initially proposed broad label-filter cleanup because it might include unrelated scanner jobs. Read-only inspection identified the exact remaining gateway `aegis-zap-5da6cf0a-1828-49c4-8582-e8a46efa3fed-gateway` and its two unique networks; only those verified leftovers were then removed successfully. The application containers, account and persistent application data were not touched.
+
+Final resumed commands (the same repository-root environment and Docker group wrapper apply):
+
+```sh
+apps/api/.venv/bin/ruff check apps/api
+apps/api/.venv/bin/ruff format --check apps/api
+apps/api/.venv/bin/mypy --config-file apps/api/pyproject.toml apps/api/src
+apps/api/.venv/bin/pytest -c apps/api/pyproject.toml apps/api/tests/test_zap.py apps/api/tests/test_phase8_review.py -q
+apps/api/.venv/bin/python -m aegis_api.schema_docs --check
+pnpm exec prettier --check .
+pnpm --filter @aegisforge/web typecheck
+sg docker -c 'docker build -f apps/api/Dockerfile.scanner -t aegisforge-scanner-worker:phase8 .'
+sg docker -c 'python3 scripts/check_compose.py'
+sg docker -c 'AEGIS_RUN_ZAP_LIVE=1 apps/api/.venv/bin/pytest -c apps/api/pyproject.toml apps/api/tests/test_zap_live.py -k "ajax or network" -v --tb=short'
+```
+
+Final resumed Ruff/format/mypy and **63/63 focused tests passed in 8.19 seconds** after the process-ceiling change. Schema drift, Prettier, strict TypeScript and Compose assertions passed. The final worker image built successfully, including installation of the current API package. The earlier Vite/API-distribution builds and browser/25-case frontend results remain recorded above; no frontend code changed during the resumed AJAX work. The 248-case backend run preceded only the final runtime cache/process-argument adjustments, which the focused suite and real execution rerun cover.
+
+### Final strict-review verdict
+
+Credential verification clarification: the local worker's real Fernet decryption, organization/reference binding rejection and authorization replacement arguments were exercised by `test_secrets_worker_scope_and_redaction` using `FakeRuntime`. Local secret encryption/production refusal and credential-component redaction have separate tests. Real Docker scans supplied no credential references: delivery of authentication headers through real ZAP, and the complete persisted-reference-to-authenticated-target journey, remain unverified. The worker currently decrypts local ciphertext directly; the seal/open protocol is not an implemented cloud retrieval adapter. KMS/Secrets Manager, IAM, key rotation/recovery and cloud error handling are absent, not merely pending tests. Local encrypted artifact export/decryption was exercised live; PostgreSQL metadata immutability and tenant denial were exercised separately. S3 and automated retention are absent.
+
+**CONDITIONAL PASS — safe to begin the next explicitly authorized phase.** The final real execution rerun passed **2/2 in 127.80 seconds**: AJAX with positive browser observations, and direct-route/foreign-canary denial plus lost-worker-lease cleanup. Together with the earlier corrected runs, all **eight distinct live scenarios have passing evidence across runs**; this is not a claim that one eight-case run passed. No internet target was scanned. The earlier AJAX investigation checkpoint above is superseded by this result.
+
+All confirmed review blockers are fixed, including scope normalization, deadline/lease enforcement, durable gateway failure statistics, artifact permissions, credential-component redaction, crawl/rule policy enforcement and false AJAX success. Failure, cancellation and partial collection continue to produce no passing gate or fabricated downstream findings.
+
+Exact non-blocking limitations: production credential references still need the managed-secret adapter; local encrypted artifact storage needs operator key provisioning and retention enforcement and has no S3/download lifecycle. Production execution requires a dedicated/rootless daemon. Full browser-to-ZAP and full HTTPS ZAP journeys remain unverified; actual isolated AJAX is verified. Browser review covers Chromium/axe/visual inspection, without a human screen-reader or other-engine certification. The default-parallel frontend timeout has an unconfirmed cause, with all 25 cases passing unchanged in the one-worker rerun. Two upstream backend deprecation warnings remain. Protected read-only Git metadata prevented the previously attempted commit; no permissions were changed and no commit is claimed.
+
+Cleanup: automatic approval review rejected `docker compose ... down --volumes --remove-orphans` because volume/orphan deletion could affect persistent data. The safer `sg docker -c 'docker compose -p aegis-phase8-review -f docker-compose.yml -f docker-compose.test.yml stop'` succeeded; review containers and volumes were preserved. A subsequent `docker ps` returned no running containers, and `ss -ltnp '( sport = :5173 or sport = :5174 or sport = :4173 or sport = :8000 )'` showed no listeners. Application account data remains preserved. No deployment or next-phase work was started.
+
+## Phase 8 Git handoff clarification — 2026-09-09
+
+The earlier commit blocker was the execution sandbox’s read-only rule for `.git`, not incorrect Unix ownership or a stale lock. Explicitly authorized escalated Git staging succeeded without changing filesystem permissions or repository configuration. The commit records the complete verified Phase 6–8 working state because HEAD previously stopped at Phase 5; see [commit inventory](PHASE8_COMMIT_MANIFEST.md) for its exact file scope. Earlier statements that a commit remains blocked are superseded by this handoff once the commit is verified. No Phase 9 work is included.
+
+Secret verification is limited to real local worker decryption with a fake scanner runtime, separate configuration/redaction tests, and unauthenticated live scans. Authenticated real-ZAP delivery and a full saved-reference-to-target journey are not claimed. Cloud secret adapters and cloud artifact lifecycle are unimplemented. See [scanner verification boundary](SCANNER.md) for details.
+
+Fresh pre-commit verification: the focused scanner command initially produced **58 passed, 5 failed** because the workspace sandbox denied socket creation (`PermissionError: Operation not permitted`) before the loopback fixtures could start. The identical command with approved loopback access passed **63/63 in 6.36 seconds**: `apps/api/.venv/bin/pytest -c apps/api/pyproject.toml apps/api/tests/test_zap.py apps/api/tests/test_phase8_review.py -q`. Documentation Prettier and Git whitespace checks passed. No implementation changes were made during this clarification.

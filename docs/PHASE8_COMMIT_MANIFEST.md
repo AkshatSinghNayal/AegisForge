@@ -1,0 +1,86 @@
+# Phase 8 commit inventory
+
+This commit records the verified working state through Phase 8, including the previously uncommitted Phase 6 configuration and Phase 7 orchestration dependencies. Its parent is `f7d82a2` (Phase 5). It does not fabricate separate historical Phase 6/7 commits. No Phase 9 work is included.
+
+The following 78 files are added or modified by this commit; unchanged files inherited from its parent remain in the repository. Local ignored environment files, credentials, caches, build outputs and runtime data are excluded.
+
+- `.env.example`
+- `README.md`
+- `apps/api/Dockerfile.scanner`
+- `apps/api/migrations/versions/0004_phase6_configuration.py`
+- `apps/api/migrations/versions/0005_scan_orchestration.py`
+- `apps/api/migrations/versions/0006_immutable_scanner_artifacts.py`
+- `apps/api/pyproject.toml`
+- `apps/api/src/aegis_api/body_limit.py`
+- `apps/api/src/aegis_api/configuration.py`
+- `apps/api/src/aegis_api/configuration_schemas.py`
+- `apps/api/src/aegis_api/db/models.py`
+- `apps/api/src/aegis_api/main.py`
+- `apps/api/src/aegis_api/scan_coordinator.py`
+- `apps/api/src/aegis_api/scan_lifecycle.py`
+- `apps/api/src/aegis_api/scanner.py`
+- `apps/api/src/aegis_api/scans.py`
+- `apps/api/src/aegis_api/schema_docs.py`
+- `apps/api/src/aegis_api/secret_store.py`
+- `apps/api/src/aegis_api/settings.py`
+- `apps/api/src/aegis_api/target_validation.py`
+- `apps/api/src/aegis_api/worker.py`
+- `apps/api/src/aegis_api/zap/__init__.py`
+- `apps/api/src/aegis_api/zap/artifacts.py`
+- `apps/api/src/aegis_api/zap/contracts.py`
+- `apps/api/src/aegis_api/zap/gateway.py`
+- `apps/api/src/aegis_api/zap/provider.py`
+- `apps/api/src/aegis_api/zap/reaper.py`
+- `apps/api/src/aegis_api/zap/runtime.py`
+- `apps/api/src/aegis_api/zap_dispatch.py`
+- `apps/api/tests/test_configuration.py`
+- `apps/api/tests/test_conventions.py`
+- `apps/api/tests/test_database.py`
+- `apps/api/tests/test_phase6_review.py`
+- `apps/api/tests/test_phase7_review.py`
+- `apps/api/tests/test_phase8_review.py`
+- `apps/api/tests/test_scans.py`
+- `apps/api/tests/test_zap.py`
+- `apps/api/tests/test_zap_dispatch.py`
+- `apps/api/tests/test_zap_live.py`
+- `apps/api/uv.lock`
+- `apps/web/e2e/configuration.spec.ts`
+- `apps/web/e2e/scans.spec.ts`
+- `apps/web/playwright.config.ts`
+- `apps/web/src/product/Configuration.test.tsx`
+- `apps/web/src/product/Configuration.tsx`
+- `apps/web/src/product/Scans.test.tsx`
+- `apps/web/src/product/Scans.tsx`
+- `apps/web/src/product/Workspace.tsx`
+- `apps/web/src/product/client.ts`
+- `apps/web/src/product/configurationModels.ts`
+- `apps/web/src/product/product.css`
+- `apps/web/src/product/scanEvents.ts`
+- `docker-compose.phase6-e2e.yml`
+- `docker-compose.phase7-e2e.yml`
+- `docker-compose.scanner-demo.yml`
+- `docker-compose.scanner.yml`
+- `docker-compose.yml`
+- `docs/BUILD_PLAN.md`
+- `docs/CONFIGURATION.md`
+- `docs/DECISIONS.md`
+- `docs/PHASE6_TEST_REPORT.md`
+- `docs/PHASE7_TEST_REPORT.md`
+- `docs/PHASE8_COMMIT_MANIFEST.md`
+- `docs/PHASE8_TEST_REPORT.md`
+- `docs/PHASE_STATUS.md`
+- `docs/SCANNER.md`
+- `docs/SCAN_ORCHESTRATION.md`
+- `docs/TEST_MATRIX.md`
+- `docs/TEST_REPORT.md`
+- `docs/architecture/SCAN_STATE_MACHINE.md`
+- `docs/generated/database-schema.md`
+- `docs/generated/openapi.json`
+- `infra/scanner/fixture.py`
+- `scripts/check_compose.py`
+- `scripts/configure_scanner.py`
+- `scripts/configure_secret_key.py`
+- `scripts/setup_env.py`
+- `scripts/test_auth_e2e.py`
+
+Verify the exact inventory with `git show --name-only --format= HEAD` and the remaining working tree with `git status --short --untracked-files=all`.

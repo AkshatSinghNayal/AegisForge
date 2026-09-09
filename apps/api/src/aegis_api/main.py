@@ -1,6 +1,7 @@
+import asyncio
 import logging
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Literal
 from uuid import uuid4
 
@@ -33,8 +34,11 @@ def create_app(
     from redis.asyncio import Redis
 
     from aegis_api.auth import router as auth_router
+    from aegis_api.configuration import router as configuration_router
     from aegis_api.db.session import database
     from aegis_api.organizations import router as organization_router
+    from aegis_api.scan_coordinator import coordinate
+    from aegis_api.scans import router as scan_router
 
     config = settings or get_settings()
     configure_logging(config.log_level)
@@ -44,16 +48,25 @@ def create_app(
         app.state.engine, app.state.sessions = database(config)
         app.state.redis = Redis.from_url(config.redis_url.get_secret_value())
         app.state.probe = probe if probe is not None else InfrastructureProbe(config)
+        coordinator = (
+            asyncio.create_task(coordinate(app.state.sessions, config))
+            if config.scan_coordinator_enabled
+            else None
+        )
         try:
             yield
         finally:
+            if coordinator:
+                coordinator.cancel()
+                with suppress(asyncio.CancelledError):
+                    await coordinator
             await app.state.probe.close()
             await app.state.redis.aclose()
             await app.state.engine.dispose()
 
     app = FastAPI(
         title="AegisForge API",
-        version="0.5.0",
+        version="0.6.0",
         lifespan=lifespan,
         docs_url="/api/v1/docs" if config.profile != "prod" else None,
         redoc_url=None,
@@ -65,9 +78,14 @@ def create_app(
             500: {"model": ErrorResponse},
         },
     )
+    from aegis_api.body_limit import ConfigurationBodyLimit
+
+    app.add_middleware(ConfigurationBodyLimit)
     app.state.config = config
     app.include_router(auth_router)
     app.include_router(organization_router)
+    app.include_router(configuration_router)
+    app.include_router(scan_router)
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(HTTPException, http_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]

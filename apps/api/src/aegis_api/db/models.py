@@ -166,6 +166,15 @@ class RefreshSession(Base):
 class Project(TenantRecord):
     __tablename__ = "projects"
     name: Mapped[str] = mapped_column(String(120))
+    slug: Mapped[str | None] = mapped_column(String(120))
+    description: Mapped[str] = mapped_column(Text, default="", server_default="")
+    default_branch: Mapped[str] = mapped_column(
+        String(120), default="main", server_default="main"
+    )
+    environment: Mapped[str] = mapped_column(
+        String(64), default="development", server_default="development"
+    )
+    owner_id: Mapped[UUID | None] = mapped_column(Uuid)
     repository_ref: Mapped[str | None] = mapped_column(String(500))
     created_by_id: Mapped[UUID] = mapped_column(Uuid)
     status: Mapped[RecordState] = mapped_column(
@@ -174,6 +183,8 @@ class Project(TenantRecord):
     version: Mapped[int] = mapped_column(default=1)
     __table_args__ = scoped(
         UniqueConstraint("organization_id", "name"),
+        UniqueConstraint("organization_id", "slug"),
+        parent("owner_id", "organization_members"),
         parent("created_by_id", "organization_members"),
         Index("ix_projects_status", "organization_id", "status"),
     )
@@ -196,6 +207,18 @@ class ProjectMember(TenantRecord):
 class Target(TenantRecord):
     __tablename__ = "targets"
     project_id: Mapped[UUID] = mapped_column(Uuid)
+    display_name: Mapped[str] = mapped_column(
+        String(120), default="Target", server_default="Target"
+    )
+    environment: Mapped[str] = mapped_column(
+        String(64), default="development", server_default="development"
+    )
+    configuration: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
+    policy_id: Mapped[UUID | None] = mapped_column(Uuid)
+    consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    sanitized_spec: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     canonical_url: Mapped[str] = mapped_column(String(2048))
     kind: Mapped[str] = mapped_column(String(32))
     scope_hosts: Mapped[list[str]] = mapped_column(ARRAY(String(253)))
@@ -214,6 +237,7 @@ class Target(TenantRecord):
     __table_args__ = scoped(
         parent("project_id", "projects"),
         parent("authorization_actor_id", "organization_members"),
+        parent("policy_id", "scan_policies"),
         UniqueConstraint("organization_id", "project_id", "canonical_url"),
         Index("ix_targets_url", "organization_id", "canonical_url"),
     )
@@ -222,6 +246,10 @@ class Target(TenantRecord):
 class TargetSecretReference(TenantRecord):
     __tablename__ = "target_secret_references"
     target_id: Mapped[UUID] = mapped_column(Uuid)
+    auth_type: Mapped[str] = mapped_column(
+        String(32), default="api_key", server_default="api_key"
+    )
+    ciphertext: Mapped[str | None] = mapped_column(Text)
     secret_provider_ref: Mapped[str] = mapped_column(String(500))
     header_name: Mapped[str] = mapped_column(String(120))
     version: Mapped[int] = mapped_column(default=1)
@@ -261,6 +289,17 @@ class Scan(TenantRecord):
     __tablename__ = "scans"
     target_id: Mapped[UUID] = mapped_column(Uuid)
     policy_id: Mapped[UUID] = mapped_column(Uuid)
+    initiator_id: Mapped[UUID | None] = mapped_column(Uuid)
+    trigger_metadata: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
+    job_id: Mapped[UUID | None] = mapped_column(Uuid)
+    dispatched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    stage_attempt: Mapped[int] = mapped_column(default=1, server_default="1")
+    next_sequence: Mapped[int] = mapped_column(
+        BigInteger, default=1, server_default="1"
+    )
+    mock_manifest: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     retry_of_scan_id: Mapped[UUID | None] = mapped_column(Uuid)
     mode: Mapped[ScanMode] = mapped_column(enum_type(ScanMode))
     state: Mapped[ScanState] = mapped_column(
@@ -296,6 +335,7 @@ class Scan(TenantRecord):
         parent("target_id", "targets"),
         parent("policy_id", "scan_policies"),
         parent("retry_of_scan_id", "scans"),
+        parent("initiator_id", "organization_members"),
         parent("authorization_actor_id", "organization_members"),
         UniqueConstraint("organization_id", "target_id", "id"),
         UniqueConstraint("organization_id", "active_confirmation_digest"),
@@ -631,3 +671,13 @@ class IdempotencyRecord(TenantRecord):
             "response_status IN (200, 201, 202, 204)", name="success_status"
         ),
     )
+
+
+class ScanConfirmation(TenantRecord):
+    __tablename__ = "scan_confirmations"
+    actor_id: Mapped[UUID] = mapped_column(Uuid)
+    request_digest: Mapped[str] = mapped_column(String(64))
+    token_digest: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = scoped(parent("actor_id", "organization_members"))

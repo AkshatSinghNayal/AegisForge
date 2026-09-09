@@ -3,7 +3,20 @@ name = "aegis-api"
 version = "0.1.0"
 description = "AegisForge API foundation"
 requires-python = ">=3.12,<3.14"
-dependencies = ["fastapi", "uvicorn[standard]", "pydantic-settings", "sqlalchemy[asyncio]>=2,<3", "alembic", "asyncpg", "redis", "celery"]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic-settings",
+    "sqlalchemy[asyncio]>=2,<3",
+    "alembic",
+    "asyncpg",
+    "redis",
+    "celery",
+    "aiohttp>=3.14.3",
+    "cryptography>=50.0.1",
+    "pyyaml>=6.0.3",
+    "openapi-spec-validator>=0.9.0",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -13,12 +26,20 @@ build-backend = "hatchling.build"
 packages = ["src/aegis_api"]
 
 [dependency-groups]
-dev = ["pytest", "pytest-asyncio", "httpx", "ruff", "mypy", "pyyaml"]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+    "ruff",
+    "mypy",
+    "pyyaml",
+    "types-pyyaml>=6.0.12.20260906",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
-markers = ["integration: requires actual PostgreSQL and Redis"]
+markers = ["integration: requires actual PostgreSQL and Redis", "zap_live: opt-in real ZAP against internal fixture only"]
 
 [tool.ruff]
 target-version = "py312"

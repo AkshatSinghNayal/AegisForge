@@ -1,0 +1,13 @@
+FROM docker:27.5.1-cli AS dockercli
+FROM ghcr.io/astral-sh/uv:0.12.10 AS uv
+FROM python:3.12.14-slim
+COPY --from=uv /uv /usr/local/bin/uv
+COPY --from=dockercli /usr/local/bin/docker /usr/local/bin/docker
+WORKDIR /app
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
+COPY apps/api/pyproject.toml apps/api/uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+COPY apps/api/src ./src
+RUN uv sync --frozen --no-dev && useradd --uid 10001 --create-home aegis && mkdir -p /var/lib/aegis/artifacts && chown aegis:aegis /var/lib/aegis/artifacts
+USER aegis
+CMD ["celery", "-A", "aegis_api.worker:app", "worker", "--queues=zap", "--loglevel=INFO", "--concurrency=1"]

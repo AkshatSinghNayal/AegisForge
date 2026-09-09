@@ -1,4 +1,5 @@
 """Create ignored local credentials once; never print secrets or overwrite .env."""
+import base64
 import os
 import secrets
 from pathlib import Path
@@ -10,6 +11,7 @@ else:
     content = Path(".env.example").read_text()
     for key in ("POSTGRES_PASSWORD", "REDIS_PASSWORD"):
         content = content.replace(f"{key}=\n", f"{key}={secrets.token_hex(24)}\n")
+    content = content.replace("AEGIS_LOCAL_SECRET_KEY=\n", "AEGIS_LOCAL_SECRET_KEY=" + base64.urlsafe_b64encode(secrets.token_bytes(32)).decode() + "\n")
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w") as stream:
         stream.write(content)

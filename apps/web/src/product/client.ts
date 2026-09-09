@@ -46,9 +46,11 @@ export async function request<T>(
   method = 'GET',
   body?: unknown,
   retry = true,
+  extraHeaders: Record<string, string> = {},
 ): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    ...extraHeaders,
   };
   if (access) headers.Authorization = `Bearer ${access}`;
   if (method !== 'GET') headers['X-CSRF-Token'] = await csrfToken();
@@ -70,7 +72,8 @@ export async function request<T>(
       '/auth/verify-email',
     ].includes(path)
   ) {
-    if (await bootstrap()) return request(path, schema, method, body, false);
+    if (await bootstrap())
+      return request(path, schema, method, body, false, extraHeaders);
   }
   if (!response.ok) {
     const parsed = z
@@ -125,4 +128,26 @@ export async function logout(all = false) {
     'POST',
   );
   access = null;
+}
+
+export async function scanStream(
+  path: string,
+  cursor: number,
+  signal: AbortSignal,
+): Promise<Response> {
+  const open = () =>
+    fetch(`/api/v1${path}`, {
+      headers: {
+        Authorization: `Bearer ${access ?? ''}`,
+        'Last-Event-ID': String(cursor),
+        Accept: 'text/event-stream',
+      },
+      credentials: 'same-origin',
+      signal,
+    });
+  let response = await open();
+  if (response.status === 401 && (await bootstrap())) response = await open();
+  if (!response.ok)
+    throw new ApiError(response.status, 'Live connection unavailable.');
+  return response;
 }

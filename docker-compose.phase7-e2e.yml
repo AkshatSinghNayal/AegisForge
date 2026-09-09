@@ -1,0 +1,13 @@
+# Network-free deterministic scanner used only by the disposable browser runner.
+services:
+  api:
+    environment:
+      AEGIS_ACCESS_SECONDS: 60
+      AEGIS_SCANNER_PROVIDER: mock
+      AEGIS_DEMO_MODE: true
+  worker:
+    environment:
+      AEGIS_PROFILE: test
+      AEGIS_SCANNER_PROVIDER: mock
+      AEGIS_DEMO_MODE: true
+      AEGIS_MOCK_STAGE_SECONDS: 6

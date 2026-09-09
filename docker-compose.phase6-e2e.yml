@@ -1,0 +1,12 @@
+# Synthetic HTTP fixture, isolated to the disposable browser-test project.
+services:
+  target-fixture:
+    image: python:3.12.14-slim
+    command: ['python', '-m', 'http.server', '8080', '--directory', '/tmp']
+    networks: [frontend]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  api:
+    depends_on:
+      target-fixture: { condition: service_started }
