@@ -170,7 +170,7 @@ async def test_official_sdk_structured_config(valid, monkeypatch):
     assert config.automatic_function_calling.disable
     assert not config.tools
     assert captured["http_options"].retry_options.attempts == 1
-    assert captured["http_options"].timeout == 8000
+    assert captured["http_options"].timeout == 15000
 
 
 @pytest.mark.parametrize("profile,demo", [("prod", False), ("dev", False)])
@@ -323,7 +323,7 @@ async def test_real_sdk_serialization_and_incomplete_generation(
     assert config["responseMimeType"] == "application/json"
     assert config["responseJsonSchema"]["additionalProperties"] is False
     assert "tools" not in calls[0].data
-    assert calls[0].timeout == 8
+    assert calls[0].timeout == 15
     assert (output is not None) == (finish == "STOP")
     assert (failure is None) == (finish == "STOP")
     if finish == "QUOTA":
@@ -337,6 +337,14 @@ async def test_valid_json_multibyte_output_exceeds_byte_budget(valid):
     assert len(raw) < 24000 < len(raw.encode())
     with pytest.raises(ValueError, match="budget"):
         validate_output(raw, {evidence_id})
+
+
+def test_redacted_documentation_url_remains_valid_guidance(valid):
+    evidence_id, body = valid
+    body["cwe_interpretation"] = "See https://cwe.mitre.org/data/definitions/693.html."
+    output = validate_output(json.dumps(body), {evidence_id})
+    assert output.cwe_interpretation == "See [REDACTED URL]"
+    assert "https://" not in output.cwe_interpretation
 
 
 async def test_rate_limit_distinct_backoff_and_recovery(valid, monkeypatch):
