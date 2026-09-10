@@ -326,6 +326,8 @@ async def test_real_sdk_serialization_and_incomplete_generation(
     assert calls[0].timeout == 8
     assert (output is not None) == (finish == "STOP")
     assert (failure is None) == (finish == "STOP")
+    if finish == "QUOTA":
+        assert failure == "provider_rate_limit_exhausted"
 
 
 async def test_valid_json_multibyte_output_exceeds_byte_budget(valid):
@@ -335,3 +337,75 @@ async def test_valid_json_multibyte_output_exceeds_byte_budget(valid):
     assert len(raw) < 24000 < len(raw.encode())
     with pytest.raises(ValueError, match="budget"):
         validate_output(raw, {evidence_id})
+
+
+async def test_rate_limit_distinct_backoff_and_recovery(valid, monkeypatch):
+    from aegis_api.ai import ProviderRateLimit
+
+    evidence_id, body = valid
+    provider = MockAIProvider()
+    call = AsyncMock(side_effect=[ProviderRateLimit(20), json.dumps(body)])
+    monkeypatch.setattr(provider, "generate", call)
+    sleep = AsyncMock()
+    monkeypatch.setattr("aegis_api.ai.asyncio.sleep", sleep)
+    result, failure = await enrich(provider, "", {evidence_id})
+    assert result and failure is None
+    assert call.await_count == 2
+    assert 20 <= sleep.call_args.args[0] <= 21
+
+
+@pytest.mark.parametrize(
+    "delay,daily,code,calls",
+    [
+        (None, False, "provider_rate_limit_exhausted", 3),
+        (120, False, "provider_rate_limit_deferred", 1),
+        (None, True, "provider_daily_quota_exhausted", 1),
+    ],
+)
+async def test_rate_limit_exhaustion_defers_without_generic_failure(
+    monkeypatch, delay, daily, code, calls
+):
+    from aegis_api.ai import ProviderRateLimit
+
+    provider = MockAIProvider()
+    call = AsyncMock(side_effect=ProviderRateLimit(delay, daily))
+    monkeypatch.setattr(provider, "generate", call)
+    sleep = AsyncMock()
+    monkeypatch.setattr("aegis_api.ai.asyncio.sleep", sleep)
+    assert await enrich(provider, "", set()) == (None, code)
+    assert call.await_count == calls
+    if calls == 3:
+        assert 15 <= sleep.call_args_list[0].args[0] <= 16
+        assert 30 <= sleep.call_args_list[1].args[0] <= 31
+    else:
+        sleep.assert_not_called()
+
+
+def test_google_retry_info_and_daily_quota_metadata():
+    from aegis_api.ai import rate_limit_metadata
+
+    result = rate_limit_metadata(
+        {
+            "error": {
+                "details": [
+                    {
+                        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+                        "retryDelay": "45.5s",
+                    },
+                    {
+                        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+                        "violations": [
+                            {
+                                "quotaId": (
+                                    "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+                                )
+                            }
+                        ],
+                    },
+                ]
+            }
+        },
+        "30",
+    )
+    assert result.retry_after == 45.5 and result.daily_quota
+    assert rate_limit_metadata({}, "NaN").retry_after is None

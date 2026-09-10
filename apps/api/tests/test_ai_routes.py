@@ -131,7 +131,7 @@ async def test_disabled_provider_no_fake_analysis(db):
 
 
 @pytest.mark.parametrize(
-    "provider_failure", ["outage", "invalid", "oversized", "citation"]
+    "provider_failure", ["outage", "invalid", "oversized", "citation", "rate_limit"]
 )
 async def test_actual_retry_pipeline_preserves_scanner_on_failure(
     db, monkeypatch, provider_failure
@@ -142,6 +142,10 @@ async def test_actual_retry_pipeline_preserves_scanner_on_failure(
     before = (item.scanner_severity, item.state, item.version, item.normalized.copy())
     if provider_failure == "outage":
         call = AsyncMock(side_effect=TimeoutError("synthetic private detail"))
+    elif provider_failure == "rate_limit":
+        from aegis_api.ai import ProviderRateLimit
+
+        call = AsyncMock(side_effect=ProviderRateLimit())
     else:
         invalid = {"invalid": "{", "oversized": "x" * 24001, "citation": "{}"}[
             provider_failure
@@ -157,6 +161,8 @@ async def test_actual_retry_pipeline_preserves_scanner_on_failure(
     monkeypatch.setattr("aegis_api.ai.asyncio.sleep", AsyncMock())
     result = await generate(item.id, request(), context[1], db)
     assert result["status"] == "degraded" and result["output"] is None
+    if provider_failure == "rate_limit":
+        assert result["failure_code"] == "provider_rate_limit_exhausted"
     assert call.await_count == 3
     assert (item.scanner_severity, item.state, item.version, item.normalized) == before
     assert len(await versions(item.id, context[1], db, offset=0)) == 1

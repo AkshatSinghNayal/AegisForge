@@ -343,3 +343,9 @@ Checked the process environment, project `.env` configuration and the project's 
 ### Authorized Git handoff through Phase 10
 
 The user authorized the Phase 8 escalation procedure for staging and committing, with no ownership or permission changes. The commit includes the previously uncommitted Phase 9 foundation and Phase 10 implementation/review work on top of `ac06859`. See [exact commit inventory](PHASE10_COMMIT_MANIFEST.md). Earlier read-only failures remain historical records. Live Gemini verification remains unperformed because no key is configured. No push or deployment is included.
+
+### Live Gemini attempt after credential configuration — 2026-09-10
+
+The earlier no-key limitation is superseded: a configured key is now in ignored `.env`, with `gemini-2.5-flash`. The real end-to-end check **ran but did not succeed**. A fresh isolated Phase 8 passive ZAP scan supplied one actual persisted finding; one authenticated enrichment request exhausted three provider attempts without model text, retaining a degraded version and preserving scanner values. A single additional diagnostic invocation for the same finding reached Gemini and returned HTTP 400 (not 429); the exact rejection reason is unavailable. Four provider invocations total, one finding, no batch.
+
+Input privacy checks passed, but live structured-output validation, evidence citations and output redaction remain **unverified**. Do not mark the requested live-success criterion complete. Separate 429 retry/backoff, Retry-After/RetryInfo, daily quota and bounded deferred/exhausted handling are now implemented; **72 AI unit/SDK/database tests passed**, with Ruff/format/mypy passing. See [actual follow-up results](TEST_REPORT.md#phase-10-live-gemini-follow-up--2026-09-10). No next phase was started.

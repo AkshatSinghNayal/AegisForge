@@ -2,8 +2,11 @@
 
 import asyncio
 import json
+import math
 import random
 import re
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from typing import Annotated, Any, Protocol
 from urllib.parse import urlsplit
 
@@ -179,6 +182,52 @@ class MockAIProvider:
         ).model_dump_json()
 
 
+class ProviderRateLimit(Exception):
+    """Safe retry metadata only; never retain the upstream error message."""
+
+    def __init__(self, retry_after: float | None = None, daily_quota: bool = False):
+        super().__init__("Provider rate limited")
+        self.retry_after = retry_after
+        self.daily_quota = daily_quota
+
+
+def rate_limit_metadata(details: Any, header: str | None) -> ProviderRateLimit:
+    delays: list[float] = []
+    if header:
+        try:
+            delay = float(header)
+        except ValueError:
+            try:
+                at = parsedate_to_datetime(header)
+                delay = (at - datetime.now(UTC)).total_seconds()
+            except (TypeError, ValueError, OverflowError):
+                delay = 0.0
+        if math.isfinite(delay) and delay >= 0:
+            delays.append(delay)
+    error = details.get("error", {}) if isinstance(details, dict) else {}
+    items = error.get("details", []) if isinstance(error, dict) else []
+    daily = False
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        kind = item.get("@type", "")
+        if kind == "type.googleapis.com/google.rpc.RetryInfo":
+            value = item.get("retryDelay")
+            if isinstance(value, str) and re.fullmatch(
+                r"[0-9]{1,9}(?:\.[0-9]{1,9})?s", value
+            ):
+                delays.append(float(value[:-1]))
+        if kind == "type.googleapis.com/google.rpc.QuotaFailure":
+            violations = item.get("violations", [])
+            if isinstance(violations, list):
+                daily = daily or any(
+                    isinstance(v, dict)
+                    and "perday" in str(v.get("quotaId", "")).lower()
+                    for v in violations
+                )
+    return ProviderRateLimit(max(delays) if delays else None, daily)
+
+
 class GeminiAIProvider:
     name = "gemini"
 
@@ -187,7 +236,7 @@ class GeminiAIProvider:
 
     async def generate(self, prompt: str) -> str:
         from google import genai
-        from google.genai import types
+        from google.genai import errors, types
 
         async with genai.Client(
             api_key=self.key,
@@ -196,20 +245,30 @@ class GeminiAIProvider:
                 retry_options=types.HttpRetryOptions(attempts=1),
             ),
         ).aio as client:
-            result = await client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM,
-                    response_mime_type="application/json",
-                    response_json_schema=Guidance.model_json_schema(),
-                    temperature=0,
-                    max_output_tokens=4096,
-                    automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                        disable=True
+            try:
+                result = await client.models.generate_content(
+                    model=self.model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=SYSTEM,
+                        response_mime_type="application/json",
+                        response_json_schema=Guidance.model_json_schema(),
+                        temperature=0,
+                        max_output_tokens=4096,
+                        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+                            disable=True
+                        ),
                     ),
-                ),
-            )
+                )
+            except errors.APIError as error:
+                if error.code != 429:
+                    raise
+                header = (
+                    error.response.headers.get("Retry-After")
+                    if error.response is not None
+                    else None
+                )
+                raise rate_limit_metadata(error.details, header) from None
             if (
                 not result.candidates
                 or len(result.candidates) != 1
@@ -256,11 +315,25 @@ def validate_output(raw: str, evidence_ids: set[str]) -> Guidance:
 async def enrich(
     provider: AIProvider, prompt: str, evidence_ids: set[str]
 ) -> tuple[Guidance | None, str | None]:
+    rate_wait = 0.0
     for attempt in range(3):
         try:
             async with asyncio.timeout(ATTEMPT_SECONDS):
                 raw = await provider.generate(prompt)
             return validate_output(raw, evidence_ids), None
+        except ProviderRateLimit as error:
+            if error.daily_quota:
+                return None, "provider_daily_quota_exhausted"
+            if attempt == 2:
+                return None, "provider_rate_limit_exhausted"
+            delay = max(15.0 * 2**attempt, error.retry_after or 0) + random.uniform(
+                0, 1
+            )
+            # Do not shorten Retry-After or hold a request open indefinitely.
+            if rate_wait + delay > 60:
+                return None, "provider_rate_limit_deferred"
+            rate_wait += delay
+            await asyncio.sleep(delay)
         except Exception:
             # Neither exception text nor invalid model output may enter logs/storage.
             if attempt < 2:
