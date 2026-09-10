@@ -521,3 +521,114 @@
   padding-block: 0.6rem;
   border-bottom: 1px solid #34413d;
 }
+
+.finding-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.findings-page label {
+  display: grid;
+  gap: 0.4rem;
+}
+.findings-page input,
+.findings-page select,
+.findings-page textarea {
+  max-width: 100%;
+  padding: 0.65rem;
+  color: var(--color-text);
+  background: #14242c;
+  border: 1px solid currentColor;
+  border-radius: 0.4rem;
+}
+.finding-table-scroll {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+.findings-page table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.findings-page td,
+.findings-page th {
+  padding: 0.8rem;
+  border-bottom: 1px solid #566276;
+}
+.findings-page th button {
+  color: inherit;
+  background: none;
+  border: 0;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+.workspace .finding-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+.http-evidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.findings-page pre {
+  max-height: 24rem;
+  overflow: auto;
+  padding: 1rem;
+  background: #0a1420;
+  color: #e8eef5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.findings-page p,
+.finding-digest {
+  overflow-wrap: anywhere;
+}
+.finding-review {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+  max-width: 42rem;
+}
+.finding-high,
+.finding-critical {
+  color: #ffb5b5;
+  background: #472329;
+}
+.finding-medium,
+.finding-changed {
+  color: #ffdf9b;
+  background: #463822;
+}
+.finding-resolved {
+  color: #adf0d5;
+  background: #173f36;
+}
+@media (max-width: 700px) {
+  .http-evidence {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-guidance .ai-version {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 2px solid var(--color-accent, #7b68ee);
+  border-radius: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.ai-guidance .ai-check {
+  display: block;
+  margin-block: 0.75rem;
+}
+.ai-guidance form {
+  display: grid;
+  gap: 0.75rem;
+}
+.ai-guidance textarea {
+  display: block;
+  width: 100%;
+}

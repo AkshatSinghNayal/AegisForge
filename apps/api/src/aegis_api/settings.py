@@ -45,6 +45,14 @@ class WorkerSettings(BaseSettings):
 
 
 class Settings(WorkerSettings):
+    ai_provider: Literal["none", "mock", "gemini"] = "none"
+    ai_model: str = Field(
+        default="gemini-2.5-flash",
+        min_length=1,
+        max_length=100,
+        pattern=r"^[a-zA-Z0-9._-]+$",
+    )
+    gemini_api_key: SecretStr = SecretStr("")
     scan_coordinator_enabled: bool = True
     scan_concurrency: int = Field(default=3, ge=1, le=100)
     scan_daily_quota: int = Field(default=100, ge=1, le=10000)
@@ -69,6 +77,17 @@ class Settings(WorkerSettings):
     def validate_database(self) -> "Settings":
         if not self.database_url.get_secret_value().startswith("postgresql+asyncpg://"):
             raise ValueError("Use the PostgreSQL asyncpg driver")
+        if self.ai_provider == "mock" and (
+            self.profile == "prod" or not (self.demo_mode or self.profile == "test")
+        ):
+            raise ValueError("Mock AI requires local demo or test profile")
+        if self.ai_provider == "gemini" and not self.gemini_api_key.get_secret_value():
+            raise ValueError("Gemini requires an API key")
+        if (
+            "preview" in self.ai_model.lower()
+            or "experimental" in self.ai_model.lower()
+        ):
+            raise ValueError("Use a stable model ID")
         from urllib.parse import urlsplit
 
         origin = urlsplit(self.app_origin)

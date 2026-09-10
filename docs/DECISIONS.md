@@ -147,3 +147,21 @@ Reuse RawScanArtifact and add migration 0006 to reject all artifact UPDATEs, inc
 Phase 8 strict review hardens that execution boundary: reject ambiguous normalized paths; recheck gateway leases/deadlines after waits and request-body reads; atomically persist failure statistics; secure every artifact directory; and emit `zap-redaction-v2` derivatives that also redact credential components. URL policies with no crawl or zero depth are incompatible and fail before startup, because ZAP interprets zero as unlimited. AJAX receives the same positive policy depth. Active rule IDs must exist in the installed inventory. No downstream phase or production secret adapter is added by this review.
 
 The AJAX startup review also requires real browser observations before collection can succeed. Firefox uses a bounded writable profile mount and font-cache path; bundled WebDriver executables have their own bounded executable tmpfs. Measured saturation of ZAP's former 256-process ceiling prevented control commands despite memory use below 1 GiB, so its bounded ceiling is 512; gateway processes remain limited to 256. No capability, root-filesystem, Firefox sandbox or egress restriction is removed.
+
+## Phase 9 — evidence-preserving normalization
+
+Use `zap-normalizer-v1` and `zap-fingerprint-v1` with the documented canonical JSON/SHA-256 contract in [FINDING_NORMALIZATION](FINDING_NORMALIZATION.md). Normalize inside the isolated worker after durable raw export; persist every observation separately and retain source pointers, classification, masked excerpts and redaction metadata. Never infer reviewer false-positive state from scanner confidence.
+
+Comparability is conservative: exact frozen configuration, policy identity, scan mode and algorithm versions. Complete comparable evidence alone can establish absence; dispositions persist, and version-checked reviewer changes generate immutable history and audit events. AI/policy tabs reflect stored availability. No new dependencies or environment variables; migration 0007 refuses downgrades that would discard Phase 9 evidence.
+
+## Phase 10 — advisory schema-constrained AI (2026-09-10)
+
+- Use the official Google Gen AI Python SDK, locked at 2.22.0, behind `AIProvider`, with deterministic explicitly labeled local/test mock. Default off; no optional large local model or adapter bundled.
+- Classification-only input minimizes disclosure: no free target/scanner text, headers, bodies, URLs or reviewer notes. This is a deliberate conservative limit on guidance specificity. Cite the exact supplied occurrence and disclose the evidence limitation.
+- Independent strict Pydantic validation, bounded output/arrays, exact documentation URL allowlist, inert React rendering, server-applied hypothesis labels and output/feedback masking enforce the advisory boundary. AI has no evidence/policy mutation capability.
+- Explicit on-demand generation, three bounded attempts with jitter, generic degraded failures and one-minute per-finding cooldown. No automatic scan-time provider costs or background AI queue in this phase.
+- Migration 0008 retains immutable regeneration versions and separate immutable tenant-scoped feedback. Feedback is never automatically trained on or sent to providers. See [AI guidance](AI_GUIDANCE.md) and [verification](PHASE10_TEST_REPORT.md).
+
+## Phase 10 strict review corrections — 2026-09-10
+
+Output validation advances to `guidance-v2`, while the unchanged input prompt remains `guidance-v1`. Redaction uses targeted complete-value masking before truncation rather than the scanner artifact helper, so security guidance is not erased and email suffixes cannot leak at its former 1,024-character boundary. Blank fields, duplicate JSON keys/citations and overlong labeled hypotheses fail closed. Gemini must report one completed STOP candidate. Typed API response models publish the structured contract; the underlying analysis query is typed. Citation navigation restores keyboard focus and a failed feedback save clears stale success text. See the current [strict review report](TEST_REPORT.md).

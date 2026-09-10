@@ -4,9 +4,17 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SecretStr,
+    field_validator,
+    model_validator,
+)
 
 from aegis_api.configuration_schemas import PolicyInput
+from aegis_api.normalization import Observation
 from aegis_api.target_validation import canonical_url
 
 ZAP_IMAGE = (
@@ -74,6 +82,8 @@ class Execution(Closed):
 
 
 class ArtifactReceipt(Closed):
+    normalizer: Literal["zap-normalizer-v1"] | None = None
+    observations: list[Observation] = Field(default_factory=list, max_length=20000)
     id: UUID
     organization_id: UUID
     scan_id: UUID
@@ -89,6 +99,14 @@ class ArtifactReceipt(Closed):
     redaction_version: Literal["zap-redaction-v1", "zap-redaction-v2"] = (
         "zap-redaction-v2"
     )
+
+    @model_validator(mode="after")
+    def normalized_indices(self) -> "ArtifactReceipt":
+        if self.normalizer is None and self.observations:
+            raise ValueError("Observations require a normalizer version")
+        if [o.index for o in self.observations] != list(range(len(self.observations))):
+            raise ValueError("Observations must preserve contiguous raw alert indices")
+        return self
 
 
 class Alert(BaseModel):

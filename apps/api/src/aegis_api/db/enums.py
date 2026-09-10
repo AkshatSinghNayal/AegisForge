@@ -36,6 +36,7 @@ class ScanState(StrEnum):
 class FindingState(StrEnum):
     NEW = "new"
     RECURRING = "recurring"
+    REOPENED = "reopened"
     CHANGED = "changed"
     RESOLVED = "resolved"
     ACCEPTED_RISK = "accepted_risk"

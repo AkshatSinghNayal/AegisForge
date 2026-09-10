@@ -134,7 +134,7 @@ def test_schema_catalog_contains_only_safe_responses() -> None:
     from aegis_api.schema_docs import documents
 
     docs = documents()
-    assert len(Base.metadata.tables) == 29
+    assert len(Base.metadata.tables) == 31
     api = json.loads(docs["openapi.json"])
     assert {"/health/live", "/health/ready", "/api/v1/auth/me"} <= set(api["paths"])
     responses = api["paths"]["/health/ready"]["get"]["responses"]

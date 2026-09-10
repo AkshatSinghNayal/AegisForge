@@ -36,6 +36,7 @@ CODES = frozenset(
         "dispatch_retry",
         "scanner_progress",
         "evidence_collected",
+        "evidence_normalized",
     }
 )
 SAFE_RETRY = {
@@ -58,7 +59,7 @@ def allowed(
 ) -> bool:
     if (
         collected
-        and source == ScanState.COLLECTING_RESULTS
+        and source in {ScanState.COLLECTING_RESULTS, ScanState.NORMALIZING}
         and destination == ScanState.COMPLETED
     ):
         return True

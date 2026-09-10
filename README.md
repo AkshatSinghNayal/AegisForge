@@ -2,7 +2,7 @@
 
 DevSecOps Vulnerability Intelligence Engine for authorized web applications and REST APIs.
 
-Phases 1–7 provide the React/FastAPI foundation, design system, public website, PostgreSQL domain schema, authentication and organization RBAC, projects, authorized targets, encrypted local secret references, immutable policies, and mock-only scan orchestration with live progress. Real target scanning, AI execution and security policy evaluation remain future work. See the [phase status](docs/PHASE_STATUS.md) and [Phase 7 verification report](docs/PHASE7_TEST_REPORT.md).
+Phases 1–10 provide the React/FastAPI foundation, design system, public website, PostgreSQL schema, authentication/RBAC, authorized target configuration, scan orchestration, isolated ZAP collection, and evidence-preserving finding normalization/review. Phase 10 adds optional advisory AI guidance with strict validation and retained versions. Policy evaluation and reports remain future work. See the [phase status](docs/PHASE_STATUS.md), [normalization guide](docs/FINDING_NORMALIZATION.md), and [Phase 9 verification](docs/PHASE9_TEST_REPORT.md).
 
 ## Design and motion laboratories
 
@@ -18,7 +18,7 @@ The Phase 3 review cleared the Phase 1 live Docker gate; the retroactive Phase 0
 
 ## Database foundation (Phase 4)
 
-`make migrate` applies revisions `0001`–`0005`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; authenticated dependencies resolve it and enforce roles/project membership. Revision 0002 rejects passing evaluations that contradict the persisted scan. Phase 5 adds authentication and organization APIs. Phase 6 adds project/target/policy configuration and encrypted local secret references. Phase 7 adds mock-only scan orchestration and live SSE. Real scanner/report execution, managed production secret providers, webhook receivers and delivery workers remain deferred.
+`make migrate` applies revisions `0001`–`0007`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; authenticated dependencies resolve it and enforce roles/project membership. Revision 0002 rejects passing evaluations that contradict the persisted scan. Phase 5 adds authentication and organization APIs. Phase 6 adds project/target/policy configuration and encrypted local secret references. Phase 7 adds mock-only scan orchestration and live SSE. Report execution, managed production secret providers, webhook receivers and delivery workers remain deferred.
 
 Run `make schema-docs` to regenerate [OpenAPI](docs/generated/openapi.json), [convention schemas](docs/generated/conventions.schema.json) and the [database catalog](docs/generated/database-schema.md). `make schema-check` detects drift. `make test-integration` requires the isolated test profile and database-create permission: it provisions a uniquely named disposable database, tests upgrade/downgrade/re-upgrade and two-organization isolation, then drops only that database. Never run manual downgrades against retained data; revision 0001 downgrade removes the foundation.
 
@@ -129,3 +129,11 @@ New `make setup` runs generate the local encryption key. For an existing `.env`,
 ## Isolated ZAP scanner (Phase 8)
 
 [Scanner setup and responsible use](docs/SCANNER.md) covers the digest-pinned ZAP 2.17.0 worker adapter, separately isolated containers, target-only HTTP/TLS gateway, authorization leases, resource limits, encrypted immutable evidence and the opt-in vulnerable training profile. The default provider remains disabled; internet active scans are refused. Real collection stays partial with a failing effective gate until later processing phases are explicitly implemented. See [Phase 8 verification](docs/PHASE8_TEST_REPORT.md).
+
+## Findings (Phase 9)
+
+Run `make migrate`, collect an authorized ZAP scan using the existing scanner setup, and open `/app/findings`. New complete collections automatically produce versioned, evidence-linked occurrences and scan comparisons. Reviewers can add notes, accept risk, mark false positives, reopen, or resolve with a comparable verification scan. Filters are shareable URL parameters. Historical raw artifacts are not automatically decrypted or backfilled. See [normalization and API behavior](docs/FINDING_NORMALIZATION.md).
+
+## AI guidance (Phase 10)
+
+Open a finding’s AI Guidance tab to generate or regenerate advisory guidance, inspect citations and prior versions, and leave explicit usefulness feedback. Enrichment defaults off; set `AEGIS_AI_PROVIDER=gemini` with a server-only `AEGIS_GEMINI_API_KEY`, or use `mock` only in local demo/test mode. Run migrations through `0008` first. Scanner evidence and policy outcomes are never changed by AI. See [AI guidance/security contract](docs/AI_GUIDANCE.md) and [Phase 10 verification](docs/PHASE10_TEST_REPORT.md).

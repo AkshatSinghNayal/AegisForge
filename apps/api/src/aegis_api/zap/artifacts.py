@@ -107,6 +107,8 @@ class LocalArtifactStore:
         clean = json.dumps(redact(raw, secrets, patterns), sort_keys=True).encode()
         artifact_id = uuid4()
         prefix = f"{execution.organization_id}/{execution.scan_id}/{artifact_id}"
+        from aegis_api.normalization import NORMALIZER, normalize
+
         receipt = ArtifactReceipt(
             id=artifact_id,
             organization_id=execution.organization_id,
@@ -120,4 +122,12 @@ class LocalArtifactStore:
         )
         self.write(receipt.restricted_object_key, self.cipher.encrypt(data))
         self.write(receipt.redacted_object_key, clean)
-        return receipt
+        # Originals are durable even if an add-on supplies an unsupported alert.
+        # Such a scan stays partial and cannot make absence/resolution claims.
+        try:
+            observations = normalize(raw, secrets, patterns)
+        except (ValueError, KeyError, TypeError):
+            return receipt
+        return receipt.model_copy(
+            update={"normalizer": NORMALIZER, "observations": observations}
+        )

@@ -149,21 +149,34 @@ async def collected(db: AsyncSession, scan: Scan, receipt: ArtifactReceipt) -> N
         raise ValueError("Artifact key mismatch")
     db.add(
         RawScanArtifact(
-            **receipt.model_dump(),
+            **receipt.model_dump(exclude={"normalizer", "observations"}),
             artifact_kind="zap-raw-v1",
             content_type="application/json",
             restricted_expires_at=now() + timedelta(days=7),
             redacted_expires_at=now() + timedelta(days=90),
         )
     )
-    # Downstream work is deliberately not simulated. Completion means collection
-    # finished; completeness stays PARTIAL and the effective gate remains fail.
+    # Complete evidence does not imply AI, policy or report availability.
     while scan.state != ScanState.COLLECTING_RESULTS:
         destination = PATH[PATH.index(scan.state) + 1]
         if scan.state == ScanState.PASSIVE_SCANNING and scan.mode.value != "active":
             destination = ScanState.COLLECTING_RESULTS
         transition(db, scan, destination, "stage_finished", now())
-    scan.completeness = Completeness.PARTIAL
-    transition(
-        db, scan, ScanState.COMPLETED, "evidence_collected", now(), collected=True
+    if receipt.normalizer:
+        transition(db, scan, ScanState.NORMALIZING, "stage_started", now())
+    scan.completeness = (
+        Completeness.COMPLETE if receipt.normalizer else Completeness.PARTIAL
     )
+    transition(
+        db,
+        scan,
+        ScanState.COMPLETED,
+        "evidence_normalized" if receipt.normalizer else "evidence_collected",
+        now(),
+        collected=True,
+    )
+
+    from aegis_api.finding_service import ingest
+
+    await db.flush()
+    await ingest(db, scan, receipt)

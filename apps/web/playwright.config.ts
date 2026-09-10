@@ -14,7 +14,7 @@ export default defineConfig({
       testMatch: /auth.spec|configuration.spec|scans.spec/,
       use: { baseURL: 'http://127.0.0.1:5174' },
     },
-    { name: 'production', testMatch: /health|production|marketing/ },
+    { name: 'production', testMatch: /health|production|marketing|findings/ },
     {
       name: 'labs',
       testMatch: /labs/,

@@ -65,3 +65,11 @@ Idempotent scan creation, immutable-version/authorization/quota checks, one-use 
 ## Explicit Phase 8 scope
 
 The user's Phase 8 prompt replaces provisional gates/integrations with isolated OWASP ZAP execution: provider interface, mock preservation, worker-only secret resolution, fresh DNS checks, constrained gateway/container jobs, scoped URL/OpenAPI discovery, passive/explicitly authorized active scanning, bounded progress, immutable encrypted artifacts, resource cleanup and isolated training tests. Migration 0006 freezes raw-artifact provenance. Downstream normalization, AI, gates, reporting and deployment remain deferred. Stop after Phase 8; no later phase is automatically authorized.
+
+## Explicit Phase 9 scope
+
+The Phase 9 prompt authorizes evidence-preserving ZAP normalization, versioned stable finding identity, per-observation provenance, comparable-scan lifecycle derivation, RBAC/CSRF-protected review, findings/filter/detail/comparison UI and corresponding tests. [FINDING_NORMALIZATION](FINDING_NORMALIZATION.md) is the implementation contract. AI execution, deterministic gate evaluation, reporting and subsequent phases remain deferred. Stop after Phase 9.
+
+## Explicit Phase 10 scope
+
+The Phase 10 prompt authorizes schema-constrained advisory AI providers, minimal safe inputs, strict evidence-linked outputs, bounded failure handling, AI Guidance UI, retained regeneration versions and explicit reviewer feedback. [AI_GUIDANCE](AI_GUIDANCE.md) is the implementation contract. Generation is on demand and disabled by default. No policy engine, report generation or subsequent phase is started. Stop after Phase 10.

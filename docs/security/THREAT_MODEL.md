@@ -31,3 +31,9 @@ Boundaries: browser/API; API/tenant database; queue/worker; runner/ZAP/target ne
 No target scan until authorization, SSRF/network boundary and active-confirmation tests pass. No external AI/delivery until secret-canary and evidence-minimization tests pass. No multi-user release until cross-tenant API/job/download tests pass. No CI gate release until incomplete/outage policy truth tables pass. No production deployment until isolated worker compromise and backup/purge exercises pass.
 
 This model records planned controls. It is not evidence that controls are already implemented or that security testing is complete.
+
+## Phase 10 implemented AI boundary
+
+See [AI guidance](../AI_GUIDANCE.md) for the deployed contract. Only allowlisted scanner classifications and a scoped occurrence citation leave the service; free target content, HTTP bodies/headers and reviewer notes are withheld. Prompt instructions have a separate trust boundary, but deterministic exclusion, strict schema/size/URL/citation validation and absence of model tools are the enforcement controls. Gemini has no access to policy decisions or evidence writes. Output is inert React text with explicit advisory and hypothesis labels.
+
+Regeneration and feedback require server-resolved membership, project access, a findings write role and CSRF. Composite foreign keys and immutable records preserve tenant separation and prior versions. Bounded retry exhaustion records degraded enrichment without modifying the scanner finding. Tests exercise injected HTML/system instructions, secrets/PII, malformed and oversized output, invented citations, outages, immutable retention, tenant/project denial and XSS-safe rendering. Feedback remains explicit review data, never a training signal or model prompt. Residual risks: inaccurate advisory text, provider availability, and no durable request recovery or fleet billing quota; consult the guide for operational limits.

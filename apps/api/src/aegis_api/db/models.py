@@ -299,6 +299,7 @@ class Scan(TenantRecord):
     next_sequence: Mapped[int] = mapped_column(
         BigInteger, default=1, server_default="1"
     )
+    normalization: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     mock_manifest: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     retry_of_scan_id: Mapped[UUID | None] = mapped_column(Uuid)
     mode: Mapped[ScanMode] = mapped_column(enum_type(ScanMode))
@@ -396,6 +397,18 @@ class RawScanArtifact(TenantRecord):
 class Finding(TenantRecord):
     __tablename__ = "findings"
     target_id: Mapped[UUID] = mapped_column(Uuid)
+    comparison_family: Mapped[str] = mapped_column(
+        String(64), default="legacy", server_default="legacy"
+    )
+    normalized: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
+    scanner_confidence: Mapped[str] = mapped_column(
+        String(32), default="unknown", server_default="unknown"
+    )
+    canonical_route: Mapped[str] = mapped_column(
+        String(2048), default="", server_default=""
+    )
     fingerprint: Mapped[str] = mapped_column(String(64))
     fingerprint_version: Mapped[str] = mapped_column(String(32))
     title: Mapped[str] = mapped_column(String(300))
@@ -412,7 +425,11 @@ class Finding(TenantRecord):
         parent("target_id", "targets"),
         UniqueConstraint("organization_id", "target_id", "id"),
         UniqueConstraint(
-            "organization_id", "target_id", "fingerprint_version", "fingerprint"
+            "organization_id",
+            "target_id",
+            "comparison_family",
+            "fingerprint_version",
+            "fingerprint",
         ),
         Index(
             "ix_findings_filters",
@@ -440,6 +457,9 @@ class FindingOccurrence(TenantRecord):
     occurrence_hash: Mapped[str] = mapped_column(String(64))
     redacted_evidence_pointer: Mapped[str] = mapped_column(String(500))
     normalization_version: Mapped[str] = mapped_column(String(32))
+    normalized: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
     coverage_ref: Mapped[str] = mapped_column(String(100))
     __table_args__ = scoped(
         ForeignKeyConstraint(
@@ -479,6 +499,7 @@ class AIAnalysis(TenantRecord):
     model: Mapped[str] = mapped_column(String(100))
     schema_version: Mapped[str] = mapped_column(String(32))
     prompt_version: Mapped[str] = mapped_column(String(32))
+    sampling: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     input_digest: Mapped[str] = mapped_column(String(64))
     output: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     status: Mapped[EnrichmentState] = mapped_column(enum_type(EnrichmentState))
@@ -487,16 +508,19 @@ class AIAnalysis(TenantRecord):
     advisory: Mapped[bool] = mapped_column(default=True)
     __table_args__ = scoped(
         parent("occurrence_id", "finding_occurrences"),
-        UniqueConstraint(
-            "organization_id",
-            "occurrence_id",
-            "input_digest",
-            "provider",
-            "model",
-            "schema_version",
-            "prompt_version",
-        ),
         CheckConstraint("advisory", name="advisory_only"),
+    )
+
+
+class AIFeedback(TenantRecord):
+    __tablename__ = "ai_feedback"
+    analysis_id: Mapped[UUID] = mapped_column(Uuid)
+    actor_id: Mapped[UUID] = mapped_column(Uuid)
+    useful: Mapped[bool] = mapped_column()
+    note: Mapped[str] = mapped_column(Text)
+    __table_args__ = scoped(
+        parent("analysis_id", "ai_analyses"),
+        parent("actor_id", "organization_members"),
     )
 
 
@@ -681,3 +705,19 @@ class ScanConfirmation(TenantRecord):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __table_args__ = scoped(parent("actor_id", "organization_members"))
+
+
+class FindingReview(TenantRecord):
+    __tablename__ = "finding_reviews"
+    finding_id: Mapped[UUID] = mapped_column(Uuid)
+    actor_id: Mapped[UUID | None] = mapped_column(Uuid)
+    scan_id: Mapped[UUID | None] = mapped_column(Uuid)
+    action: Mapped[str] = mapped_column(String(32))
+    previous_state: Mapped[str] = mapped_column(String(32))
+    state: Mapped[str] = mapped_column(String(32))
+    note: Mapped[str] = mapped_column(Text, default="", server_default="")
+    __table_args__ = scoped(
+        parent("finding_id", "findings"),
+        parent("actor_id", "organization_members"),
+        parent("scan_id", "scans"),
+    )

@@ -13,6 +13,7 @@ import {
 import './product.css';
 import Configuration from './Configuration';
 import Scans from './Scans';
+import Findings from './Findings';
 const progressSchema = z.object({
   create_project: z.boolean(),
   register_target: z.boolean(),
@@ -114,16 +115,18 @@ export default function Workspace() {
         <NavLink to="/app/getting-started" onClick={() => setOpen(false)}>
           ◈ <span>Getting started</span>
         </NavLink>
-        {['projects', 'targets', 'policies', 'scans'].map((path) => (
-          <NavLink
-            key={path}
-            to={`/app/${path}`}
-            onClick={() => setOpen(false)}
-          >
-            {path[0]?.toUpperCase()}
-            {path.slice(1)}
-          </NavLink>
-        ))}
+        {['projects', 'targets', 'policies', 'scans', 'findings'].map(
+          (path) => (
+            <NavLink
+              key={path}
+              to={`/app/${path}`}
+              onClick={() => setOpen(false)}
+            >
+              {path[0]?.toUpperCase()}
+              {path.slice(1)}
+            </NavLink>
+          ),
+        )}
         <a
           href="/app/getting-started#organization"
           onClick={() => setOpen(false)}
@@ -187,7 +190,9 @@ export default function Workspace() {
           <span>{me.display_name}</span>
         </header>
         <main id="main" className="workspace-main">
-          {org && location.pathname.startsWith('/app/scans') ? (
+          {org && location.pathname.startsWith('/app/findings') ? (
+            <Findings key={org.id} org={org.id} role={org.role} />
+          ) : org && location.pathname.startsWith('/app/scans') ? (
             <Scans key={org.id} org={org.id} role={org.role} />
           ) : org &&
             /^\/app\/(projects|targets|policies)/.test(location.pathname) ? (

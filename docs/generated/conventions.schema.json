@@ -244,6 +244,7 @@
         "enum": [
           "new",
           "recurring",
+          "reopened",
           "changed",
           "resolved",
           "accepted_risk",
@@ -368,6 +369,7 @@
         "enum": [
           "new",
           "recurring",
+          "reopened",
           "changed",
           "resolved",
           "accepted_risk",

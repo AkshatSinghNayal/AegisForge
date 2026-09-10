@@ -1,8 +1,8 @@
 # Phase status
 
-Current phase: **Phase 7 — mock scan orchestration and live progress complete (2026-09-08)**.
+Current phase: **Phase 10 — strict review CONDITIONAL PASS (2026-09-10)**.
 
-Phases 0–6 remain complete under their explicit prompts and reviews. Phase 7 adds the durable job lifecycle, authorization/idempotency/grant checks, isolated mock Celery provider, cancellation/deadlines/retries, ordered SSE and scan list/wizard/live UI. No ZAP or later-phase security processing is connected.
+Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worker-side versioned normalization, immutable per-observation evidence provenance, conservative comparable-scan lifecycle, authenticated findings/filter/detail/comparison APIs, audited review and the findings workspace. Phase 10 adds on-demand schema-constrained advisory AI and retained feedback. Deterministic policy evaluation and reports remain deferred. See [normalization](FINDING_NORMALIZATION.md) and [Phase 9 verification](PHASE9_TEST_REPORT.md).
 
 ## Execution checklist
 
@@ -14,8 +14,12 @@ Phases 0–6 remain complete under their explicit prompts and reviews. Phase 7 a
 - [x] Phase 5 — identity, organizations, RBAC and onboarding; security/browser/regression gates passed
 - [x] Phase 6 — projects, targets, secret references and scan policies; security/migration/browser/regression gates passed
 - [x] Phase 7 — mock scan lifecycle, durable dispatch, live SSE and scan UI; backend/frontend/live-worker checks passed
+- [x] Phase 8 — isolated ZAP execution and immutable encrypted artifact collection
+- [x] Phase 9 — evidence-preserving finding normalization, review and comparison; backend, browser, security and build checks passed
 
-The next phase requires an explicit user prompt; real isolated scanner execution remains unimplemented. Historical records below retain their original handoff state. Current behavior is documented in [AUTHENTICATION](AUTHENTICATION.md), [CONFIGURATION](CONFIGURATION.md) and [SCAN_ORCHESTRATION](SCAN_ORCHESTRATION.md).
+- [x] Phase 10 — strict advisory AI providers, bounded private inputs, retained versions, feedback and safe guidance UI; security, database, browser and build checks passed
+
+The current Phase 10 strict review is recorded in [TEST_REPORT](TEST_REPORT.md); [PHASE10_TEST_REPORT](PHASE10_TEST_REPORT.md) retains the original implementation handoff. The next phase requires an explicit user prompt; policy evaluation and reporting remain unimplemented. Historical records below retain their original handoff state. Current behavior is documented in [AUTHENTICATION](AUTHENTICATION.md), [CONFIGURATION](CONFIGURATION.md) and [SCAN_ORCHESTRATION](SCAN_ORCHESTRATION.md).
 
 ## Phase 0 historical discovery
 
@@ -307,3 +311,35 @@ Review services were stopped after automatic approval review rejected volume/orp
 The earlier commit blocker was the execution sandbox’s read-only rule for `.git`, not incorrect Unix ownership or a stale lock. Explicitly authorized escalated Git staging succeeded without changing filesystem permissions or repository configuration. The commit records the complete verified Phase 6–8 working state because HEAD previously stopped at Phase 5; see [commit inventory](PHASE8_COMMIT_MANIFEST.md) for its exact file scope. Earlier statements that a commit remains blocked are superseded by this handoff once the commit is verified. No Phase 9 work is included.
 
 Secret verification is limited to real local worker decryption with a fake scanner runtime, separate configuration/redaction tests, and unauthenticated live scans. Authenticated real-ZAP delivery and a full saved-reference-to-target journey are not claimed. Cloud secret adapters and cloud artifact lifecycle are unimplemented. See [scanner verification boundary](SCANNER.md) for details.
+
+## Phase 9 implementation — 2026-09-10
+
+Added `normalization.py`, `finding_service.py`, `findings.py`, migration `0007`, the findings workspace and golden/API/browser tests. Updated worker artifact receipts and collection handoff, database models/enums, navigation, generated API/schema documentation, README, decisions, test matrix and environment comments. Fingerprinting and normalizer versions are explicit; raw records remain immutable; every alert has a separate occurrence with source pointers. Review actions use project/tenant authorization, CSRF, optimistic versions and append-only audit/history. Partial/failed scans cannot resolve findings.
+
+Verification, exact commands, resolved failures and limitations are recorded in [PHASE9_TEST_REPORT](PHASE9_TEST_REPORT.md). The fingerprint and compatibility decisions are documented in [FINDING_NORMALIZATION](FINDING_NORMALIZATION.md). No later-phase implementation or deployment is included.
+
+Phase 9 verification: 275 full backend tests passed (8 live-ZAP opt-in skips), 1 additional real handoff integration passed, 21 final normalizer unit tests passed, 25 frontend tests passed, and the final Chromium findings/keyboard/accessibility journey passed. Lint, strict types, schemas and production builds passed. Phase 10 is the next phase, subject to its separate explicit prompt.
+
+Git handoff: staging failed with exit 128 because `.git/index.lock` cannot be created on the read-only filesystem. No commit or push was made; protected metadata remains unchanged. The verified Phase 9 implementation remains in the working tree.
+
+## Phase 10 handoff — 2026-09-10
+
+Implemented on-demand Gemini/mock advisory guidance under [AI_GUIDANCE](AI_GUIDANCE.md), with migration 0008, retained immutable analyses/feedback, strict schema/citation/URL validation, privacy controls and bounded degraded failure handling. AI is disabled by default, never changes scanner/policy values and has no tools. The optional local adapter is not bundled.
+
+Verification: full backend suite 314 passed/8 opt-in live ZAP skipped; final focused deadline/HTTP security suite 46 passed; frontend 28 passed; full browser suite 57 passed/6 live-service scenarios skipped; formatting, lint, strict types, generated schemas, migration roundtrip and both builds passed. [Exact commands, files, manual checks and limitations](PHASE10_TEST_REPORT.md). No live Gemini call was made. Disposable test services were removed. Git commit blocked by read-only `.git/index.lock`; no metadata workaround, push or deployment. Phase 10 is the stopping point; the next phase needs an explicit prompt.
+
+## Phase 10 strict review — 2026-09-10
+
+**CONDITIONAL PASS: safe to begin the next explicitly requested phase.** Fixed the pre-truncation redaction leak and loss of ordinary guidance; whitespace/duplicate/overflow acceptance; ignored Gemini completion status; untyped AI HTTP response contracts; lost citation keyboard focus and stale feedback success notices. New output validation version is `guidance-v2`; prompt stays `guidance-v1`, and prior immutable records remain retained. No next-phase feature was added.
+
+Actual results: full backend unit/integration/security/migration suite **340 passed, 8 opt-in live ZAP skipped**; final AI unit/real-SDK transport suite **58 passed**; frontend **29 passed**; Chromium **57 passed, 6 opt-in live-service workflows skipped**. Lint, formatting, strict types, generated schemas, migration checks and Vite/API builds passed. Inspected guidance at **390, 768, 1280 and 1440px**, with no horizontal overflow or axe violations and verified citation focus restoration. See [TEST_REPORT](TEST_REPORT.md) for defect evidence and exact commands.
+
+Non-blocking limitations: no live Gemini/quality validation; opt-in live ZAP and auth/configuration/scan browser runs not enabled; input remains classification-only and generation on-demand, without the optional local adapter or durable AI queue. Provider calls remain off by default. Commit is blocked by read-only `.git/index.lock`; source changes remain uncommitted. Disposable review services were cleaned up. No push or deployment occurred. Stop after this review.
+
+### Live Gemini verification follow-up
+
+Checked the process environment, project `.env` configuration and the project's exited API container without revealing values: no nonempty `AEGIS_GEMINI_API_KEY`, `GEMINI_API_KEY` or `GOOGLE_API_KEY` is configured. Earlier review tests intentionally simulated the provider and had not established key availability. No live request was made; the requested real Phase 8 finding-to-Gemini verification remains blocked on local credential configuration. See [TEST_REPORT](TEST_REPORT.md).
+
+### Authorized Git handoff through Phase 10
+
+The user authorized the Phase 8 escalation procedure for staging and committing, with no ownership or permission changes. The commit includes the previously uncommitted Phase 9 foundation and Phase 10 implementation/review work on top of `ac06859`. See [exact commit inventory](PHASE10_COMMIT_MANIFEST.md). Earlier read-only failures remain historical records. Live Gemini verification remains unperformed because no key is configured. No push or deployment is included.

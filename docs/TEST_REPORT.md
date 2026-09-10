@@ -1,3 +1,99 @@
+# Phase 10 strict review — 2026-09-10
+
+**CONDITIONAL PASS — safe to begin the next explicitly requested phase.** All confirmed blockers below were fixed and verification passed. The exact non-blocking limits are live-provider/opt-in coverage, the documented on-demand scope and read-only Git metadata. This section supersedes the original Phase 10 handoff; historical reports follow unchanged.
+
+## Confirmed defects fixed
+
+| ID      | Severity | Evidence and correction                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AI10-01 | P1       | `redact_text` delegated to the scanner artifact helper, which masked entire fields containing ordinary words such as “session” and truncated all other fields at 1,024 characters before email masking. A synthetic email crossing that boundary leaked `person@example`; a 1,600-character remediation lost its ending. Replaced with targeted complete-value masking before truncation, including headers, quoted credentials, bearer/basic, PEM, JWT, URL credentials, email and phone cases. Normal security guidance and declared field lengths are preserved. |
+| AI10-02 | P2       | Whitespace-only guidance and duplicate JSON keys/citations passed validation; a long root-cause explanation was silently sliced when adding its label. `guidance-v2` rejects these cases, retains the full accepted hypothesis and fails closed on label overflow. The unchanged prompt remains `guidance-v1`.                                                                                                                                                                                                                                                      |
+| AI10-03 | P2       | Gemini's `finish_reason` was ignored, so a safety/token-limited response containing syntactically valid JSON could be recorded as complete. Require exactly one STOP candidate. Tests exercise the real installed SDK's serialization/retry machinery with local transport responses for STOP, MAX_TOKENS, SAFETY, HTTP 429 and HTTP 503. No real provider call occurs.                                                                                                                                                                                             |
+| AI10-04 | P2       | Citation navigation unmounted the focused button without restoring focus, and a failed feedback write could retain the previous successful-save notice. Citation navigation now focuses the Evidence tab; each feedback attempt clears stale success text. RTL and Chromium assertions cover both corrections.                                                                                                                                                                                                                                                      |
+| AI10-05 | P2       | The AI HTTP endpoints exposed unstructured `Any` responses despite the strict guidance contract. Added typed Pydantic analysis/feedback response schemas and a typed SQLAlchemy analysis query, and regenerated OpenAPI. The generated schema catalog now correctly names migrations through 0008.                                                                                                                                                                                                                                                                  |
+
+Fix scope is limited to Phase 10. No policy engine, reporting, scanner behavior change, optional local model or next-phase feature was added. Existing uncommitted Phase 9 work was preserved. The new schema version does not mutate or rewrite prior immutable analysis records.
+
+## Requirement and security review
+
+Read the user's Phase 10 requirements, AGENTS.md, build plan, decisions, phase status, implementation report, tracked Git diff and all new/untracked Phase 9/10 files relevant to the AI integration. Verified the locked official SDK, explicit local/test-only mock restriction, minimal classification-only input, evidence delimiters/system instruction, schema/length/URL/citation checks, metadata, retries, degraded outcomes, retained versions, feedback, frontend labels and inert React rendering.
+
+No confirmed tenant bypass was found. Reads/writes use server-resolved membership and scoped finding/project authorization; analysis joins include organization and finding, and feedback has composite tenant foreign keys. CSRF and role denial are exercised through real HTTP tests. Database tests run the actual retry pipeline for timeouts, malformed/oversized output and nonexistent citations and assert retained degraded records without changing scanner severity/state/version/normalized evidence. Immutable version/feedback constraints, prior-version retention, denied cross-tenant access, project denial and migration roundtrips pass. No model path writes scanner evidence or policy evaluations. No production fake success or inert action remains in the changed UI.
+
+The minimum shared evidence is normalized scanner classification plus the exact occurrence ID; free target text, routes, headers, bodies and reviewer notes are excluded. That deliberately limits diagnostic specificity and is disclosed in the UI. Feedback is stored for review and never sent to a model or used for automatic training.
+
+## Actual verification
+
+| Command/check                                                                             | Result                                                                                    |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Full backend unit/integration/security/migration suite, disposable PostgreSQL/Redis       | 340 passed, 8 opt-in live ZAP skipped, 2 existing upstream deprecation warnings; 125.17s  |
+| Final adversarial AI unit/SDK suite (includes subsequently added 429/503/multibyte cases) | 58 passed; 7.66s                                                                          |
+| Frontend Vitest/RTL                                                                       | 29 passed in 7 files; 36.31s                                                              |
+| ESLint and strict TypeScript                                                              | Passed                                                                                    |
+| Ruff lint/format and strict mypy                                                          | Passed; 69 Python files formatted, 39 source files typechecked                            |
+| Generated schema consistency and Prettier                                                 | Passed; final documentation formatting and schema consistency checked                     |
+| Vite production build                                                                     | Passed as browser-suite prerequisite                                                      |
+| API wheel and source distribution                                                         | Passed, artifacts in `/tmp/aegis-phase10-review-dist`                                     |
+| Phase 10 production-browser flow                                                          | Passed at all four requested widths; 47.0s                                                |
+| Full configured Chromium regression                                                       | 57 passed, 6 opt-in live-service workflows skipped; 5.7m                                  |
+| Git whitespace / commit / cleanup                                                         | Whitespace passed; commit blocked by read-only `.git`; disposable review services removed |
+
+Commands run from the repository root. Frontend commands use bundled Node 24 with `PATH=/home/akshat/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH`.
+
+```sh
+apps/api/.venv/bin/ruff check apps/api
+apps/api/.venv/bin/ruff format --check apps/api
+apps/api/.venv/bin/mypy --config-file apps/api/pyproject.toml apps/api/src
+apps/api/.venv/bin/pytest -q apps/api/tests/test_ai.py
+apps/api/.venv/bin/python -m aegis_api.schema_docs
+apps/api/.venv/bin/python -m aegis_api.schema_docs --check
+pnpm exec prettier --check .
+pnpm --filter @aegisforge/web lint
+pnpm --filter @aegisforge/web typecheck
+pnpm --filter @aegisforge/web test
+pnpm --filter @aegisforge/web test-e2e
+/tmp/aegis-phase10-tools/bin/uv build --project apps/api --out-dir /tmp/aegis-phase10-review-dist
+sg docker -c 'docker compose -p aegis-phase10-review -f docker-compose.yml -f docker-compose.test.yml run --rm --build api pytest -q'
+git diff --check
+```
+
+The broader Docker suite ran after all runtime/security corrections. Three subsequent tests added HTTP 429, HTTP 503 and multibyte byte-budget cases; all 58 final focused tests passed. A later generated-documentation header correction does not change runtime behavior. Initial formatter diagnostics during edits were corrected; no failing runtime assertion was waived or weakened.
+
+## UI inspection
+
+Inspected the actual Chromium screenshots at **390, 768, 1280 and 1440px**:
+
+- `/tmp/phase10-guidance-390.png`
+- `/tmp/phase10-guidance-768.png`
+- `/tmp/phase10-guidance-1280.png`
+- `/tmp/phase10-guidance-1440.png`
+
+At all four widths the advisory label, version metadata, confidence, uncertainty, evidence links, checklist, feedback and retained version panels remain readable without horizontal overflow. The responsive sidebar collapses on mobile/tablet. Explicit browser axe checks report no violations. Keyboard citation navigation now restores focus to Evidence. Model HTML is literal text with no `img`/`script` nodes. These are labeled synthetic HTTP-boundary fixtures, including retained v1 metadata, to test UI behavior independently from backend rejection. Human visual inspection supplements assertions; it is not a claim of screen-reader or non-Chromium testing.
+
+## Live Gemini credential check — user follow-up
+
+The initial review intentionally used deterministic/provider-transport tests and had not independently established whether a live key was configured. On the user's follow-up, checked the current process environment, parsed root `.env`, `apps/api/.env` (absent), and the configured project's API container environment. `AEGIS_GEMINI_API_KEY`, `GEMINI_API_KEY` and `GOOGLE_API_KEY` are absent or empty in each checked configuration source. The one project API container is exited. Only presence/state booleans were emitted; no credential values were printed.
+
+No live Gemini request was made because no configured key was found. A live end-to-end analysis of a retained real Phase 8 demo-target finding remains unverified. Configure the server-side `AEGIS_GEMINI_API_KEY` locally to unblock that requested verification; no synthetic finding may substitute for real ZAP evidence.
+
+## Exact non-blocking limitations
+
+- No live Gemini call or provider-quality verification. The service remains disabled by default; the installed SDK is tested against simulated transport responses, not a live account.
+- Eight real-ZAP tests and six live-service auth/configuration/scan browser workflows are opt-in and were not enabled for this review. API authentication/authorization and database integration were tested independently.
+- Generation remains on-demand and classification-only. The optional LocalAIProvider is not implemented or bundled. A synchronous request lost before commit leaves no new version; old records are preserved. Durable AI jobs, global billing quotas and retention cleanup remain outside this phase.
+- Git metadata is protected. Commit outcome is recorded below; no permission workaround, deployment or push is authorized by this review.
+
+## Handoff
+
+No unresolved phase blocker remains. `git add` failed with exit 128 (`.git/index.lock: Read-only file system`); no commit was created and no metadata workaround was attempted. Docker cleanup exited 0 and removed only the disposable review project's containers, networks and volumes. The final API package was rebuilt after the documentation-generator correction. No deployment, push or next phase was started.
+
+```sh
+git add -- apps/api/src/aegis_api/ai.py apps/api/src/aegis_api/ai_routes.py apps/web/src/product/AIGuidance.tsx apps/web/src/product/Findings.tsx docs/TEST_REPORT.md docs/PHASE_STATUS.md
+sg docker -c 'docker compose -p aegis-phase10-review -f docker-compose.yml -f docker-compose.test.yml down --volumes --remove-orphans'
+```
+
+---
+
 # Touch-target correction — 2026-09-06
 
 **PASS: R012-04 resolved.** The user authorized correcting the three Phase 3 link groups previously excluded from the retroactive audit’s fix scope. All three now meet the design system’s minimum **44px width and height** at **360, 390, 768, 1024, 1280, 1440 and 1920px**. This supersedes the outstanding target-size condition below; historical audit results are retained as historical evidence. Chromium automation remains the verification scope, not human screen-reader or cross-browser certification.

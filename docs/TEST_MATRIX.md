@@ -101,3 +101,17 @@ R20: `configuration.spec.ts` runs real registration/login/project creation, stan
 `test_zap_dispatch.py` checks tenant/job/fence/version binding, real progress/replay, immutable PostgreSQL artifact insertion, cross-tenant rejection, partial completion and no unsafe retry. Migration regressions include revision 0006 and downgrade/re-upgrade without evidence deletion.
 
 `test_zap_live.py` is explicitly enabled with `AEGIS_RUN_ZAP_LIVE=1`: digest-pinned ZAP runs only against a disposable internal training target, with passive, active, OpenAPI, cancellation, deadline, process-crash and cleanup cases. A second unauthorized canary must receive zero requests. The route/lease test attempts direct target/canary access, a foreign proxy request and heartbeat loss. Ordinary suite skips are not counted as successful live tests. Actual commands/results are recorded in PHASE8_TEST_REPORT.md.
+
+## Phase 9 implemented coverage
+
+R02/R08/R11/R19/R21: golden raw ZAP fixture tests cover stable fingerprints, distinct routes/parameters/methods/rules, independent severity/confidence, masking and source pointers. PostgreSQL tests cover every observation, replay idempotency, baseline selection, changed/resolved/reopened state, partial/failed non-resolution, persistent dispositions, versioned review, role/project/tenant denial, CSRF, filter/pagination boundaries, immutable review rows and composite foreign keys. Migration tests include revision 0007 and schema drift.
+
+R20: `findings.spec.ts` exercises URL filter persistence/reload, sorting, detail sections, masked HTTP evidence/provenance, reviewer state changes and comparison with explicitly synthetic HTTP boundary fixtures. Database/API integration tests independently verify production service behavior. See [PHASE9_TEST_REPORT](PHASE9_TEST_REPORT.md) for actual results and limitations.
+
+## Phase 10 implemented verification
+
+`test_ai.py` covers injection/secret/PII exclusion, deterministic input bounds, strict output schema, malformed/oversized responses, URL allowlisting, invented citations, root-cause labels, mock restrictions, SDK configuration, retry recovery and exhaustion. `test_ai_routes.py` covers real PostgreSQL retained versions, degraded failures without gate/finding mutation, cooldown, immutable analyses/feedback and tenant/project/role denial. Migration regression checks schema parity and downgrade/upgrade.
+
+`AIGuidance.test.tsx` verifies inert XSS rendering for output/feedback, local-only checklists, citations, regeneration, feedback and viewer restrictions. The findings production-browser flow exercises generation, regeneration, retained versions, feedback, citations, XSS text, keyboard navigation, mobile/desktop overflow and axe accessibility. See [Phase 10 verification](PHASE10_TEST_REPORT.md) for exact outcomes and limitations.
+
+Phase 10 strict review adds independently parameterized credential/PII cases, pre-truncation redaction boundaries, preservation of ordinary security guidance, whitespace/duplicate/hypothesis overflow and multibyte output rejection. Real SDK serialization tests cover STOP, MAX_TOKENS, SAFETY, 429 and 503 responses without live network calls; database tests exercise the actual three-attempt failure pipeline. Frontend tests reject stale feedback success notices. Browser inspection now includes 390, 768, 1280 and 1440px plus focus restoration after citations. Current review outcomes are in [TEST_REPORT](TEST_REPORT.md).

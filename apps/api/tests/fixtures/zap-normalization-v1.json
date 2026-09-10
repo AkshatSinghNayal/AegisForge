@@ -1,0 +1,31 @@
+{
+  "schema": "zap-raw-v1",
+  "scanner_version": "2.17.0",
+  "alerts": [
+    {
+      "pluginId": "40018",
+      "alert": "SQL Injection",
+      "risk": "High",
+      "confidence": "Medium",
+      "url": "https://fixture.example.invalid/search?q=volatile-canary",
+      "method": "GET",
+      "messageId": "7",
+      "param": "q",
+      "cweid": "89",
+      "wascid": "19",
+      "tags": {
+        "OWASP_2021_A03": "https://owasp.org/Top10/A03_2021-Injection/"
+      },
+      "reference": "https://owasp.org/www-community/attacks/SQL_Injection",
+      "evidence": "private-evidence-canary"
+    }
+  ],
+  "messages": {
+    "7": {
+      "requestHeader": "GET /search?q=volatile-canary HTTP/1.1\r\nAuthorization: Bearer credential-canary\r\nCookie: sid=cookie-canary\r\nHost: fixture.example.invalid\r\n",
+      "requestBody": "private-request-canary",
+      "responseHeader": "HTTP/1.1 200 OK\r\nSet-Cookie: sid=response-canary\r\nContent-Type: text/html\r\n",
+      "responseBody": "private-response-canary"
+    }
+  }
+}

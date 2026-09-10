@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from starlette.exceptions import HTTPException
 from starlette.middleware.base import RequestResponseEndpoint
 
+from aegis_api.ai_routes import router as ai_router
 from aegis_api.conventions import (
     APIError,
     ErrorResponse,
@@ -20,6 +21,7 @@ from aegis_api.conventions import (
     validation_error_handler,
 )
 from aegis_api.dependencies import DependencyProbe, InfrastructureProbe
+from aegis_api.findings import router as finding_router
 from aegis_api.logging import configure_logging, correlation_id
 from aegis_api.settings import Settings, get_settings
 
@@ -86,6 +88,8 @@ def create_app(
     app.include_router(organization_router)
     app.include_router(configuration_router)
     app.include_router(scan_router)
+    app.include_router(finding_router)
+    app.include_router(ai_router)
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(HTTPException, http_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
