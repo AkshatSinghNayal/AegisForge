@@ -10,10 +10,10 @@ setup:
 	$(PNPM) --filter @aegisforge/web exec playwright install chromium
 
 dev:
-	$(COMPOSE) up --build -d --wait
+	$(COMPOSE) -p aegisforge up --build -d --wait
 
 down:
-	$(COMPOSE) down
+	$(COMPOSE) -p aegisforge down
 
 lint:
 	$(PNPM) exec prettier --check .
@@ -30,13 +30,13 @@ test:
 	$(UV) run --project apps/api pytest -c apps/api/pyproject.toml apps/api/tests -m 'not integration'
 
 test-integration:
-	$(COMPOSE) -f docker-compose.yml -f docker-compose.test.yml run --rm --build api
+	$(COMPOSE) -p aegisforge -f docker-compose.yml -f docker-compose.test.yml run --rm --build api
 
 test-e2e:
 	$(PNPM) --filter @aegisforge/web test-e2e
 
 migrate:
-	$(COMPOSE) run --rm api alembic upgrade head
+	$(COMPOSE) -p aegisforge run --rm api alembic upgrade head
 
 seed-demo:
 	@echo "No demo seed is implemented in Phase 4. Test factories are synthetic; no changes made."

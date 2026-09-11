@@ -22,8 +22,8 @@ jobs:
       - run: make test-auth-e2e
       - run: make dev migrate test-integration
       - run: make migrate
-      - run: docker compose -f docker-compose.yml -f docker-compose.prod.yml build
-      - run: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
+      - run: docker compose -p aegisforge -f docker-compose.yml -f docker-compose.prod.yml build
+      - run: docker compose -p aegisforge -f docker-compose.yml -f docker-compose.prod.yml up -d --wait
         env:
           AEGIS_APP_ORIGIN: https://localhost:8080
       - run: curl --fail http://localhost:8080/health/ready

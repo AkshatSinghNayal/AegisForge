@@ -1,4 +1,4 @@
-# Synthetic HTTP fixture, isolated to the disposable browser-test project.
+# Synthetic HTTP fixture, in the shared aegisforge Compose project.
 services:
   target-fixture:
     image: python:3.12.14-slim

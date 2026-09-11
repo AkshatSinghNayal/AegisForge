@@ -4,7 +4,7 @@ import os
 import shlex
 import subprocess
 
-compose = shlex.split(os.environ.get("COMPOSE", "docker compose"))
+compose = shlex.split(os.environ.get("COMPOSE", "docker compose")) + ["-p", "aegisforge"]
 
 
 def config(*args: str) -> dict:
@@ -12,7 +12,9 @@ def config(*args: str) -> dict:
         [*compose, *args, "config", "--format", "json"],
         check=True, capture_output=True, text=True,
     )
-    return json.loads(result.stdout)
+    rendered = json.loads(result.stdout)
+    assert rendered["name"] == "aegisforge", "Compose project must be aegisforge"
+    return rendered
 
 
 for mode, args in (

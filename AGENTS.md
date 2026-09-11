@@ -27,6 +27,12 @@ Browser sessions use short-lived access credentials and rotating refresh cookies
 
 Original AegisForge branding only. Public marketing and authenticated application routes have separate layouts. Lenis runs only on public routes. Provide keyboard access, contrast, reduced-motion fallbacks and native scrolling before JavaScript loads.
 
+## Docker & Compose
+
+- Always use the fixed Compose project name "aegisforge" for every docker compose command in this repository — bring the stack up with `docker compose -p aegisforge up -d`, never an auto-generated or phase-specific project name (e.g. never "aegis-phaseN-review").
+- This applies to every phase, every review pass, and every repair session, without exception, so volumes and networks are always reused rather than duplicated per session.
+- Before running any docker compose command, confirm the `-p aegisforge` flag (or `COMPOSE_PROJECT_NAME=aegisforge` env var) is being used.
+
 ## Verification and handoff
 
 Add unit, integration, E2E and security tests with each feature, using [test matrix](docs/TEST_MATRIX.md). Run configured formatting, lint, type checks, tests and relevant builds before declaring that phase complete. Report unavailable checks honestly; do not count documentation inspection as application testing.

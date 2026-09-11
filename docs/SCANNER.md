@@ -49,7 +49,7 @@ docker pull ghcr.io/zaproxy/zaproxy:2.17.0@sha256:781a2bdaea47324e7bab583e2263f2
 Set `AEGIS_SCANNER_SOCKET` to the dedicated daemon socket, `AEGIS_SCANNER_SOCKET_GID` to its group, and `AEGIS_ZAP_ALLOWLIST` to an explicit JSON array of exact origins (scheme, hostname, nondefault port; no trailing slash). Keep `AEGIS_ZAP_EGRESS_NETWORK=bridge` only for the dedicated daemon's ordinary outbound network. Supply a restrictive isolated network for private training targets. Do not put plaintext keys in shell commands, screenshots or committed files.
 
 ```sh
-docker compose -f docker-compose.yml -f docker-compose.scanner.yml --profile scanner-runtime up --build -d
+docker compose -p aegisforge -f docker-compose.yml -f docker-compose.scanner.yml --profile scanner-runtime up --build -d
 ```
 
 The existing idle `scanner` profile is retained for the foundation's no-network image inspection; it is not the execution runtime. Real execution uses the `scanner-runtime` overlay.
@@ -59,14 +59,14 @@ The existing idle `scanner` profile is retained for the foundation's no-network 
 Run on the execution daemon, separately from the application stack:
 
 ```sh
-docker compose -f docker-compose.scanner-demo.yml --profile scanner-demo up -d --wait
+docker compose -p aegisforge -f docker-compose.scanner-demo.yml --profile scanner-demo up -d --wait
 ```
 
 The training fixture is `http://172.30.88.10:8000`, reachable only on internal network `aegis-scanner-fixture`. It has reflected input and deliberately missing security headers. It stores no real user data. Configure the exact allowlist `["http://172.30.88.10:8000"]`, the egress network `aegis-scanner-fixture` and an authorized internal-test policy. The fixture publishes no ports and cannot contact the internet. The application target-validation service also needs an appropriately isolated validation path to onboard a private target; do not join the API to this scanner network. The live test harness constructs worker contracts directly for the disposable fixture and exercises the API/database handoff separately.
 
 ```sh
 AEGIS_RUN_ZAP_LIVE=1 uv run --project apps/api pytest apps/api/tests/test_zap_live.py -v
-docker compose -f docker-compose.scanner-demo.yml --profile scanner-demo down
+docker compose -p aegisforge -f docker-compose.scanner-demo.yml --profile scanner-demo down
 ```
 
 Live tests create their own unique internal network, target and unauthorized canary; every fixture is removed in `finally`. No internet target is scanned. See PHASE8_TEST_REPORT for observed results and remaining verification limits.

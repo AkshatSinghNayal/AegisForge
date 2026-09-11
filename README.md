@@ -80,13 +80,13 @@ Settings use the `AEGIS_` prefix and validated `dev`, `test`, `prod` profiles. A
 ## Production-shaped local configuration
 
 ```sh
-docker compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d --wait
+docker compose -p aegisforge -f docker-compose.yml -f docker-compose.prod.yml config --quiet
+docker compose -p aegisforge -f docker-compose.yml -f docker-compose.prod.yml up --build -d --wait
 curl --fail http://localhost:8080/health/ready
-docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+docker compose -p aegisforge -f docker-compose.yml -f docker-compose.prod.yml down
 ```
 
-This override serves compiled assets through unprivileged Nginx and removes the API host port and source mount. PostgreSQL, Redis and the worker publish no host ports in either configuration. Web bindings are loopback-only. It is a local production-build check; TLS, managed secrets, AWS, backups and deployment hardening remain deferred to an explicitly requested deployment phase. Do not publish `docker compose config` output because interpolated environment values include local credentials; the supplied validation command keeps that output in memory.
+This override serves compiled assets through unprivileged Nginx and removes the API host port and source mount. PostgreSQL, Redis and the worker publish no host ports in either configuration. Web bindings are loopback-only. It is a local production-build check; TLS, managed secrets, AWS, backups and deployment hardening remain deferred to an explicitly requested deployment phase. Do not publish `docker compose -p aegisforge config` output because interpolated environment values include local credentials; the supplied validation command keeps that output in memory.
 
 ZAP 2.17.0 is digest-pinned behind the `scanner` profile, with no network and no API/host port. It is an idle image foundation with a process health check, not a running scanner. Do not enable target scanning in this phase. Named volumes retain PostgreSQL, Redis and future ZAP workspace data across `down`; cleanup never deletes these volumes.
 
@@ -145,3 +145,5 @@ Run migrations through `0009`, then open **Workspace → Gates**. Admins publish
 ### Phase 12 dashboard and workspace
 
 Open `/app/dashboard` after signing in. Select an organization and use URL-persisted project, target and time filters. Analytics aggregate on the server and expose missing/incomplete data explicitly. See [metric definitions and workspace APIs](docs/ANALYTICS.md) and [verification/limitations](docs/PHASE12_TEST_REPORT.md). Reports, integrations and API keys currently expose retained metadata; generating reports, connecting providers and issuing usable keys are not implemented by these views.
+
+All Compose commands use the fixed `aegisforge` project, including reviews and E2E runs. `make test-auth-e2e` temporarily configures the shared stack for testing and stops it afterward, retaining volumes and the configured encryption key. Run `make dev` to restore development services. Historical test reports record commands executed before this rule; use `-p aegisforge` for all new runs.
