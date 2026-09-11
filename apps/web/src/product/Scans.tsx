@@ -28,7 +28,7 @@ const scanSchema = z.object({
   enrichment_status: z.string(),
   report_status: z.string(),
   is_demo: z.boolean(),
-  effective_gate: z.string(),
+  effective_gate: z.enum(['pass', 'warn', 'fail', 'incomplete']),
   gate_reason: z.string(),
   failure_code: z.string().nullable(),
 });
@@ -547,6 +547,11 @@ function LiveScan({ org, role }: { org: string; role: string }) {
             <dt>Effective gate</dt>
             <dd>
               {scan.effective_gate} · {label(scan.gate_reason)}
+              <Link
+                to={`/app/gates?project=${scan.project_id}&scan=${scan.id}`}
+              >
+                View policy evaluations
+              </Link>
             </dd>
           </dl>
           {scan.failure_code && (

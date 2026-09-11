@@ -180,3 +180,6 @@ async def collected(db: AsyncSession, scan: Scan, receipt: ArtifactReceipt) -> N
 
     await db.flush()
     await ingest(db, scan, receipt)
+    from aegis_api.policy_service import evaluate_bound
+
+    await evaluate_bound(db, scan)

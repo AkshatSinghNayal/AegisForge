@@ -182,6 +182,7 @@ async def test_passing_evaluation_accepts_matching_complete_scan(
 ) -> None:
     context = two_organizations[0]
     item = scan(*context)
+    item.is_demo = False
     item.state = state
     item.completeness = Completeness.COMPLETE
     item.enrichment_status = EnrichmentState.COMPLETE

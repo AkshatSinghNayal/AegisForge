@@ -417,4 +417,4 @@ async def test_real_collection_connects_normalization_without_passing_gate(
         f"/api/v1/scans/{scan.id}?organization_id={scan.organization_id}"
     )
     assert response.status_code == 200, response.text
-    assert response.json()["effective_gate"] == "fail"
+    assert response.json()["effective_gate"] == "incomplete"

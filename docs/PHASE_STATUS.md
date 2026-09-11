@@ -1,8 +1,8 @@
 # Phase status
 
-Current phase: **Phase 10 — strict review CONDITIONAL PASS (2026-09-10)**.
+Current phase: **Phase 11 — implemented and verified (2026-09-11)**.
 
-Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worker-side versioned normalization, immutable per-observation evidence provenance, conservative comparable-scan lifecycle, authenticated findings/filter/detail/comparison APIs, audited review and the findings workspace. Phase 10 adds on-demand schema-constrained advisory AI and retained feedback. Deterministic policy evaluation and reports remain deferred. See [normalization](FINDING_NORMALIZATION.md) and [Phase 9 verification](PHASE9_TEST_REPORT.md).
+Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worker-side versioned normalization, immutable per-observation evidence provenance, conservative comparable-scan lifecycle, authenticated findings/filter/detail/comparison APIs, audited review and the findings workspace. Phase 10 adds on-demand schema-constrained advisory AI and retained feedback. Phase 11 implements deterministic project policies and retained evaluations; reports remain deferred. See [normalization](FINDING_NORMALIZATION.md) and [Phase 9 verification](PHASE9_TEST_REPORT.md).
 
 ## Execution checklist
 
@@ -19,7 +19,9 @@ Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worke
 
 - [x] Phase 10 — strict advisory AI providers, bounded private inputs, retained versions, feedback and safe guidance UI; security, database, browser and build checks passed
 
-The current Phase 10 strict review is recorded in [TEST_REPORT](TEST_REPORT.md); [PHASE10_TEST_REPORT](PHASE10_TEST_REPORT.md) retains the original implementation handoff. The next phase requires an explicit user prompt; policy evaluation and reporting remain unimplemented. Historical records below retain their original handoff state. Current behavior is documented in [AUTHENTICATION](AUTHENTICATION.md), [CONFIGURATION](CONFIGURATION.md) and [SCAN_ORCHESTRATION](SCAN_ORCHESTRATION.md).
+- [x] Phase 11 — deterministic policy engine, structured builder, immutable evaluations; unit/security/database/browser/build checks passed
+
+Phase 11 implementation and verification are recorded in [PHASE11_TEST_REPORT](PHASE11_TEST_REPORT.md) and [POLICY_ENGINE](POLICY_ENGINE.md). The Phase 10 strict review is recorded in [TEST_REPORT](TEST_REPORT.md); [PHASE10_TEST_REPORT](PHASE10_TEST_REPORT.md) retains the original implementation handoff. The next phase requires an explicit user prompt; reporting and later phases remain unimplemented. Historical records below retain their original handoff state. Current behavior is documented in [AUTHENTICATION](AUTHENTICATION.md), [CONFIGURATION](CONFIGURATION.md) and [SCAN_ORCHESTRATION](SCAN_ORCHESTRATION.md).
 
 ## Phase 0 historical discovery
 
@@ -355,3 +357,11 @@ Input privacy checks passed, but live structured-output validation, evidence cit
 **PASS for the requested live Gemini criterion.** The exact 400 error identified an eight-second deadline below Google's ten-second minimum. SDK timeout is now 15 seconds, application attempt deadline 16 seconds. Real output also exposed a redaction-induced malformed documentation URL; masking now withholds the entire damaged URL without weakening validation.
 
 The final same-input authenticated API replay completed in **one real `gemini-2.5-flash` attempt**. Strict structured-output validation, evidence citations, input/output privacy checks, hypothesis labeling, persistence and unchanged scanner values all passed. The replay used the original finding/evidence IDs and identical normalized classification from the verified retained real Phase 8 artifact; the original disposable database had already been removed. **73 focused tests**, lint/format/mypy and API builds passed. [Full chronology and verification boundary](TEST_REPORT.md#phase-10-gemini-deadline-correction--2026-09-10), including the intermediate degraded requests, supersede the earlier unknown-error/live-unverified status. No next phase, push or deployment.
+
+## Phase 11 handoff — 2026-09-11
+
+Implemented the explicit deterministic policy phase only. Migration 0009, pure versioned matching, approved expiring exceptions, baseline-aware counts, captured scan policy versions, immutable re-evaluations, structured policy UI and admin/developer authorization are verified. AI output never affects gates. See [POLICY_ENGINE](POLICY_ENGINE.md) for behavior and [PHASE11_TEST_REPORT](PHASE11_TEST_REPORT.md) for exact commands, files, decisions, manual inspection and limitations.
+
+Verification: 320 backend unit/security tests passed (8 opt-in live ZAP tests skipped); 109 API/database integration tests passed, including migration round trips and schema drift; 31 frontend unit tests passed. Final focused policy tests: 79 passed. Production/lab browsers: 57 passed in the combined run and the one timed-out public-layout test passed in isolation; the final policy evidence/history browser test also passed. Formatting, lint, strict types, generated schema checks and production Vite/API package builds passed. Disposable test containers were removed.
+
+Apply migrations through 0009 and explicitly publish/activate a gate for each project. Existing projects do not acquire a gate automatically. Reporting and later work remain deferred; the next phase requires a new user prompt. Stop after Phase 11.

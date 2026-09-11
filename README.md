@@ -2,7 +2,7 @@
 
 DevSecOps Vulnerability Intelligence Engine for authorized web applications and REST APIs.
 
-Phases 1–10 provide the React/FastAPI foundation, design system, public website, PostgreSQL schema, authentication/RBAC, authorized target configuration, scan orchestration, isolated ZAP collection, and evidence-preserving finding normalization/review. Phase 10 adds optional advisory AI guidance with strict validation and retained versions. Policy evaluation and reports remain future work. See the [phase status](docs/PHASE_STATUS.md), [normalization guide](docs/FINDING_NORMALIZATION.md), and [Phase 9 verification](docs/PHASE9_TEST_REPORT.md).
+Phases 1–11 provide the React/FastAPI foundation, design system, public website, PostgreSQL schema, authentication/RBAC, authorized target configuration, scan orchestration, isolated ZAP collection, and evidence-preserving finding normalization/review. Phase 10 adds optional advisory AI guidance with strict validation and retained versions. Phase 11 adds versioned deterministic project gates, approved expiring exceptions, historical previews and immutable evaluation history. Reports remain future work. See the [phase status](docs/PHASE_STATUS.md), [normalization guide](docs/FINDING_NORMALIZATION.md), and [Phase 9 verification](docs/PHASE9_TEST_REPORT.md).
 
 ## Design and motion laboratories
 
@@ -18,7 +18,7 @@ The Phase 3 review cleared the Phase 1 live Docker gate; the retroactive Phase 0
 
 ## Database foundation (Phase 4)
 
-`make migrate` applies revisions `0001`–`0007`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; authenticated dependencies resolve it and enforce roles/project membership. Revision 0002 rejects passing evaluations that contradict the persisted scan. Phase 5 adds authentication and organization APIs. Phase 6 adds project/target/policy configuration and encrypted local secret references. Phase 7 adds mock-only scan orchestration and live SSE. Report execution, managed production secret providers, webhook receivers and delivery workers remain deferred.
+`make migrate` applies revisions `0001`–`0009`: all 22 requested entities plus durable idempotency records. UUIDs, timezone-aware timestamps, tenant composite foreign keys, immutable-history triggers and query indexes live in PostgreSQL. Internal repositories require a tenant scope; authenticated dependencies resolve it and enforce roles/project membership. Revision 0002 rejects passing evaluations that contradict the persisted scan. Phase 5 adds authentication and organization APIs. Phase 6 adds project/target/policy configuration and encrypted local secret references. Phase 7 adds mock-only scan orchestration and live SSE. Report execution, managed production secret providers, webhook receivers and delivery workers remain deferred.
 
 Run `make schema-docs` to regenerate [OpenAPI](docs/generated/openapi.json), [convention schemas](docs/generated/conventions.schema.json) and the [database catalog](docs/generated/database-schema.md). `make schema-check` detects drift. `make test-integration` requires the isolated test profile and database-create permission: it provisions a uniquely named disposable database, tests upgrade/downgrade/re-upgrade and two-organization isolation, then drops only that database. Never run manual downgrades against retained data; revision 0001 downgrade removes the foundation.
 
@@ -86,7 +86,7 @@ curl --fail http://localhost:8080/health/ready
 docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 ```
 
-This override serves compiled assets through unprivileged Nginx and removes the API host port and source mount. PostgreSQL, Redis and the worker publish no host ports in either configuration. Web bindings are loopback-only. It is a local production-build check; TLS, managed secrets, AWS, backups and deployment hardening belong to Phase 11. Do not publish `docker compose config` output because interpolated environment values include local credentials; the supplied validation command keeps that output in memory.
+This override serves compiled assets through unprivileged Nginx and removes the API host port and source mount. PostgreSQL, Redis and the worker publish no host ports in either configuration. Web bindings are loopback-only. It is a local production-build check; TLS, managed secrets, AWS, backups and deployment hardening remain deferred to an explicitly requested deployment phase. Do not publish `docker compose config` output because interpolated environment values include local credentials; the supplied validation command keeps that output in memory.
 
 ZAP 2.17.0 is digest-pinned behind the `scanner` profile, with no network and no API/host port. It is an idle image foundation with a process health check, not a running scanner. Do not enable target scanning in this phase. Named volumes retain PostgreSQL, Redis and future ZAP workspace data across `down`; cleanup never deletes these volumes.
 
@@ -137,3 +137,7 @@ Run `make migrate`, collect an authorized ZAP scan using the existing scanner se
 ## AI guidance (Phase 10)
 
 Open a finding’s AI Guidance tab to generate or regenerate advisory guidance, inspect citations and prior versions, and leave explicit usefulness feedback. Enrichment defaults off; set `AEGIS_AI_PROVIDER=gemini` with a server-only `AEGIS_GEMINI_API_KEY`, or use `mock` only in local demo/test mode. Run migrations through `0008` first. Scanner evidence and policy outcomes are never changed by AI. See [AI guidance/security contract](docs/AI_GUIDANCE.md) and [Phase 10 verification](docs/PHASE10_TEST_REPORT.md).
+
+## Deterministic gate policies (Phase 11)
+
+Run migrations through `0009`, then open **Workspace → Gates**. Admins publish structured project rules and explicitly activate a version; developers with project membership can read the policy and preview scans. Scan details link to retained policy evaluations. Failed, partial, cancelled, timed-out, unnormalized and demo scans never pass. AI output never decides a gate. No new environment configuration is needed. See the [policy contract](docs/POLICY_ENGINE.md) and [verification report](docs/PHASE11_TEST_REPORT.md).

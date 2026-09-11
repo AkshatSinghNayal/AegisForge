@@ -165,3 +165,11 @@ Comparability is conservative: exact frozen configuration, policy identity, scan
 ## Phase 10 strict review corrections — 2026-09-10
 
 Output validation advances to `guidance-v2`, while the unchanged input prompt remains `guidance-v1`. Redaction uses targeted complete-value masking before truncation rather than the scanner artifact helper, so security guidance is not erased and email suffixes cannot leak at its former 1,024-character boundary. Blank fields, duplicate JSON keys/citations and overlong labeled hypotheses fail closed. Gemini must report one completed STOP candidate. Typed API response models publish the structured contract; the underlying analysis query is typed. Citation navigation restores keyboard focus and a failed feedback save clears stale success text. See the current [strict review report](TEST_REPORT.md).
+
+## Phase 11 — deterministic project policies (2026-09-11)
+
+- Keep scanner execution policies separate from project gate-policy versions. Freeze the active gate and environment into scan configuration; bind active confirmation to its identity. Gate-only changes preserve comparison families.
+- Use a closed structured `gate-v1` schema and pure `deterministic-v1` evaluator. Count distinct findings, retain all matching occurrences, AND conditions/OR lists, and order outcomes fail > warn > pass after an overriding incomplete/fail-closed evidence guard.
+- Remove the old enrichment-complete dependency from passing gates. Enrichment status and AI output never affect decision inputs or digests. Demo evidence and incomplete scans cannot pass at either the engine or database boundary.
+- Store exceptions in immutable policy versions with exact project-finding scope, active member owner, reason, server-recorded admin approval and bounded lifetime. Current accepted-risk state is required; expiry is evaluated at the captured input time.
+- Retain every re-evaluation as a new immutable row, including identical digest/result replays. Append activation history; serialize publication and activation using existing organization/project locks. No reports or next-phase work is authorized.

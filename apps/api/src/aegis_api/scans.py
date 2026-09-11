@@ -89,7 +89,7 @@ class ScanView(BaseModel):
     enrichment_status: str
     report_status: str
     is_demo: bool
-    effective_gate: Literal["warn", "fail"]
+    effective_gate: Literal["pass", "warn", "fail", "incomplete"]
     gate_reason: str
     failure_code: str | None
 
@@ -202,6 +202,18 @@ async def view(scan: Scan, db: DB) -> ScanView:
             OrganizationMember.id == scan.initiator_id,
         )
     )
+    from aegis_api.db.models import PolicyEvaluation
+
+    evaluation = await db.scalar(
+        select(PolicyEvaluation)
+        .where(
+            PolicyEvaluation.organization_id == scan.organization_id,
+            PolicyEvaluation.scan_id == scan.id,
+            PolicyEvaluation.gate_policy_id.is_not(None),
+        )
+        .order_by(PolicyEvaluation.created_at.desc(), PolicyEvaluation.id.desc())
+        .limit(1)
+    )
     return ScanView(
         id=scan.id,
         state=scan.state,
@@ -220,9 +232,13 @@ async def view(scan: Scan, db: DB) -> ScanView:
         enrichment_status=scan.enrichment_status,
         report_status=scan.report_status,
         is_demo=scan.is_demo,
-        effective_gate="fail",
+        effective_gate=(evaluation.outcome.value if evaluation else "incomplete")
+        if not scan.is_demo
+        else "fail",
         gate_reason="demo_not_security_evidence"
-        if scan.is_demo and scan.state == ScanState.COMPLETED
+        if scan.is_demo
+        else "deterministic_policy"
+        if evaluation
         else "evaluation_unavailable",
         failure_code=scan.failure_code,
     )
@@ -230,7 +246,11 @@ async def view(scan: Scan, db: DB) -> ScanView:
 
 @router.post("/confirmations", response_model=ConfirmationView, dependencies=WRITE)
 async def confirmation(body: ScanInput, member: Member, db: DB) -> ConfirmationView:
-    _, policy = await validate(body, member, db)
+    target, policy = await validate(body, member, db)
+    from aegis_api.normalization import digest
+    from aegis_api.policy_service import active_policy
+
+    gate = await active_policy(db, member.organization_id, target.project_id)
     if policy.mode != ScanMode.ACTIVE:
         raise APIError(
             422, "active_only", "Only active scans require this confirmation."
@@ -241,7 +261,9 @@ async def confirmation(body: ScanInput, member: Member, db: DB) -> ConfirmationV
         ScanConfirmation(
             organization_id=member.organization_id,
             actor_id=member.id,
-            request_digest=fingerprint(body),
+            request_digest=digest([fingerprint(body), str(gate.id)])
+            if gate
+            else fingerprint(body),
             token_digest=hashlib.sha256(token.encode()).hexdigest(),
             expires_at=expires,
         )
@@ -262,6 +284,13 @@ async def create_scan(
 
     async def create(id: UUID) -> None:
         target, policy = await validate(body, member, db)
+        from aegis_api.normalization import digest
+        from aegis_api.policy_service import active_policy
+
+        gate = await active_policy(db, member.organization_id, target.project_id)
+        confirmation_digest = (
+            digest([fingerprint(body), str(gate.id)]) if gate else fingerprint(body)
+        )
         cfg = request.app.state.config
         running = await db.scalar(
             select(func.count())
@@ -296,7 +325,7 @@ async def create_scan(
                     ScanConfirmation.organization_id == member.organization_id,
                     ScanConfirmation.actor_id == member.id,
                     ScanConfirmation.token_digest == grant_digest,
-                    ScanConfirmation.request_digest == fingerprint(body),
+                    ScanConfirmation.request_digest == confirmation_digest,
                     ScanConfirmation.consumed_at.is_(None),
                     ScanConfirmation.expires_at > now(),
                 )
@@ -325,6 +354,10 @@ async def create_scan(
             trigger_metadata=body.trigger.model_dump(),
             snapshot_schema_version="scan-v1",
             config_snapshot={
+                "gate_policy_id": str(gate.id) if gate else None,
+                "gate_policy": gate.snapshot if gate else None,
+                "gate_policy_version": gate.version if gate else None,
+                "environment": target.environment,
                 "target_version": target.version,
                 "policy_version": policy.version,
                 "policy": policy.rules_snapshot,

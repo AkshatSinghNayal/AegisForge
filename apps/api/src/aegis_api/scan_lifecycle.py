@@ -127,3 +127,7 @@ def transition(
             scan.failure_code = code
     event(db, scan, code)
     scan.stage_attempt = 1
+    if destination in TERMINAL and (destination != ScanState.COMPLETED or scan.is_demo):
+        from aegis_api.policy_service import record_incomplete
+
+        record_incomplete(db, scan, at)

@@ -52,6 +52,7 @@ class Severity(StrEnum):
 
 
 class PolicyOutcome(StrEnum):
+    INCOMPLETE = "incomplete"
     PASS = "pass"
     WARN = "warn"
     FAIL = "fail"

@@ -160,7 +160,10 @@ async def test_idempotency_quota_scope_and_cancel(client, db, monkeypatch):
     client.app.state.config.scan_concurrency = 1
     assert (await create(client, org, body)).status_code == 429
     response = await client.post(f"/api/v1/scans/{id}/cancel?organization_id={org}")
-    assert response.status_code == 200 and response.json()["effective_gate"] == "fail"
+    assert (
+        response.status_code == 200
+        and response.json()["effective_gate"] == "incomplete"
+    )
     assert (
         await client.post(f"/api/v1/scans/{id}/cancel?organization_id={org}")
     ).status_code == 409

@@ -19,7 +19,11 @@ def family(scan: Scan) -> str:
         [
             str(scan.policy_id),
             scan.mode.value,
-            scan.config_snapshot,
+            {
+                k: v
+                for k, v in scan.config_snapshot.items()
+                if not k.startswith("gate_policy")
+            },
             FINGERPRINT,
             NORMALIZER,
         ]

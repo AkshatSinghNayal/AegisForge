@@ -89,6 +89,9 @@ def create_app(
     app.include_router(configuration_router)
     app.include_router(scan_router)
     app.include_router(finding_router)
+    from aegis_api.policies import router as policy_router
+
+    app.include_router(policy_router)
     app.include_router(ai_router)
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(HTTPException, http_error_handler)  # type: ignore[arg-type]

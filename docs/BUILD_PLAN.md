@@ -73,3 +73,7 @@ The Phase 9 prompt authorizes evidence-preserving ZAP normalization, versioned s
 ## Explicit Phase 10 scope
 
 The Phase 10 prompt authorizes schema-constrained advisory AI providers, minimal safe inputs, strict evidence-linked outputs, bounded failure handling, AI Guidance UI, retained regeneration versions and explicit reviewer feedback. [AI_GUIDANCE](AI_GUIDANCE.md) is the implementation contract. Generation is on demand and disabled by default. No policy engine, report generation or subsequent phase is started. Stop after Phase 10.
+
+## Phase 11 prompt override
+
+The explicit Phase 11 prompt authorizes versioned deterministic project gate policies, accepted-risk exceptions, baseline-aware thresholds, immutable evaluations, preview/detail UI, admin publication/activation and developer read access. It supersedes the provisional phase numbering above. See [POLICY_ENGINE](POLICY_ENGINE.md). Reporting, integration and deployment remain deferred. Stop after Phase 11.

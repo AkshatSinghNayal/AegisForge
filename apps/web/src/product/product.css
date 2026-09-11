@@ -632,3 +632,98 @@
   display: block;
   width: 100%;
 }
+
+.policy-page {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 1040px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.policy-page h2 {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+}
+.policy-page h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.policy-page h4,
+.policy-page legend {
+  font-weight: 600;
+}
+.policy-page label {
+  display: grid;
+  gap: 0.5rem;
+}
+.policy-page label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+}
+.policy-page input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.policy-page fieldset {
+  min-width: 0;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid #42555d;
+  border-radius: 10px;
+}
+.policy-page fieldset fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+}
+.policy-builder,
+.policy-page section {
+  display: grid;
+  gap: 1.25rem;
+}
+.policy-builder {
+  padding-block: 1.5rem;
+  border-block: 1px solid #42555d;
+}
+.policy-page .form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.policy-page button {
+  justify-self: start;
+}
+.policy-page summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-block: 0.6rem;
+}
+.policy-page article,
+.policy-page ol > li {
+  padding: 1rem;
+  border: 1px solid #42555d;
+  border-radius: 8px;
+}
+.policy-page ol,
+.policy-page ul {
+  display: grid;
+  gap: 0.75rem;
+}
+.policy-page pre {
+  padding: 1rem;
+  background: #111820;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+@media (min-width: 768px) {
+  .policy-builder > fieldset {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .policy-builder > fieldset > fieldset {
+    grid-column: 1 / -1;
+  }
+}

@@ -260,6 +260,43 @@ class TargetSecretReference(TenantRecord):
     )
 
 
+class GatePolicy(TenantRecord):
+    __tablename__ = "gate_policies"
+    project_id: Mapped[UUID] = mapped_column(Uuid)
+    version: Mapped[int] = mapped_column(Integer)
+    published_by: Mapped[UUID] = mapped_column(Uuid)
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    __table_args__ = scoped(
+        parent("project_id", "projects"),
+        parent("published_by", "organization_members"),
+        UniqueConstraint("organization_id", "project_id", "version"),
+        UniqueConstraint("organization_id", "project_id", "id"),
+        CheckConstraint("version > 0", name="gate_version"),
+    )
+
+
+class GateActivation(TenantRecord):
+    __tablename__ = "gate_activations"
+    project_id: Mapped[UUID] = mapped_column(Uuid)
+    gate_policy_id: Mapped[UUID | None] = mapped_column(Uuid)
+    actor_id: Mapped[UUID] = mapped_column(Uuid)
+    sequence: Mapped[int] = mapped_column(Integer)
+    __table_args__ = scoped(
+        parent("project_id", "projects"),
+        parent("actor_id", "organization_members"),
+        ForeignKeyConstraint(
+            ["organization_id", "project_id", "gate_policy_id"],
+            [
+                "gate_policies.organization_id",
+                "gate_policies.project_id",
+                "gate_policies.id",
+            ],
+            ondelete="RESTRICT",
+        ),
+        UniqueConstraint("organization_id", "project_id", "sequence"),
+    )
+
+
 class ScanPolicy(TenantRecord):
     __tablename__ = "scan_policies"
     name: Mapped[str] = mapped_column(String(120))
@@ -525,6 +562,13 @@ class AIFeedback(TenantRecord):
 
 
 class PolicyEvaluation(TenantRecord):
+    gate_policy_id: Mapped[UUID | None] = mapped_column(Uuid)
+    input_snapshot: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
+    result_snapshot: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
     __tablename__ = "policy_evaluations"
     scan_id: Mapped[UUID] = mapped_column(Uuid)
     policy_id: Mapped[UUID] = mapped_column(Uuid)
@@ -539,18 +583,12 @@ class PolicyEvaluation(TenantRecord):
     scan_state: Mapped[ScanState] = mapped_column(enum_type(ScanState))
     __table_args__ = scoped(
         parent("scan_id", "scans"),
+        parent("gate_policy_id", "gate_policies"),
         parent("policy_id", "scan_policies"),
         UniqueConstraint("organization_id", "scan_id", "id"),
-        UniqueConstraint(
-            "organization_id",
-            "scan_id",
-            "input_digest",
-            "policy_id",
-            "evaluation_version",
-        ),
         CheckConstraint(
             "outcome != 'pass' OR (completeness = 'complete' AND "
-            "enrichment_status = 'complete' AND scan_state IN "
+            "scan_state IN "
             "('evaluating_policy', 'generating_report', 'completed'))",
             name="pass_requires_complete",
         ),

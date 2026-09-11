@@ -14,6 +14,7 @@ import './product.css';
 import Configuration from './Configuration';
 import Scans from './Scans';
 import Findings from './Findings';
+import Policies from './Policies';
 const progressSchema = z.object({
   create_project: z.boolean(),
   register_target: z.boolean(),
@@ -115,7 +116,7 @@ export default function Workspace() {
         <NavLink to="/app/getting-started" onClick={() => setOpen(false)}>
           ◈ <span>Getting started</span>
         </NavLink>
-        {['projects', 'targets', 'policies', 'scans', 'findings'].map(
+        {['projects', 'targets', 'policies', 'gates', 'scans', 'findings'].map(
           (path) => (
             <NavLink
               key={path}
@@ -190,7 +191,9 @@ export default function Workspace() {
           <span>{me.display_name}</span>
         </header>
         <main id="main" className="workspace-main">
-          {org && location.pathname.startsWith('/app/findings') ? (
+          {org && location.pathname.startsWith('/app/gates') ? (
+            <Policies key={org.id} org={org.id} role={org.role} />
+          ) : org && location.pathname.startsWith('/app/findings') ? (
             <Findings key={org.id} org={org.id} role={org.role} />
           ) : org && location.pathname.startsWith('/app/scans') ? (
             <Scans key={org.id} org={org.id} role={org.role} />

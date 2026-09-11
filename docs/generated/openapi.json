@@ -1,6 +1,28 @@
 {
   "components": {
     "schemas": {
+      "Activation": {
+        "additionalProperties": false,
+        "properties": {
+          "policy_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Policy Id"
+          }
+        },
+        "required": [
+          "policy_id"
+        ],
+        "title": "Activation",
+        "type": "object"
+      },
       "AnalysisView": {
         "properties": {
           "advisory": {
@@ -106,6 +128,52 @@
           "advisory"
         ],
         "title": "AnalysisView",
+        "type": "object"
+      },
+      "ApprovedException": {
+        "additionalProperties": false,
+        "properties": {
+          "approved_by": {
+            "format": "uuid",
+            "title": "Approved By",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "finding_id": {
+            "format": "uuid",
+            "title": "Finding Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "format": "uuid",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "finding_id",
+          "owner_id",
+          "reason",
+          "expires_at",
+          "created_at",
+          "approved_by"
+        ],
+        "title": "ApprovedException",
         "type": "object"
       },
       "ConfigurationIdentity": {
@@ -341,6 +409,89 @@
           "error"
         ],
         "title": "ErrorResponse",
+        "type": "object"
+      },
+      "Evaluate": {
+        "additionalProperties": false,
+        "properties": {
+          "policy_id": {
+            "format": "uuid",
+            "title": "Policy Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy_id"
+        ],
+        "title": "Evaluate",
+        "type": "object"
+      },
+      "EvaluationView": {
+        "properties": {
+          "evaluation_version": {
+            "title": "Evaluation Version",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_digest": {
+            "title": "Input Digest",
+            "type": "string"
+          },
+          "input_snapshot": {
+            "additionalProperties": true,
+            "title": "Input Snapshot",
+            "type": "object"
+          },
+          "result_snapshot": {
+            "$ref": "#/components/schemas/Result"
+          }
+        },
+        "required": [
+          "id",
+          "input_digest",
+          "evaluation_version",
+          "input_snapshot",
+          "result_snapshot"
+        ],
+        "title": "EvaluationView",
+        "type": "object"
+      },
+      "ExceptionScope": {
+        "additionalProperties": false,
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "finding_id": {
+            "format": "uuid",
+            "title": "Finding Id",
+            "type": "string"
+          },
+          "owner_id": {
+            "format": "uuid",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "finding_id",
+          "owner_id",
+          "reason",
+          "expires_at"
+        ],
+        "title": "ExceptionScope",
         "type": "object"
       },
       "Feedback": {
@@ -688,6 +839,137 @@
         "title": "Login",
         "type": "object"
       },
+      "Match": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": {
+            "default": "any",
+            "enum": [
+              "any",
+              "new",
+              "existing"
+            ],
+            "title": "Baseline",
+            "type": "string"
+          },
+          "cwes": {
+            "items": {
+              "maximum": 999999.0,
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "maxItems": 100,
+            "title": "Cwes",
+            "type": "array"
+          },
+          "environments": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Environments",
+            "type": "array"
+          },
+          "minimum_confidence": {
+            "default": "low",
+            "enum": [
+              "false_positive",
+              "low",
+              "medium",
+              "high",
+              "confirmed"
+            ],
+            "title": "Minimum Confidence",
+            "type": "string"
+          },
+          "owasp": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Owasp",
+            "type": "array"
+          },
+          "route": {
+            "default": "",
+            "maxLength": 2048,
+            "title": "Route",
+            "type": "string"
+          },
+          "route_operator": {
+            "default": "exact",
+            "enum": [
+              "exact",
+              "prefix"
+            ],
+            "title": "Route Operator",
+            "type": "string"
+          },
+          "severities": {
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            },
+            "maxItems": 5,
+            "title": "Severities",
+            "type": "array"
+          },
+          "statuses": {
+            "items": {
+              "$ref": "#/components/schemas/FindingState"
+            },
+            "maxItems": 7,
+            "title": "Statuses",
+            "type": "array"
+          }
+        },
+        "title": "Match",
+        "type": "object"
+      },
+      "MatchedRule": {
+        "additionalProperties": false,
+        "properties": {
+          "finding_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Finding Ids",
+            "type": "array"
+          },
+          "occurrence_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Occurrence Ids",
+            "type": "array"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/PolicyOutcome"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id",
+          "outcome",
+          "reason",
+          "finding_ids",
+          "occurrence_ids"
+        ],
+        "title": "MatchedRule",
+        "type": "object"
+      },
       "Me": {
         "properties": {
           "display_name": {
@@ -837,6 +1119,49 @@
         "title": "OrganizationView",
         "type": "object"
       },
+      "Policy": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_exceptions": {
+            "default": false,
+            "title": "Allow Exceptions",
+            "type": "boolean"
+          },
+          "exceptions": {
+            "items": {
+              "$ref": "#/components/schemas/ApprovedException"
+            },
+            "maxItems": 100,
+            "title": "Exceptions",
+            "type": "array"
+          },
+          "incomplete_outcome": {
+            "default": "incomplete",
+            "enum": [
+              "incomplete",
+              "fail"
+            ],
+            "title": "Incomplete Outcome",
+            "type": "string"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/Rule"
+            },
+            "maxItems": 100,
+            "title": "Rules",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "gate-v1",
+            "default": "gate-v1",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "title": "Policy",
+        "type": "object"
+      },
       "PolicyInput": {
         "additionalProperties": false,
         "properties": {
@@ -939,118 +1264,44 @@
         "title": "PolicyInput",
         "type": "object"
       },
-      "PolicyView": {
-        "additionalProperties": false,
+      "PolicyList": {
         "properties": {
-          "active_rule_allowlist": {
-            "items": {
-              "pattern": "^\\d{1,10}$",
-              "type": "string"
-            },
-            "maxItems": 200,
-            "title": "Active Rule Allowlist",
-            "type": "array"
-          },
-          "active_warning_acknowledged": {
-            "default": false,
-            "title": "Active Warning Acknowledged",
-            "type": "boolean"
-          },
-          "allow_private": {
-            "default": false,
-            "title": "Allow Private",
-            "type": "boolean"
-          },
-          "excluded_paths": {
-            "items": {
-              "maxLength": 256,
-              "minLength": 1,
-              "pattern": "^/[^\\s?#]*$",
-              "type": "string"
-            },
-            "maxItems": 100,
-            "title": "Excluded Paths",
-            "type": "array"
-          },
-          "fail_severity": {
-            "$ref": "#/components/schemas/Severity",
-            "default": "high"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "internal_test_declaration": {
-            "default": "",
-            "maxLength": 1000,
-            "title": "Internal Test Declaration",
-            "type": "string"
-          },
-          "max_depth": {
-            "default": 5,
-            "maximum": 20.0,
-            "minimum": 0.0,
-            "title": "Max Depth",
-            "type": "integer"
-          },
-          "max_duration_seconds": {
-            "default": 300,
-            "maximum": 3600.0,
-            "minimum": 30.0,
-            "title": "Max Duration Seconds",
-            "type": "integer"
-          },
-          "max_requests": {
-            "default": 1000,
-            "maximum": 100000.0,
-            "minimum": 1.0,
-            "title": "Max Requests",
-            "type": "integer"
-          },
-          "mode": {
-            "$ref": "#/components/schemas/ScanMode",
-            "default": "baseline"
-          },
-          "name": {
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Name",
-            "type": "string"
-          },
-          "rate_limit": {
-            "default": 2,
-            "maximum": 100.0,
-            "minimum": 1.0,
-            "title": "Rate Limit",
-            "type": "integer"
-          },
-          "spider": {
-            "default": "traditional",
-            "enum": [
-              "none",
-              "traditional",
-              "ajax"
+          "active_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
             ],
-            "title": "Spider",
-            "type": "string"
+            "title": "Active Id"
           },
-          "version": {
-            "title": "Version",
-            "type": "integer"
-          },
-          "warn_severity": {
-            "$ref": "#/components/schemas/Severity",
-            "default": "medium"
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/aegis_api__policies__PolicyView"
+            },
+            "title": "Versions",
+            "type": "array"
           }
         },
         "required": [
-          "name",
-          "id",
-          "version"
+          "active_id",
+          "versions"
         ],
-        "title": "PolicyView",
+        "title": "PolicyList",
         "type": "object"
+      },
+      "PolicyOutcome": {
+        "enum": [
+          "incomplete",
+          "pass",
+          "warn",
+          "fail"
+        ],
+        "title": "PolicyOutcome",
+        "type": "string"
       },
       "Progress": {
         "properties": {
@@ -1259,6 +1510,27 @@
         "title": "ProjectView",
         "type": "object"
       },
+      "Publish": {
+        "additionalProperties": false,
+        "properties": {
+          "exceptions": {
+            "items": {
+              "$ref": "#/components/schemas/ExceptionScope"
+            },
+            "maxItems": 100,
+            "title": "Exceptions",
+            "type": "array"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/Policy"
+          }
+        },
+        "required": [
+          "policy"
+        ],
+        "title": "Publish",
+        "type": "object"
+      },
       "RecordState": {
         "enum": [
           "active",
@@ -1351,6 +1623,41 @@
         "title": "ResourceView",
         "type": "object"
       },
+      "Result": {
+        "additionalProperties": false,
+        "properties": {
+          "excluded_finding_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Excluded Finding Ids",
+            "type": "array"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/MatchedRule"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/PolicyOutcome"
+          },
+          "reason": {
+            "default": "No policy thresholds exceeded.",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome",
+          "matches",
+          "excluded_finding_ids"
+        ],
+        "title": "Result",
+        "type": "object"
+      },
       "Review": {
         "additionalProperties": false,
         "properties": {
@@ -1424,6 +1731,40 @@
           "role"
         ],
         "title": "RoleChange",
+        "type": "object"
+      },
+      "Rule": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "match": {
+            "$ref": "#/components/schemas/Match"
+          },
+          "max_open": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Max Open",
+            "type": "integer"
+          },
+          "outcome": {
+            "default": "fail",
+            "enum": [
+              "warn",
+              "fail"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "Rule",
         "type": "object"
       },
       "ScanInput": {
@@ -1568,8 +1909,10 @@
           },
           "effective_gate": {
             "enum": [
+              "pass",
               "warn",
-              "fail"
+              "fail",
+              "incomplete"
             ],
             "title": "Effective Gate",
             "type": "string"
@@ -2132,6 +2475,142 @@
           "message"
         ],
         "title": "ValidationView",
+        "type": "object"
+      },
+      "aegis_api__configuration_schemas__PolicyView": {
+        "additionalProperties": false,
+        "properties": {
+          "active_rule_allowlist": {
+            "items": {
+              "pattern": "^\\d{1,10}$",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Active Rule Allowlist",
+            "type": "array"
+          },
+          "active_warning_acknowledged": {
+            "default": false,
+            "title": "Active Warning Acknowledged",
+            "type": "boolean"
+          },
+          "allow_private": {
+            "default": false,
+            "title": "Allow Private",
+            "type": "boolean"
+          },
+          "excluded_paths": {
+            "items": {
+              "maxLength": 256,
+              "minLength": 1,
+              "pattern": "^/[^\\s?#]*$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Excluded Paths",
+            "type": "array"
+          },
+          "fail_severity": {
+            "$ref": "#/components/schemas/Severity",
+            "default": "high"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "internal_test_declaration": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Internal Test Declaration",
+            "type": "string"
+          },
+          "max_depth": {
+            "default": 5,
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Max Depth",
+            "type": "integer"
+          },
+          "max_duration_seconds": {
+            "default": 300,
+            "maximum": 3600.0,
+            "minimum": 30.0,
+            "title": "Max Duration Seconds",
+            "type": "integer"
+          },
+          "max_requests": {
+            "default": 1000,
+            "maximum": 100000.0,
+            "minimum": 1.0,
+            "title": "Max Requests",
+            "type": "integer"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/ScanMode",
+            "default": "baseline"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "rate_limit": {
+            "default": 2,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Rate Limit",
+            "type": "integer"
+          },
+          "spider": {
+            "default": "traditional",
+            "enum": [
+              "none",
+              "traditional",
+              "ajax"
+            ],
+            "title": "Spider",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "warn_severity": {
+            "$ref": "#/components/schemas/Severity",
+            "default": "medium"
+          }
+        },
+        "required": [
+          "name",
+          "id",
+          "version"
+        ],
+        "title": "PolicyView",
+        "type": "object"
+      },
+      "aegis_api__policies__PolicyView": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/Policy"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "snapshot"
+        ],
+        "title": "PolicyView",
         "type": "object"
       }
     }
@@ -4622,7 +5101,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/PolicyView"
+                    "$ref": "#/components/schemas/aegis_api__configuration_schemas__PolicyView"
                   },
                   "title": "Response Policies Api V1 Organizations  Organization Id  Policies Get",
                   "type": "array"
@@ -4706,7 +5185,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PolicyView"
+                  "$ref": "#/components/schemas/aegis_api__configuration_schemas__PolicyView"
                 }
               }
             },
@@ -4780,7 +5259,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/PolicyView"
+                    "$ref": "#/components/schemas/aegis_api__configuration_schemas__PolicyView"
                   },
                   "title": "Response Presets Api V1 Organizations  Organization Id  Policies Presets Post",
                   "type": "array"
@@ -4866,7 +5345,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PolicyView"
+                  "$ref": "#/components/schemas/aegis_api__configuration_schemas__PolicyView"
                 }
               }
             },
@@ -4957,7 +5436,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PolicyView"
+                  "$ref": "#/components/schemas/aegis_api__configuration_schemas__PolicyView"
                 }
               }
             },
@@ -5420,6 +5899,277 @@
         "summary": "Edit Project",
         "tags": [
           "configuration"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/projects/{project_id}/gate-policies": {
+      "get": {
+        "operationId": "versions_api_v1_organizations__organization_id__projects__project_id__gate_policies_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Versions",
+        "tags": [
+          "Deterministic policies"
+        ]
+      },
+      "post": {
+        "operationId": "publish_api_v1_organizations__organization_id__projects__project_id__gate_policies_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Publish"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/aegis_api__policies__PolicyView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Publish",
+        "tags": [
+          "Deterministic policies"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organization_id}/projects/{project_id}/gate-policies/activation": {
+      "post": {
+        "operationId": "activate_api_v1_organizations__organization_id__projects__project_id__gate_policies_activation_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Activation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Activate Api V1 Organizations  Organization Id  Projects  Project Id  Gate Policies Activation Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Activate",
+        "tags": [
+          "Deterministic policies"
         ]
       }
     },
@@ -6887,6 +7637,288 @@
         "summary": "Events",
         "tags": [
           "scans"
+        ]
+      }
+    },
+    "/api/v1/scans/{scan_id}/policy-evaluations": {
+      "get": {
+        "operationId": "evaluations_api_v1_scans__scan_id__policy_evaluations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Scan Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EvaluationView"
+                  },
+                  "title": "Response Evaluations Api V1 Scans  Scan Id  Policy Evaluations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Evaluations",
+        "tags": [
+          "Deterministic policies"
+        ]
+      },
+      "post": {
+        "operationId": "reevaluate_api_v1_scans__scan_id__policy_evaluations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Scan Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Evaluate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Reevaluate",
+        "tags": [
+          "Deterministic policies"
+        ]
+      }
+    },
+    "/api/v1/scans/{scan_id}/policy-preview": {
+      "post": {
+        "operationId": "preview_api_v1_scans__scan_id__policy_preview_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "scan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Scan Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Evaluate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Preview",
+        "tags": [
+          "Deterministic policies"
         ]
       }
     },
