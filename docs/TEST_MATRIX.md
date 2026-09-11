@@ -121,3 +121,13 @@ Phase 10 strict review adds independently parameterized credential/PII cases, pr
 `test_policy_engine.py` table-tests every match field/operator, confidence/severity/status values, count boundaries, distinct finding aggregation, outcome precedence, missing baselines, expired exceptions, incomplete/demo scans, strict input rejection and deterministic replay. `test_policies.py` uses real PostgreSQL for immutable policy/activation/evaluation history, retained identical evaluations, actual changed advisory outputs, baseline history, exception approval and expiry, tenant/project/role denial, CSRF and bound scan failure evaluation. Existing migration roundtrip/schema drift and full API security regressions include revision 0009.
 
 `Policies.test.tsx` checks developer controls and structured comma-list input. `policies.spec.ts` uses synthetic HTTP fixtures for publication, activation/deactivation, preview and appended history, with axe and overflow checks at 390/768/1440px. The policy service and pure evaluator are independently exercised against real database records. Actual commands, results and limitations are recorded in [PHASE11_TEST_REPORT](PHASE11_TEST_REPORT.md).
+
+## Phase 12 additions
+
+- Analytics: empty denominators, aware windows/timezones, complete/partial/failed populations, MTTR, project/target exclusion, chart/risk consistency, latest gate once per scan and invalid-duration accounting.
+- Registries: tenant scope, administrative role denial, credential/hash withholding and cross-tenant revocation denial.
+- HTTP: unauthenticated denial, foreign organization denial, validation errors and schema-validated empty dashboard.
+- Frontend: empty/partial/stale/error/retry states, invalid MTTR omission, shared URL aggregate filters and CSV formula handling.
+- Browser: dashboard/navigation as owner/developer/viewer; four dashboard visual widths, accessibility, overflow, URL filter, CSV and retry checks. Existing journey suites remain in place; actual results and live-service limitations are in [Phase 12 verification](PHASE12_TEST_REPORT.md).
+
+- Live Phase 12 follow-up: owner dashboard/Team/Settings, identity, full configuration and real mock-worker SSE/cancellation scenarios passed across corrected runs. A regression test ensures detail headings remain present while loading and errors offer retry. See the final handoff report for exact results.

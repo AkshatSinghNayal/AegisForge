@@ -173,3 +173,9 @@ Output validation advances to `guidance-v2`, while the unchanged input prompt re
 - Remove the old enrichment-complete dependency from passing gates. Enrichment status and AI output never affect decision inputs or digests. Demo evidence and incomplete scans cannot pass at either the engine or database boundary.
 - Store exceptions in immutable policy versions with exact project-finding scope, active member owner, reason, server-recorded admin approval and bounded lifetime. Current accepted-risk state is required; expiry is evaluated at the captured input time.
 - Retain every re-evaluation as a new immutable row, including identical digest/result replays. Append activation history; serialize publication and activation using existing organization/project locks. No reports or next-phase work is authorized.
+
+## Phase 12 — analytics and authenticated workspace
+
+Dashboard aggregates run as one scoped PostgreSQL statement so cards/charts/table rows share an MVCC snapshot. Time windows are aware, half-open and bounded to 366 days; daily buckets use an IANA display timezone. Undefined ratios/means return null, incomplete scans never become clean results, and latest retained evaluations count once per complete scan. Current-state inventory and observation-frequency trends are intentionally distinct; [metric definitions](ANALYTICS.md) specify each population.
+
+The existing report/integration/API-key tables gain safe paginated metadata registries and authorized revocation/deactivation, without fabricating report artifacts or provider connections. CSV exports are page-scoped safe columns with formula neutralization. No schema or runtime configuration change. Later-phase generation/provider/key authentication work is not implied by navigation entries.

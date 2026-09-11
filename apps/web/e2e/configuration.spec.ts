@@ -66,7 +66,7 @@ test('complete project, policy, authorized target, credential and archive setup'
   await expect(
     page.getByText('No scans recorded. Start a scan from Scan history.'),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Policies', exact: true }).click();
+  await page.getByRole('link', { name: 'Scan policies', exact: true }).click();
   await page.getByRole('button', { name: 'Add standard policies' }).click();
   await expect(
     page.getByRole('link', { name: 'Passive baseline', exact: true }),
@@ -199,6 +199,9 @@ test('complete project, policy, authorized target, credential and archive setup'
   await page
     .getByRole('link', { name: 'Project settings', exact: true })
     .click();
+  await expect(
+    page.getByRole('button', { name: 'Save project', exact: true }),
+  ).toBeVisible();
   await inspect('project-settings');
   await page
     .getByRole('textbox', { name: 'Description', exact: true })

@@ -727,3 +727,131 @@
     grid-column: 1 / -1;
   }
 }
+
+.workspace-breadcrumb {
+  margin-bottom: 1rem;
+  text-transform: capitalize;
+  color: #b6c9d1;
+}
+.workspace-policy-links {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+.workspace-sidebar nav {
+  gap: 0.15rem;
+}
+.workspace-sidebar nav a {
+  min-height: 44px;
+  padding-block: 0.4rem;
+}
+.analytics {
+  display: grid;
+  gap: 1.25rem;
+}
+.analytics h1 {
+  margin: 0;
+}
+.analytics-filters {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.analytics-filters label {
+  display: grid;
+  gap: 0.4rem;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.analytics-filters input,
+.analytics-filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  background: #101c22;
+  color: #d6e5ec;
+  border: 1px solid #42545d;
+  border-radius: 0.4rem;
+  padding: 0.5rem;
+}
+.analytics-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.analytics-panel {
+  border: 1px solid #2a3d46;
+  background: #101d24;
+  padding: 1.3rem;
+  border-radius: 0.75rem;
+  min-width: 0;
+}
+.analytics-panel h2 {
+  font-size: 1rem;
+  margin-top: 0;
+  color: #d7e7ee;
+}
+.analytics-kpis strong {
+  font-size: clamp(1.4rem, 2.2vw, 2.5rem);
+  color: #86efe9;
+}
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.analytics-series {
+  overflow: auto;
+  max-height: 380px;
+  margin: 1rem 0;
+}
+.analytics-series table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.analytics-series th,
+.analytics-series td {
+  padding: 0.7rem;
+  border-bottom: 1px solid #2a3d46;
+  overflow-wrap: anywhere;
+}
+.analytics-series td {
+  position: relative;
+}
+.analytics-series td span {
+  position: relative;
+}
+.analytics-series .analytics-bar {
+  position: absolute;
+  inset: 15% auto 15% 0;
+  background: #16454c;
+  border-right: 2px solid #58d9d4;
+}
+.analytics-panel li {
+  padding: 0.6rem 0;
+  overflow-wrap: anywhere;
+}
+.workspace .skeleton {
+  min-height: 105px;
+  background: linear-gradient(110deg, #14252e, #203940, #14252e);
+  color: #b6c9d1;
+}
+@media (max-width: 767px) {
+  .analytics-grid,
+  .analytics-kpis {
+    grid-template-columns: 1fr;
+  }
+  .analytics-panel {
+    padding: 1rem;
+  }
+}
+@media (min-width: 1440px) {
+  .analytics-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+.analytics-series table {
+  min-width: 300px;
+}

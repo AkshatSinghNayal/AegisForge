@@ -76,6 +76,28 @@ function Feedback({ error }: { error: string }) {
     </p>
   ) : null;
 }
+function LoadingDetail({
+  title,
+  error,
+  retry,
+}: {
+  title: string;
+  error: string;
+  retry: () => void;
+}) {
+  return (
+    <>
+      <h1>{title}</h1>
+      {error ? (
+        <Button onClick={retry}>Retry</Button>
+      ) : (
+        <div className="skeleton" role="status">
+          Loading {title.toLowerCase()}…
+        </div>
+      )}
+    </>
+  );
+}
 function Select({
   label,
   name,
@@ -124,7 +146,7 @@ export default function Configuration(ctx: Context) {
   );
 }
 function ProjectList(ctx: Context) {
-  const { data, error } = useData(
+  const { data, error, refresh } = useData(
     `/organizations/${ctx.org}/projects`,
     projectsSchema,
   );
@@ -139,6 +161,14 @@ function ProjectList(ctx: Context) {
         </Link>
       )}
       <Feedback error={error} />
+      {!data &&
+        (error ? (
+          <Button onClick={refresh}>Retry</Button>
+        ) : (
+          <div className="skeleton" role="status">
+            Loading records…
+          </div>
+        ))}
       <div className="config-grid">
         {data?.map((p) => (
           <article key={p.id}>
@@ -197,6 +227,7 @@ function ProjectDetail(ctx: Context) {
     <>
       <Link to="/app/projects">← Projects</Link>
       <Feedback error={error || feedback} />
+      {!data && <LoadingDetail title="Project" error={error} retry={refresh} />}
       {data && (
         <>
           <h1>{data.project.name}</h1>
@@ -263,13 +294,16 @@ function ProjectDetail(ctx: Context) {
 }
 function ProjectSettings(ctx: Context) {
   const { id } = useParams();
-  const { data, error } = useData(
+  const { data, error, refresh } = useData(
     `/organizations/${ctx.org}/projects/${id}`,
     overviewSchema,
   );
   return (
     <>
       <Feedback error={error} />
+      {!data && (
+        <LoadingDetail title="Project settings" error={error} retry={refresh} />
+      )}
       {data && <ProjectEditor {...ctx} existing={data.project} />}
     </>
   );
@@ -282,7 +316,13 @@ function ProjectEditor(ctx: Context & { existing?: Project }) {
   );
   const [feedback, setFeedback] = useState('');
   const [busy, setBusy] = useState(false);
-  if (!canAdmin(ctx.role)) return <p>Your role cannot edit projects.</p>;
+  if (!canAdmin(ctx.role))
+    return (
+      <>
+        <h1>Project settings</h1>
+        <p role="alert">Permission denied. Your role cannot edit projects.</p>
+      </>
+    );
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -414,7 +454,7 @@ function TargetCards({ data }: { data: Target[] }) {
   );
 }
 function TargetList(ctx: Context) {
-  const { data, error } = useData(
+  const { data, error, refresh } = useData(
     `/organizations/${ctx.org}/targets`,
     targetsSchema,
   );
@@ -428,6 +468,14 @@ function TargetList(ctx: Context) {
         </Link>
       )}
       <Feedback error={error} />
+      {!data &&
+        (error ? (
+          <Button onClick={refresh}>Retry</Button>
+        ) : (
+          <div className="skeleton" role="status">
+            Loading records…
+          </div>
+        ))}
       {data && <TargetCards data={data} />}
       {data?.length === 0 && <p>No targets registered.</p>}
     </>
@@ -456,6 +504,7 @@ function TargetDetail(ctx: Context) {
     <>
       <Link to="/app/targets">← Targets</Link>
       <Feedback error={error || feedback} />
+      {!data && <LoadingDetail title="Target" error={error} retry={refresh} />}
       {data && (
         <>
           <h1>{data.display_name}</h1>
@@ -661,6 +710,14 @@ function PolicyList(ctx: Context) {
         </div>
       )}
       <Feedback error={error || feedback} />
+      {!data &&
+        (error ? (
+          <Button onClick={refresh}>Retry</Button>
+        ) : (
+          <div className="skeleton" role="status">
+            Loading records…
+          </div>
+        ))}
       <div className="config-grid">
         {data?.map((p) => (
           <article key={p.id}>
@@ -697,13 +754,16 @@ function PolicyList(ctx: Context) {
 }
 function PolicyDetail(ctx: Context) {
   const { id } = useParams();
-  const { data, error } = useData(
+  const { data, error, refresh } = useData(
     `/organizations/${ctx.org}/policies/${id}`,
     policySchema,
   );
   return (
     <>
       <Feedback error={error} />
+      {!data && (
+        <LoadingDetail title="Scan policy" error={error} retry={refresh} />
+      )}
       {data && <PolicyEditor {...ctx} existing={data} />}
     </>
   );
@@ -1024,7 +1084,15 @@ function TargetWizard(ctx: Context) {
     setConsented(false);
     setStep((s) => s + 1);
   }
-  if (ctx.role === 'viewer') return <p>Your role cannot register targets.</p>;
+  if (ctx.role === 'viewer')
+    return (
+      <>
+        <h1>Register target</h1>
+        <p role="alert">
+          Permission denied. Your role cannot register targets.
+        </p>
+      </>
+    );
   return (
     <>
       <Link to="/app/targets">← Targets</Link>

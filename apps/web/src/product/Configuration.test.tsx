@@ -112,3 +112,30 @@ it('clears the previous target when a new target request fails', async () => {
     screen.queryByRole('heading', { name: 'Old target' }),
   ).not.toBeInTheDocument();
 });
+
+it('keeps a heading during project-settings loading and offers retry on failure', async () => {
+  let reject: (reason: Error) => void = () => {};
+  vi.mocked(request).mockImplementationOnce(
+    () =>
+      new Promise((_resolve, fail) => {
+        reject = fail;
+      }),
+  );
+  render(
+    <MemoryRouter initialEntries={['/app/projects/project/settings']}>
+      <Routes>
+        <Route
+          path="/app/*"
+          element={<Configuration org="org" role="owner" userId="user" />}
+        />
+      </Routes>
+    </MemoryRouter>,
+  );
+  expect(
+    screen.getByRole('heading', { name: 'Project settings' }),
+  ).toBeVisible();
+  expect(screen.getByRole('status')).toHaveTextContent('Loading');
+  reject(new Error('Settings unavailable'));
+  await screen.findByText('Settings unavailable');
+  expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
+});

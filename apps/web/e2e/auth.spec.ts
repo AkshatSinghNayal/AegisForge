@@ -130,3 +130,30 @@ test('desktop collapse and recovery forms', async ({ page }) => {
     page.getByRole('button', { name: 'Continue', exact: true }),
   ).toBeDisabled();
 });
+
+test('real dashboard aggregates and team/settings navigation', async ({
+  page,
+}) => {
+  await register(page);
+  await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Dashboard', exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('No targets match these filters.')).toBeVisible();
+  await expect(
+    page.getByText('Insufficient data', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Export this page as CSV' }),
+  ).toBeDisabled();
+  await page.getByRole('link', { name: 'Team', exact: true }).click();
+  await expect(page.getByLabel('Invite email')).toBeVisible();
+  await page.getByRole('button', { name: 'Refresh team' }).click();
+  await expect(
+    page.getByText('Browser user', { exact: true }).last(),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Revoke all sessions' }),
+  ).toBeVisible();
+});

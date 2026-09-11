@@ -395,7 +395,13 @@ async def create_scan(
 
 
 @router.get("", response_model=list[ScanView])
-async def list_scans(member: Member, db: DB) -> list[ScanView]:
+async def list_scans(
+    member: Member,
+    db: DB,
+    state: ScanState | None = None,
+    project: UUID | None = None,
+    target: UUID | None = None,
+) -> list[ScanView]:
     query = (
         select(Scan)
         .join(
@@ -415,6 +421,12 @@ async def list_scans(member: Member, db: DB) -> list[ScanView]:
                 )
             )
         )
+    if state is not None:
+        query = query.where(Scan.state == state)
+    if project is not None:
+        query = query.where(Target.project_id == project)
+    if target is not None:
+        query = query.where(Scan.target_id == target)
     rows = (
         await db.scalars(
             query.order_by(Scan.created_at.desc(), Scan.id.desc()).limit(200)

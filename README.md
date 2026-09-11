@@ -141,3 +141,7 @@ Open a finding’s AI Guidance tab to generate or regenerate advisory guidance, 
 ## Deterministic gate policies (Phase 11)
 
 Run migrations through `0009`, then open **Workspace → Gates**. Admins publish structured project rules and explicitly activate a version; developers with project membership can read the policy and preview scans. Scan details link to retained policy evaluations. Failed, partial, cancelled, timed-out, unnormalized and demo scans never pass. AI output never decides a gate. No new environment configuration is needed. See the [policy contract](docs/POLICY_ENGINE.md) and [verification report](docs/PHASE11_TEST_REPORT.md).
+
+### Phase 12 dashboard and workspace
+
+Open `/app/dashboard` after signing in. Select an organization and use URL-persisted project, target and time filters. Analytics aggregate on the server and expose missing/incomplete data explicitly. See [metric definitions and workspace APIs](docs/ANALYTICS.md) and [verification/limitations](docs/PHASE12_TEST_REPORT.md). Reports, integrations and API keys currently expose retained metadata; generating reports, connecting providers and issuing usable keys are not implemented by these views.

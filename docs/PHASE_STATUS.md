@@ -1,6 +1,6 @@
 # Phase status
 
-Current phase: **Phase 11 — implemented and verified (2026-09-11)**.
+Current phase: **Phase 12 — dashboard/workspace implementation; verification and boundaries below (2026-09-11)**.
 
 Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worker-side versioned normalization, immutable per-observation evidence provenance, conservative comparable-scan lifecycle, authenticated findings/filter/detail/comparison APIs, audited review and the findings workspace. Phase 10 adds on-demand schema-constrained advisory AI and retained feedback. Phase 11 implements deterministic project policies and retained evaluations; reports remain deferred. See [normalization](FINDING_NORMALIZATION.md) and [Phase 9 verification](PHASE9_TEST_REPORT.md).
 
@@ -365,3 +365,9 @@ Implemented the explicit deterministic policy phase only. Migration 0009, pure v
 Verification: 320 backend unit/security tests passed (8 opt-in live ZAP tests skipped); 109 API/database integration tests passed, including migration round trips and schema drift; 31 frontend unit tests passed. Final focused policy tests: 79 passed. Production/lab browsers: 57 passed in the combined run and the one timed-out public-layout test passed in isolation; the final policy evidence/history browser test also passed. Formatting, lint, strict types, generated schema checks and production Vite/API package builds passed. Disposable test containers were removed.
 
 Apply migrations through 0009 and explicitly publish/activate a gate for each project. Existing projects do not acquire a gate automatically. Reporting and later work remain deferred; the next phase requires a new user prompt. Stop after Phase 11.
+
+## Phase 12 implementation — 2026-09-11
+
+Dashboard, scoped single-statement analytics, complete sidebar, separate Team/Settings entry points, safe metadata registries, scan-state URL filter and CSV exports are implemented. Metric definitions and exclusions are in [ANALYTICS](ANALYTICS.md). Actual checks and remaining acceptance coverage are in [PHASE12_TEST_REPORT](PHASE12_TEST_REPORT.md). Reporting/provider/key issuance services remain unimplemented; these navigation entries query retained metadata. Full live multi-role browser certification and every existing-page UX state are not claimed. No next phase is started.
+
+Phase 12 verification: **436 API tests** passed in the full run; **11 focused analytics tests** passed after final aggregation changes; **37 frontend tests** passed; **61 browser regressions** passed; and **all seven distinct live browser scenarios** passed across the first five-pass/two-failure run and the corrected two-pass rerun. Dashboard snapshots at **390/768/1280/1440** passed comparison and visual inspection. Lint, formatting, strict types, generated schema parity, Vite/API packages and API/mock-worker image builds passed. See the linked report for exact commands, intermediate failures and remaining service/coverage boundaries. Stop after Phase 12; Phase 13 requires an explicit prompt.

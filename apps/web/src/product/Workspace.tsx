@@ -15,6 +15,8 @@ import Configuration from './Configuration';
 import Scans from './Scans';
 import Findings from './Findings';
 import Policies from './Policies';
+import Dashboard from './Dashboard';
+import Registry from './Registry';
 const progressSchema = z.object({
   create_project: z.boolean(),
   register_target: z.boolean(),
@@ -48,20 +50,23 @@ const checklist = [
     key: 'run_safe_baseline',
     title: 'Run safe baseline scan',
     text: 'A completed baseline scan with complete evidence satisfies this step. Failed or partial scans do not.',
-    to: '/docs/authorization',
+    to: '/app/scans',
   },
   {
     key: 'configure_ci',
     title: 'Configure CI/CD',
     text: 'Connect an active organization integration when CI/CD configuration becomes available.',
-    to: '/docs/integrations',
+    to: '/app/integrations',
   },
 ] as const;
 export default function Workspace() {
   const navigate = useNavigate();
   const location = useLocation();
   const [me, setMe] = useState<Me | null>(null);
-  const [organizationId, setOrganizationId] = useState('');
+  const [preferredOrganizationId, setOrganizationId] = useState('');
+  const organizationId =
+    new URLSearchParams(location.search).get('organization') ??
+    preferredOrganizationId;
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -76,7 +81,15 @@ export default function Workspace() {
         const result = await request('/auth/me', meSchema);
         if (active) {
           setMe(result);
-          setOrganizationId(result.organizations[0]?.id ?? '');
+          setOrganizationId(
+            result.organizations.find(
+              (o) =>
+                o.id ===
+                new URLSearchParams(window.location.search).get('organization'),
+            )?.id ??
+              result.organizations[0]?.id ??
+              '',
+          );
         }
       })
       .catch((e: unknown) => {
@@ -116,24 +129,32 @@ export default function Workspace() {
         <NavLink to="/app/getting-started" onClick={() => setOpen(false)}>
           ◈ <span>Getting started</span>
         </NavLink>
-        {['projects', 'targets', 'policies', 'gates', 'scans', 'findings'].map(
-          (path) => (
-            <NavLink
-              key={path}
-              to={`/app/${path}`}
-              onClick={() => setOpen(false)}
-            >
-              {path[0]?.toUpperCase()}
-              {path.slice(1)}
-            </NavLink>
-          ),
-        )}
-        <a
-          href="/app/getting-started#organization"
-          onClick={() => setOpen(false)}
-        >
-          ◎ <span>Organization</span>
-        </a>
+        {[
+          'dashboard',
+          'projects',
+          'targets',
+          'scans',
+          'findings',
+          'reports',
+          'integrations',
+          'api-keys',
+          'team',
+          'audit-log',
+          'settings',
+        ].map((path) => (
+          <NavLink
+            key={path}
+            to={`/app/${path}?organization=${organizationId}`}
+            onClick={() => setOpen(false)}
+          >
+            {path
+              .split('-')
+              .map((word) =>
+                word === 'api' ? 'API' : word[0]?.toUpperCase() + word.slice(1),
+              )
+              .join(' ')}
+          </NavLink>
+        ))}
       </nav>
       <div className="workspace-support">
         <Link to="/docs">Documentation ↗</Link>
@@ -178,7 +199,10 @@ export default function Workspace() {
             <select
               aria-label="Organization"
               value={organizationId}
-              onChange={(e) => setOrganizationId(e.target.value)}
+              onChange={(e) => {
+                setOrganizationId(e.target.value);
+                navigate(`${location.pathname}?organization=${e.target.value}`);
+              }}
             >
               {me.organizations.map((o) => (
                 <option key={o.id} value={o.id}>
@@ -191,7 +215,61 @@ export default function Workspace() {
           <span>{me.display_name}</span>
         </header>
         <main id="main" className="workspace-main">
-          {org && location.pathname.startsWith('/app/gates') ? (
+          <div className="workspace-breadcrumb" aria-label="Breadcrumb">
+            <Link to="/app/getting-started">Workspace</Link> /{' '}
+            <span>
+              {location.pathname.split('/')[2]?.replaceAll('-', ' ') ||
+                'Getting started'}
+            </span>
+          </div>
+          {error && <p role="alert">{error}</p>}
+          {org && (
+            <div className="workspace-policy-links">
+              <Link to="/app/gates">Policy gates</Link> ·{' '}
+              <Link to="/app/policies">Scan policies</Link>
+            </div>
+          )}
+
+          {org && location.pathname === '/app/dashboard' ? (
+            <Dashboard key={org.id} org={org.id} />
+          ) : org &&
+            /^\/app\/(reports|integrations|api-keys|audit-log)$/.test(
+              location.pathname,
+            ) ? (
+            <Registry
+              key={`${org.id}-${location.pathname}`}
+              org={org.id}
+              kind={location.pathname.split('/')[2] || 'reports'}
+            />
+          ) : org && /^\/app\/(team|settings)$/.test(location.pathname) ? (
+            <>
+              <h1>
+                {location.pathname.endsWith('team') ? 'Team' : 'Settings'}
+              </h1>
+              <OrganizationSettings
+                key={`settings-${org.id}-${location.pathname}`}
+                section={
+                  location.pathname.endsWith('team') ? 'team' : 'settings'
+                }
+                me={me}
+                organizationId={org.id}
+                onRefresh={async () =>
+                  setMe(await request('/auth/me', meSchema))
+                }
+              />
+              {location.pathname.endsWith('settings') && (
+                <section className="workspace-security">
+                  <h2>Session security</h2>
+                  <Button
+                    variant="secondary"
+                    onClick={() => void signOut(true)}
+                  >
+                    Revoke all sessions
+                  </Button>
+                </section>
+              )}
+            </>
+          ) : org && location.pathname.startsWith('/app/gates') ? (
             <Policies key={org.id} org={org.id} role={org.role} />
           ) : org && location.pathname.startsWith('/app/findings') ? (
             <Findings key={org.id} org={org.id} role={org.role} />
@@ -212,7 +290,6 @@ export default function Workspace() {
               <p className="muted">
                 Set the scope. Gather evidence. Make informed decisions.
               </p>
-              {error && <p role="alert">{error}</p>}
               {!me.email_verified && (
                 <p className="workspace-notice">
                   Email verification is pending. Open the verification link sent
@@ -326,9 +403,8 @@ function Onboarding({ organizationId }: { organizationId: string }) {
           </article>
         ))}
         <p className="workspace-notice">
-          Project and target creation, scan execution, and CI/CD configuration
-          arrive in later phases. These guides explain the prerequisites;
-          progress reflects saved backend records only.
+          Progress reflects saved backend records. Complete each step to
+          establish your first authorized security baseline.
         </p>
       </section>
       <aside className="onboarding-checklist" aria-label="Onboarding checklist">
@@ -348,7 +424,7 @@ function Onboarding({ organizationId }: { organizationId: string }) {
               {item.title}
             </summary>
             <p>{item.text}</p>
-            <Link to={item.to}>Read guide ↗</Link>
+            <Link to={item.to}>Continue ↗</Link>
           </details>
         ))}
         <Button variant="ghost" onClick={() => void load()}>
@@ -362,13 +438,17 @@ function OrganizationSettings({
   me,
   organizationId,
   onRefresh,
+  section = 'all',
 }: {
   me: Me;
   organizationId: string;
   onRefresh: () => Promise<void>;
+  section?: string;
 }) {
   const org = me.organizations.find((o) => o.id === organizationId);
-  const [members, setMembers] = useState<z.infer<typeof memberSchema>>([]);
+  const [members, setMembers] = useState<z.infer<typeof memberSchema> | null>(
+    null,
+  );
   const [feedback, setFeedback] = useState('');
   const [busy, setBusy] = useState(false);
   const canManage = org?.role === 'owner' || org?.role === 'admin';
@@ -429,21 +509,47 @@ function OrganizationSettings({
         {org ? `${org.name} · ${org.role}` : 'You have no active organization.'}
       </p>
       {feedback && <p role="status">{feedback}</p>}
-      <details>
-        <summary>Create an organization</summary>
-        <form onSubmit={(e) => submit(e, '/organizations', 'POST')}>
-          <Input
-            name="name"
-            label="New organization name"
-            required
-            maxLength={120}
-          />
-          <Button type="submit" disabled={busy}>
-            Create organization
-          </Button>
-        </form>
-      </details>
-      {org?.role === 'owner' && (
+      {canManage && section === 'team' && (
+        <Button
+          variant="secondary"
+          onClick={() =>
+            void refreshMembers()
+              .then(() => setFeedback(''))
+              .catch((e: unknown) =>
+                setFeedback(
+                  e instanceof Error ? e.message : 'Unable to refresh team.',
+                ),
+              )
+          }
+        >
+          Refresh team
+        </Button>
+      )}
+      {canManage && section === 'team' && members === null && !feedback && (
+        <div className="skeleton" role="status">
+          Loading team…
+        </div>
+      )}
+      {canManage && section === 'team' && members?.length === 0 && (
+        <p>No members found.</p>
+      )}
+      {section !== 'team' && (
+        <details>
+          <summary>Create an organization</summary>
+          <form onSubmit={(e) => submit(e, '/organizations', 'POST')}>
+            <Input
+              name="name"
+              label="New organization name"
+              required
+              maxLength={120}
+            />
+            <Button type="submit" disabled={busy}>
+              Create organization
+            </Button>
+          </form>
+        </details>
+      )}
+      {section !== 'team' && org?.role === 'owner' && (
         <details>
           <summary>Organization settings</summary>
           <form
@@ -478,8 +584,14 @@ function OrganizationSettings({
           </Button>
         </details>
       )}
-      {canManage && (
-        <details>
+      {section === 'team' && !canManage && (
+        <p role="alert">
+          Permission denied. Organization administration access is required to
+          manage team members.
+        </p>
+      )}
+      {section !== 'settings' && canManage && (
+        <details open={section === 'team'}>
           <summary>Manage team</summary>
           <form
             onSubmit={(e) =>
@@ -500,7 +612,7 @@ function OrganizationSettings({
             </Button>
           </form>
           <ul className="member-list">
-            {members.map((m) => (
+            {members?.map((m) => (
               <li key={m.id}>
                 <strong>{m.display_name}</strong>
                 <span>

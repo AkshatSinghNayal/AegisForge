@@ -1,5 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import {
+  Link,
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import { z } from 'zod';
 import { Button, Input } from '@/ui';
 import { policySchema, targetSchema } from './configurationModels';
@@ -66,9 +73,17 @@ function ScanList({ org, role }: { org: string; role: string }) {
   }, []);
   const [error, setError] = useState('');
   const [refresh, setRefresh] = useState(0);
+  const [filters, setFilters] = useSearchParams();
+  const filterQuery = ['state', 'project', 'target']
+    .map((key) =>
+      filters.get(key)
+        ? `&${key}=${encodeURIComponent(filters.get(key) || '')}`
+        : '',
+    )
+    .join('');
   useEffect(() => {
     let active = true;
-    void request(url(org), z.array(scanSchema))
+    void request(url(org) + filterQuery, z.array(scanSchema))
       .then((data) => {
         if (active) {
           setScans(data);
@@ -81,7 +96,7 @@ function ScanList({ org, role }: { org: string; role: string }) {
     return () => {
       active = false;
     };
-  }, [org, refresh]);
+  }, [org, refresh, filterQuery]);
   return (
     <section>
       <p className="eyebrow">WORKSPACE / SCANS</p>
@@ -89,6 +104,27 @@ function ScanList({ org, role }: { org: string; role: string }) {
       <p className="muted">
         Execution progress and security outcomes remain separate.
       </p>
+      <label>
+        Scan state
+        <select
+          value={filters.get('state') || ''}
+          onChange={(e) => {
+            const next = new URLSearchParams(filters);
+            if (e.target.value) next.set('state', e.target.value);
+            else next.delete('state');
+            setFilters(next);
+          }}
+        >
+          <option value="">All states</option>
+          {['completed', 'failed', 'timed_out', 'cancelled', 'queued'].map(
+            (state) => (
+              <option key={state} value={state}>
+                {label(state)}
+              </option>
+            ),
+          )}
+        </select>
+      </label>
       <div className="scan-actions">
         {role !== 'viewer' && (
           <Link className="button primary" to="/app/scans/new">
@@ -546,7 +582,9 @@ function LiveScan({ org, role }: { org: string; role: string }) {
             <dd>{scan.report_status}</dd>
             <dt>Effective gate</dt>
             <dd>
-              {scan.effective_gate} · {label(scan.gate_reason)}
+              <span>
+                {scan.effective_gate} · {label(scan.gate_reason)}
+              </span>{' '}
               <Link
                 to={`/app/gates?project=${scan.project_id}&scan=${scan.id}`}
               >

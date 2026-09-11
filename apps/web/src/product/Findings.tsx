@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
+import { exportCSV } from './analyticsModels';
 import { Button } from '@/ui';
 import { request } from './client';
 import AIGuidance from './AIGuidance';
@@ -228,6 +229,32 @@ function FindingContent({ org, role }: { org: string; role: string }) {
       )}
       {page && (
         <>
+          <Button
+            variant="secondary"
+            disabled={!page.items.length}
+            onClick={() =>
+              exportCSV(
+                [
+                  'Title',
+                  'Severity',
+                  'Status',
+                  'CWE',
+                  'First seen',
+                  'Last seen',
+                ],
+                page.items.map((f) => [
+                  f.title,
+                  f.severity,
+                  f.status,
+                  f.cwe ?? '',
+                  f.first_seen_at,
+                  f.last_seen_at,
+                ]),
+              )
+            }
+          >
+            Export this page as CSV
+          </Button>
           <form onSubmit={filter} className="finding-filters" key={serialized}>
             {['project', 'target', 'scan', 'route', 'cwe', 'owasp'].map(
               (key) => (

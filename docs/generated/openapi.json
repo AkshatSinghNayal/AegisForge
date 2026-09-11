@@ -1,6 +1,24 @@
 {
   "components": {
     "schemas": {
+      "ActionItem": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "path"
+        ],
+        "title": "ActionItem",
+        "type": "object"
+      },
       "Activation": {
         "additionalProperties": false,
         "properties": {
@@ -21,6 +39,42 @@
           "policy_id"
         ],
         "title": "Activation",
+        "type": "object"
+      },
+      "Activity": {
+        "properties": {
+          "completeness": {
+            "title": "Completeness",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "target_id",
+          "state",
+          "completeness",
+          "created_at"
+        ],
+        "title": "Activity",
         "type": "object"
       },
       "AnalysisView": {
@@ -319,6 +373,143 @@
           "revoked"
         ],
         "title": "CredentialView",
+        "type": "object"
+      },
+      "Dashboard": {
+        "properties": {
+          "action_items": {
+            "items": {
+              "$ref": "#/components/schemas/ActionItem"
+            },
+            "title": "Action Items",
+            "type": "array"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/Metric"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "activity": {
+            "items": {
+              "$ref": "#/components/schemas/Activity"
+            },
+            "title": "Activity",
+            "type": "array"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "completion": {
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Completion",
+            "type": "array"
+          },
+          "date_from": {
+            "format": "date-time",
+            "title": "Date From",
+            "type": "string"
+          },
+          "date_to": {
+            "format": "date-time",
+            "title": "Date To",
+            "type": "string"
+          },
+          "duration": {
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Duration",
+            "type": "array"
+          },
+          "excluded_scans": {
+            "title": "Excluded Scans",
+            "type": "integer"
+          },
+          "exclusions": {
+            "items": {
+              "$ref": "#/components/schemas/Metric"
+            },
+            "title": "Exclusions",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "lifecycle": {
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Lifecycle",
+            "type": "array"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/Metric"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "owasp": {
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Owasp",
+            "type": "array"
+          },
+          "risk": {
+            "items": {
+              "$ref": "#/components/schemas/Risk"
+            },
+            "title": "Risk",
+            "type": "array"
+          },
+          "risk_total": {
+            "title": "Risk Total",
+            "type": "integer"
+          },
+          "severity": {
+            "items": {
+              "$ref": "#/components/schemas/Series"
+            },
+            "title": "Severity",
+            "type": "array"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "generated_at",
+          "date_from",
+          "date_to",
+          "timezone",
+          "excluded_scans",
+          "metrics",
+          "severity",
+          "categories",
+          "owasp",
+          "exclusions",
+          "lifecycle",
+          "duration",
+          "completion",
+          "risk",
+          "risk_total",
+          "activity",
+          "actions",
+          "action_items"
+        ],
+        "title": "Dashboard",
         "type": "object"
       },
       "EmailPayload": {
@@ -1052,6 +1243,36 @@
         "title": "Message",
         "type": "object"
       },
+      "Metric": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "unit": {
+            "default": "count",
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "Metric",
+        "type": "object"
+      },
       "Name": {
         "additionalProperties": false,
         "properties": {
@@ -1575,6 +1796,91 @@
         "title": "Register",
         "type": "object"
       },
+      "RegistryPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RegistryRow"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 50,
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page"
+        ],
+        "title": "RegistryPage",
+        "type": "object"
+      },
+      "RegistryRow": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "scan_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scan Id"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "status",
+          "created_at"
+        ],
+        "title": "RegistryRow",
+        "type": "object"
+      },
       "Reset": {
         "additionalProperties": false,
         "properties": {
@@ -1702,6 +2008,46 @@
           "version"
         ],
         "title": "Review",
+        "type": "object"
+      },
+      "Risk": {
+        "properties": {
+          "high_critical": {
+            "title": "High Critical",
+            "type": "integer"
+          },
+          "open_findings": {
+            "title": "Open Findings",
+            "type": "integer"
+          },
+          "project": {
+            "title": "Project",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "target_id",
+          "project",
+          "target",
+          "open_findings",
+          "high_critical"
+        ],
+        "title": "Risk",
         "type": "object"
       },
       "Role": {
@@ -2028,6 +2374,24 @@
           "failure_code"
         ],
         "title": "ScanView",
+        "type": "object"
+      },
+      "Series": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ],
+        "title": "Series",
         "type": "object"
       },
       "Severity": {
@@ -2621,6 +2985,170 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/analytics/dashboard": {
+      "get": {
+        "operationId": "dashboard_api_v1_analytics_dashboard_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "default": "UTC",
+              "maxLength": 100,
+              "title": "Timezone",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 100000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Dashboard",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
     "/api/v1/auth/csrf": {
       "get": {
         "operationId": "csrf_cookie_api_v1_auth_csrf_get",
@@ -7131,6 +7659,56 @@
         "parameters": [
           {
             "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScanState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "project",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Project"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target"
+            }
+          },
+          {
+            "in": "query",
             "name": "organization_id",
             "required": true,
             "schema": {
@@ -7919,6 +8497,206 @@
         "summary": "Preview",
         "tags": [
           "Deterministic policies"
+        ]
+      }
+    },
+    "/api/v1/workspace/{kind}": {
+      "get": {
+        "operationId": "registry_api_v1_workspace__kind__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "reports",
+                "integrations",
+                "api-keys",
+                "audit-log"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 100000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistryPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Registry",
+        "tags": [
+          "workspace"
+        ]
+      }
+    },
+    "/api/v1/workspace/{kind}/{resource_id}": {
+      "delete": {
+        "operationId": "deactivate_api_v1_workspace__kind___resource_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "integrations",
+                "api-keys"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Resource Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Organization Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "title": "Response Deactivate Api V1 Workspace  Kind   Resource Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Deactivate",
+        "tags": [
+          "workspace"
         ]
       }
     },

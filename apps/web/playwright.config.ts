@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 const devServer = {
   command: 'pnpm dev --port 5174 --strictPort',
+  timeout: 120000,
   url: 'http://127.0.0.1:5174',
   reuseExistingServer: false,
 };
@@ -16,7 +17,7 @@ export default defineConfig({
     },
     {
       name: 'production',
-      testMatch: /health|production|marketing|findings|policies/,
+      testMatch: /health|production|marketing|findings|policies|dashboard/,
     },
     {
       name: 'labs',
@@ -30,6 +31,7 @@ export default defineConfig({
       : [
           {
             command: 'pnpm build && pnpm preview --port 4173',
+            timeout: 120000,
             url: 'http://127.0.0.1:4173',
             reuseExistingServer: false,
           },

@@ -77,3 +77,7 @@ The Phase 10 prompt authorizes schema-constrained advisory AI providers, minimal
 ## Phase 11 prompt override
 
 The explicit Phase 11 prompt authorizes versioned deterministic project gate policies, accepted-risk exceptions, baseline-aware thresholds, immutable evaluations, preview/detail UI, admin publication/activation and developer read access. It supersedes the provisional phase numbering above. See [POLICY_ENGINE](POLICY_ENGINE.md). Reporting, integration and deployment remain deferred. Stop after Phase 11.
+
+## Phase 12 prompt override
+
+The explicit Phase 12 prompt adds the authenticated dashboard, safe workspace registries, full sidebar, organization/project/target/date filtering, metric documentation, CSV and responsive/browser verification. This supersedes the original provisional numbering for analytics. Scope and metric details are in [ANALYTICS](ANALYTICS.md), actual validation and remaining coverage in [PHASE12_TEST_REPORT](PHASE12_TEST_REPORT.md). Do not start a subsequent phase automatically.
