@@ -126,7 +126,10 @@ export default function Workspace() {
   const navigation = (
     <>
       <nav aria-label="Workspace">
-        <NavLink to="/app/getting-started" onClick={() => setOpen(false)}>
+        <NavLink
+          to={`/app/getting-started?organization=${organizationId}`}
+          onClick={() => setOpen(false)}
+        >
           ◈ <span>Getting started</span>
         </NavLink>
         {[
@@ -216,7 +219,10 @@ export default function Workspace() {
         </header>
         <main id="main" className="workspace-main">
           <div className="workspace-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/app/getting-started">Workspace</Link> /{' '}
+            <Link to={`/app/getting-started?organization=${organizationId}`}>
+              Workspace
+            </Link>{' '}
+            /{' '}
             <span>
               {location.pathname.split('/')[2]?.replaceAll('-', ' ') ||
                 'Getting started'}
@@ -225,8 +231,13 @@ export default function Workspace() {
           {error && <p role="alert">{error}</p>}
           {org && (
             <div className="workspace-policy-links">
-              <Link to="/app/gates">Policy gates</Link> ·{' '}
-              <Link to="/app/policies">Scan policies</Link>
+              <Link to={`/app/gates?organization=${organizationId}`}>
+                Policy gates
+              </Link>{' '}
+              ·{' '}
+              <Link to={`/app/policies?organization=${organizationId}`}>
+                Scan policies
+              </Link>
             </div>
           )}
 
@@ -237,7 +248,7 @@ export default function Workspace() {
               location.pathname,
             ) ? (
             <Registry
-              key={`${org.id}-${location.pathname}`}
+              key={`${org.id}-${location.pathname}-${location.search}`}
               org={org.id}
               kind={location.pathname.split('/')[2] || 'reports'}
             />
@@ -424,7 +435,9 @@ function Onboarding({ organizationId }: { organizationId: string }) {
               {item.title}
             </summary>
             <p>{item.text}</p>
-            <Link to={item.to}>Continue ↗</Link>
+            <Link to={`${item.to}?organization=${organizationId}`}>
+              Continue ↗
+            </Link>
           </details>
         ))}
         <Button variant="ghost" onClick={() => void load()}>

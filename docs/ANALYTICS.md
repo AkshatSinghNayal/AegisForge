@@ -31,6 +31,8 @@ Unless otherwise specified, scans belong to a window by creation time and findin
 | Expired exceptions action        | Distinct finding IDs with expired exceptions in the latest active gate for the selected projects/targets. Historical deactivated gate versions are excluded. Expiry is evaluated at the selected end.                                                                                                                                                      |
 | Unresolved high findings action  | High/critical subset of the open-findings population.                                                                                                                                                                                                                                                                                                      |
 
+Adding a review note preserves the resolution timestamp and therefore does not change MTTR.
+
 The action list shows up to ten direct record links per category in addition to total counts.
 
 The dashboard reports the number of incomplete/unfinished scans excluded from completion-dependent metrics, complete scans with invalid duration, and complete scans without a conclusive gate. Demo scans are excluded from scan metrics. A known empty population is zero; an undefined ratio/mean is insufficient data. Finding records do not contain an `is_demo` flag; canonical finding counts use their retained evidence regardless of whether earlier synthetic ingestion created them. Use separate demo organizations rather than mixing demo and production evidence.

@@ -161,6 +161,16 @@ async def test_review_permissions_traceability_and_cross_tenant(db):
         db,
     )
     assert item.state == FindingState.RESOLVED
+    resolved_at = item.resolved_at
+    await review(
+        item.id,
+        Review(action="note", note="Resolution follow-up", version=item.version),
+        context[1],
+        db,
+    )
+    assert item.resolved_at == resolved_at, (
+        "Notes must not reset resolution time / MTTR"
+    )
     history = await db.scalar(
         select(FindingReview).where(FindingReview.finding_id == item.id)
     )

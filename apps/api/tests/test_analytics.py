@@ -242,3 +242,96 @@ async def test_half_open_window_and_local_day_buckets(db):
     assert len(result.activity) == 1
     assert result.completion[0].label == "2026-03-07"
     assert result.duration[0].label == "2026-03-07"
+
+
+@pytest.mark.integration
+async def test_lifecycle_excludes_failed_sources_and_gate_deactivation(db):
+    from aegis_api.db.models import FindingReview, GateActivation, GatePolicy
+
+    context = await tenant(db)
+    at = datetime.now(UTC) - timedelta(hours=1)
+    item = finding(context[2], timestamp=at)
+    db.add(item)
+    await db.flush()
+    for state in [ScanState.COMPLETED, ScanState.FAILED]:
+        source = scan(*context)
+        source.state = state
+        source.completeness = (
+            Completeness.COMPLETE
+            if state == ScanState.COMPLETED
+            else Completeness.PARTIAL
+        )
+        source.is_demo = False
+        db.add(source)
+        await db.flush()
+        db.add(
+            FindingReview(
+                organization_id=context[0].id,
+                finding_id=item.id,
+                scan_id=source.id,
+                action="observation",
+                previous_state="new",
+                state="new",
+                created_at=at,
+            )
+        )
+    gate = GatePolicy(
+        organization_id=context[0].id,
+        project_id=context[2].project_id,
+        version=1,
+        published_by=context[1].id,
+        snapshot={
+            "exceptions": [{"finding_id": str(item.id), "expires_at": at.isoformat()}]
+        },
+    )
+    db.add(gate)
+    await db.flush()
+    db.add(
+        GateActivation(
+            organization_id=context[0].id,
+            project_id=context[2].project_id,
+            actor_id=context[1].id,
+            gate_policy_id=gate.id,
+            sequence=1,
+        )
+    )
+    await db.flush()
+    result = await load(db, context[1])
+    assert sum(row.value for row in result.lifecycle) == 1
+    assert next(m.value for m in result.actions if m.label.startswith("Expired")) == 1
+    db.add(
+        GateActivation(
+            organization_id=context[0].id,
+            project_id=context[2].project_id,
+            actor_id=context[1].id,
+            gate_policy_id=None,
+            sequence=2,
+        )
+    )
+    await db.flush()
+    result = await load(db, context[1])
+    assert next(m.value for m in result.actions if m.label.startswith("Expired")) == 0
+    assert not any("expired exception" in row.label for row in result.action_items)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("role", [Role.DEVELOPER, Role.VIEWER])
+async def test_assigned_project_scope_and_revocation(db, role):
+    from aegis_api.db.enums import RecordState
+    from aegis_api.db.models import ProjectMember
+
+    context = await tenant(db)
+    context[1].role = role
+    membership = ProjectMember(
+        organization_id=context[0].id,
+        project_id=context[2].project_id,
+        member_id=context[1].id,
+    )
+    db.add(membership)
+    db.add(finding(context[2], timestamp=datetime.now(UTC)))
+    await db.flush()
+    assert (await load(db, context[1])).risk_total == 1
+    membership.status = RecordState.DEACTIVATED
+    await db.flush()
+    denied = await load(db, context[1], target=context[2].id)
+    assert denied.risk_total == 0 and denied.severity == [] and denied.activity == []

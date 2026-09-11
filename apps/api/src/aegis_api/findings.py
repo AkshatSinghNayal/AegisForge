@@ -334,7 +334,8 @@ async def review(finding_id: UUID, body: Review, member: Member, db: DB) -> Find
     }
     item.state = states.get(body.action, item.state)
     item.version += 1
-    item.resolved_at = now() if item.state == FindingState.RESOLVED else None
+    if body.action != "note":
+        item.resolved_at = now() if item.state == FindingState.RESOLVED else None
     # Reviewer text is explicit user input, kept in review history only, never logs.
     db.add(
         FindingReview(

@@ -55,6 +55,7 @@ for (const role of ['owner', 'developer', 'viewer']) {
     test.setTimeout(120000);
     let failing = false;
     const aggregateQueries: string[] = [];
+    let delayRegistry = false;
     await page.route('**/api/v1/**', async (route) => {
       const path = new URL(route.request().url()).pathname;
       let body: unknown = [];
@@ -71,7 +72,10 @@ for (const role of ['owner', 'developer', 'viewer']) {
           email: 'test@example.invalid',
           display_name: 'Synthetic reviewer',
           email_verified: true,
-          organizations: [{ id: org, name: 'Synthetic organization', role }],
+          organizations: [
+            { id, name: 'Other org', role },
+            { id: org, name: 'Synthetic organization', role },
+          ],
         };
       else if (path.includes('/analytics/dashboard')) {
         aggregateQueries.push(route.request().url());
@@ -97,11 +101,31 @@ for (const role of ['owner', 'developer', 'viewer']) {
         };
       else if (path.endsWith('/findings'))
         body = { items: [], total: 0, page: 1, page_size: 25 };
-      else if (path.includes('/workspace/'))
-        body = { items: [], total: 0, page: 1, page_size: 50 };
+      else if (path.includes('/workspace/')) {
+        const registryPage = Number(
+          new URL(route.request().url()).searchParams.get('page') || 1,
+        );
+        if (delayRegistry)
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+        body = {
+          items: [
+            {
+              id,
+              label: `Synthetic record page ${registryPage}`,
+              status: 'active',
+              created_at: data.generated_at,
+              expires_at: null,
+              scan_id: null,
+            },
+          ],
+          total: 51,
+          page: registryPage,
+          page_size: 50,
+        };
+      }
       await route.fulfill({ json: body });
     });
-    await page.goto('/app/dashboard?timezone=UTC');
+    await page.goto(`/app/dashboard?timezone=UTC&organization=${org}`);
     await expect(
       page.getByRole('heading', { name: 'Dashboard', exact: true }),
     ).toBeVisible();
@@ -135,12 +159,36 @@ for (const role of ['owner', 'developer', 'viewer']) {
           animations: 'disabled',
         });
       }
+    for (const name of ['Policy gates', 'Scan policies', 'Workspace']) {
+      await expect(
+        page.getByRole('link', { name, exact: true }),
+      ).toHaveAttribute('href', new RegExp(`organization=${org}`));
+    }
     failing = true;
     await page.getByRole('button', { name: 'Refresh', exact: true }).click();
     await expect(page.getByText('Test outage')).toBeVisible();
     failing = false;
     await page.getByRole('button', { name: 'Retry', exact: true }).click();
     await expect(page.getByText('8', { exact: true })).toBeVisible();
+    if (role === 'owner') {
+      await page.goto(`/app/audit-log?organization=${org}`);
+      await expect(
+        page.getByText('Synthetic record page 1', { exact: true }),
+      ).toBeVisible();
+      await page.getByRole('button', { name: 'Next', exact: true }).click();
+      await expect(
+        page.getByText('Synthetic record page 2', { exact: true }),
+      ).toBeVisible();
+      delayRegistry = true;
+      await page.goBack();
+      await expect(page.getByText('Loading records…')).toBeVisible();
+      await expect(
+        page.getByText('Synthetic record page 2', { exact: true }),
+      ).toHaveCount(0);
+      await expect(
+        page.getByText('Synthetic record page 1', { exact: true }),
+      ).toBeVisible();
+    }
     for (const [path, heading] of [
       ['projects', 'Projects'],
       ['targets', 'Targets'],

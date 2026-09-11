@@ -26,6 +26,7 @@ typecheck:
 	$(UV) run --project apps/api mypy --config-file apps/api/pyproject.toml apps/api/src
 
 test:
+	python3 scripts/test_compose_runner.py
 	$(PNPM) --filter @aegisforge/web test
 	$(UV) run --project apps/api pytest -c apps/api/pyproject.toml apps/api/tests -m 'not integration'
 
