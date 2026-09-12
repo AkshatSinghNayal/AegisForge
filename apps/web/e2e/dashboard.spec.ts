@@ -56,6 +56,7 @@ for (const role of ['owner', 'developer', 'viewer']) {
     let failing = false;
     const aggregateQueries: string[] = [];
     let delayRegistry = false;
+    let pagedSelectors = false;
     await page.route('**/api/v1/**', async (route) => {
       const path = new URL(route.request().url()).pathname;
       let body: unknown = [];
@@ -90,9 +91,24 @@ for (const role of ['owner', 'developer', 'viewer']) {
       } else if (
         path.endsWith('/resources/projects') ||
         path.endsWith('/resources/targets')
-      )
-        body = [{ id, project_id: id, label: 'Synthetic project' }];
-      else if (path.endsWith('/onboarding'))
+      ) {
+        const query = new URL(route.request().url()).searchParams;
+        body = !pagedSelectors
+          ? [{ id, project_id: id, label: 'Synthetic project' }]
+          : query.get('offset') === '200'
+            ? [
+                {
+                  id: '30000000-0000-4000-8000-000000000201',
+                  project_id: query.get('project_id') || id,
+                  label: 'Record 201',
+                },
+              ]
+            : Array.from({ length: 200 }, (_, n) => ({
+                id: `40000000-0000-4000-8000-${String(n).padStart(12, '0')}`,
+                project_id: query.get('project_id') || id,
+                label: `Record ${n + 1}`,
+              }));
+      } else if (path.endsWith('/onboarding'))
         body = {
           create_project: true,
           register_target: true,
@@ -163,6 +179,31 @@ for (const role of ['owner', 'developer', 'viewer']) {
       await expect(
         page.getByRole('link', { name, exact: true }),
       ).toHaveAttribute('href', new RegExp(`organization=${org}`));
+    }
+    if (role === 'owner') {
+      pagedSelectors = true;
+      await page.goto(`/app/dashboard?organization=${org}&timezone=UTC`);
+      await page
+        .getByRole('button', { name: 'Load more projects', exact: true })
+        .click();
+      await page
+        .getByRole('combobox', { name: 'Project', exact: true })
+        .selectOption({ label: 'Record 201' });
+      await page
+        .getByRole('button', { name: 'Load more targets', exact: true })
+        .click();
+      await page
+        .getByRole('combobox', { name: 'Target', exact: true })
+        .selectOption({ label: 'Record 201' });
+      await expect
+        .poll(() => aggregateQueries.at(-1))
+        .toContain('target=30000000-0000-4000-8000-000000000201');
+      await expect
+        .poll(() => aggregateQueries.at(-1))
+        .toContain('project=30000000-0000-4000-8000-000000000201');
+      await expect(
+        page.getByRole('button', { name: 'Load more targets', exact: true }),
+      ).toHaveCount(0);
     }
     failing = true;
     await page.getByRole('button', { name: 'Refresh', exact: true }).click();

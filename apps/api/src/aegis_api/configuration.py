@@ -4,11 +4,11 @@ import base64
 import hashlib
 import json
 from datetime import timedelta
-from typing import Any
+from typing import Annotated, Any
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
@@ -181,7 +181,9 @@ async def set_project(
 
 
 @router.get("/projects", response_model=list[ProjectView])
-async def projects(member: Member, db: DB) -> list[ProjectView]:
+async def projects(
+    member: Member, db: DB, offset: Annotated[int, Query(ge=0)] = 0
+) -> list[ProjectView]:
     query = select(Project).where(Project.organization_id == member.organization_id)
     if member.role not in ADMIN:
         query = query.where(
@@ -196,7 +198,11 @@ async def projects(member: Member, db: DB) -> list[ProjectView]:
     return [
         await project_view(row, db)
         for row in (
-            await db.scalars(query.order_by(Project.created_at.desc()).limit(200))
+            await db.scalars(
+                query.order_by(Project.created_at.desc(), Project.id.desc())
+                .offset(offset)
+                .limit(200)
+            )
         ).all()
     ]
 
@@ -311,7 +317,9 @@ async def add_policy(
 
 
 @router.get("/policies", response_model=list[PolicyView])
-async def policies(member: Member, db: DB) -> list[PolicyView]:
+async def policies(
+    member: Member, db: DB, offset: Annotated[int, Query(ge=0)] = 0
+) -> list[PolicyView]:
     rows = (
         await db.scalars(
             select(ScanPolicy)
@@ -319,7 +327,8 @@ async def policies(member: Member, db: DB) -> list[PolicyView]:
                 ScanPolicy.organization_id == member.organization_id,
                 ScanPolicy.schema_version == "phase6.v1",
             )
-            .order_by(ScanPolicy.name, ScanPolicy.version.desc())
+            .order_by(ScanPolicy.name, ScanPolicy.version.desc(), ScanPolicy.id.desc())
+            .offset(offset)
             .limit(200)
         )
     ).all()
@@ -613,7 +622,10 @@ async def create_target(
 
 @router.get("/targets", response_model=list[TargetView])
 async def targets(
-    member: Member, db: DB, project_id: UUID | None = None
+    member: Member,
+    db: DB,
+    project_id: UUID | None = None,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[TargetView]:
     if project_id:
         await scoped_project(project_id, member, db)
@@ -633,7 +645,11 @@ async def targets(
     return [
         await target_view(row, db)
         for row in (
-            await db.scalars(query.order_by(Target.created_at.desc()).limit(200))
+            await db.scalars(
+                query.order_by(Target.created_at.desc(), Target.id.desc())
+                .offset(offset)
+                .limit(200)
+            )
         ).all()
     ]
 

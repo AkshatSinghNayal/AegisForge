@@ -3,6 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/ui';
 import { ApiError, request } from './client';
+import { usePagedOptions } from './usePagedOptions';
+import { MoreOptions } from './PagedOptions';
 import {
   dashboardSchema,
   series,
@@ -71,8 +73,7 @@ export default function Dashboard({ org }: { org: string }) {
   );
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(true);
-  const [options, setOptions] = useState<z.infer<typeof optionsSchema>>([]);
-  const [projects, setProjects] = useState<z.infer<typeof optionsSchema>>([]);
+
   const [clock, setClock] = useState(Date.now);
   const timezone =
     params.get('timezone') || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -89,25 +90,16 @@ export default function Dashboard({ org }: { org: string }) {
     const timer = window.setInterval(() => setClock(Date.now()), 30000);
     return () => window.clearInterval(timer);
   }, []);
-  useEffect(() => {
-    let active = true;
-    void Promise.all([
-      request(`/organizations/${org}/resources/projects`, optionsSchema),
-      request(`/organizations/${org}/resources/targets`, optionsSchema),
-    ])
-      .then(([p, t]) => {
-        if (active) {
-          setProjects(p);
-          setOptions(t);
-        }
-      })
-      .catch(() => {
-        if (active) setError('Filter options unavailable. Refresh to retry.');
-      });
-    return () => {
-      active = false;
-    };
-  }, [org, reload]);
+  const projectOptions = usePagedOptions(
+    `/organizations/${org}/resources/projects`,
+    optionsSchema,
+  );
+  const targetOptions = usePagedOptions(
+    `/organizations/${org}/resources/targets${project ? `?project_id=${project}` : ''}`,
+    optionsSchema,
+  );
+  const projects = projectOptions.data ?? [];
+  const options = targetOptions.data ?? [];
   useEffect(() => {
     let active = true;
     void Promise.resolve().then(() => {
@@ -141,6 +133,11 @@ export default function Dashboard({ org }: { org: string }) {
       active = false;
     };
   }, [queryString, reload]);
+  function refreshDashboard() {
+    projectOptions.refresh();
+    targetOptions.refresh();
+    setReload((v) => v + 1);
+  }
   function filter(key: string, value: string) {
     const next = new URLSearchParams(params);
     next.set('organization', org);
@@ -165,6 +162,11 @@ export default function Dashboard({ org }: { org: string }) {
             onChange={(e) => filter('project', e.target.value)}
           >
             <option value="">All permitted projects</option>
+            {project && !projects.some((p) => p.id === project) && (
+              <option value={project}>
+                Selected project ({project.slice(0, 8)})
+              </option>
+            )}
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.label}
@@ -179,6 +181,11 @@ export default function Dashboard({ org }: { org: string }) {
             onChange={(e) => filter('target', e.target.value)}
           >
             <option value="">All permitted targets</option>
+            {target && !options.some((t) => t.id === target) && (
+              <option value={target}>
+                Selected target ({target.slice(0, 8)})
+              </option>
+            )}
             {options
               .filter((t) => !project || t.project_id === project)
               .map((t) => (
@@ -207,10 +214,12 @@ export default function Dashboard({ org }: { org: string }) {
             onChange={(e) => filter('timezone', e.target.value)}
           />
         </label>
-        <Button variant="secondary" onClick={() => setReload((v) => v + 1)}>
+        <Button variant="secondary" onClick={refreshDashboard}>
           Refresh
         </Button>
       </form>
+      <MoreOptions label="projects" options={projectOptions} />
+      <MoreOptions label="targets" options={targetOptions} />
       <p className="muted">
         Default window: last 30 days. Dates use UTC boundaries; charts and
         activity use the selected timezone.
@@ -219,7 +228,7 @@ export default function Dashboard({ org }: { org: string }) {
         <div role="alert">
           <h2>Dashboard unavailable</h2>
           <p>{error}</p>
-          <Button onClick={() => setReload((v) => v + 1)}>Retry</Button>
+          <Button onClick={refreshDashboard}>Retry</Button>
         </div>
       )}
       {busy && (

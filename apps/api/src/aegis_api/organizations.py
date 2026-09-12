@@ -5,7 +5,7 @@ from datetime import timedelta
 from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
@@ -437,7 +437,12 @@ RESOURCES = {
 
 
 async def resources(
-    kind: str, member: OrganizationMember, db: DB, resource_id: UUID | None = None
+    kind: str,
+    member: OrganizationMember,
+    db: DB,
+    resource_id: UUID | None = None,
+    offset: int = 0,
+    project_id: UUID | None = None,
 ) -> list[ResourceView]:
     ids = await project_ids(member, db)
     model: Any = RESOURCES.get(kind)
@@ -466,14 +471,26 @@ async def resources(
         )
         query = query.where(Target.project_id.in_(ids))
     query = query.where(model.organization_id == member.organization_id)
+    if project_id is not None:
+        query = query.where(project_column == project_id)
     if resource_id is not None:
         query = query.where(model.id == resource_id)
-    rows = (await db.execute(query.order_by(model.created_at.desc()).limit(200))).all()
+    rows = (
+        await db.execute(
+            query.order_by(model.created_at.desc(), model.id.desc())
+            .offset(offset)
+            .limit(200)
+        )
+    ).all()
     return [
         ResourceView(
             id=row.id,
             project_id=pid,
-            label=row.name if model == Project else f"{kind[:-1].title()} {row.id}",
+            label=row.name
+            if model == Project
+            else row.display_name
+            if model == Target
+            else f"{kind[:-1].title()} {row.id}",
         )
         for row, pid in rows
     ]
@@ -526,8 +543,14 @@ async def onboarding(member: Member, db: DB) -> Progress:
 
 
 @router.get("/{organization_id}/resources/{kind}", response_model=list[ResourceView])
-async def list_resources(kind: str, member: Member, db: DB) -> list[ResourceView]:
-    return await resources(kind, member, db)
+async def list_resources(
+    kind: str,
+    member: Member,
+    db: DB,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    project_id: UUID | None = None,
+) -> list[ResourceView]:
+    return await resources(kind, member, db, offset=offset, project_id=project_id)
 
 
 @router.get(

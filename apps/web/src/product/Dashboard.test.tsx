@@ -86,6 +86,25 @@ it('sends the same URL filters in a single aggregate request', async () => {
     ),
   );
 });
+it('keeps URL-selected records visible when they are beyond the loaded option page', async () => {
+  render(
+    <MemoryRouter initialEntries={['/?project=project-201&target=target-201']}>
+      <Dashboard org="org" />
+    </MemoryRouter>,
+  );
+  await screen.findByText('No scans in this window.');
+  expect(screen.getByRole('combobox', { name: 'Project' })).toHaveValue(
+    'project-201',
+  );
+  expect(screen.getByRole('combobox', { name: 'Target' })).toHaveValue(
+    'target-201',
+  );
+  await userEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+  await screen.findByText('No scans in this window.');
+  expect(screen.getByRole('combobox', { name: 'Target' })).toHaveValue(
+    'target-201',
+  );
+});
 it('quotes CSV and neutralizes spreadsheet formulas', () => {
   expect(csvCell('=1+2')).toBe('"\'=1+2"');
   expect(csvCell('hello,"world"')).toBe('"hello,""world"""');

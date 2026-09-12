@@ -1,3 +1,5 @@
+import { usePagedOptions } from './usePagedOptions';
+import { MoreOptions } from './PagedOptions';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -146,12 +148,14 @@ export default function Configuration(ctx: Context) {
   );
 }
 function ProjectList(ctx: Context) {
-  const { data, error, refresh } = useData(
+  const options = usePagedOptions(
     `/organizations/${ctx.org}/projects`,
     projectsSchema,
   );
+  const { data, error, refresh } = options;
   return (
     <>
+      <MoreOptions label="projects" options={options} />
       <p className="eyebrow">APPLICATION INVENTORY</p>
       <h1>Projects</h1>
       <p>Define ownership, organize targets, and retain security history.</p>
@@ -206,6 +210,10 @@ const overviewSchema = z.object({
 });
 function ProjectDetail(ctx: Context) {
   const { id } = useParams();
+  const targetOptions = usePagedOptions(
+    `/organizations/${ctx.org}/targets?project_id=${id}`,
+    targetsSchema,
+  );
   const { data, error, refresh } = useData(
     `/organizations/${ctx.org}/projects/${id}`,
     overviewSchema,
@@ -286,7 +294,8 @@ function ProjectDetail(ctx: Context) {
               Register target
             </Link>
           )}
-          <TargetCards data={data.targets} />
+          <MoreOptions label="targets" options={targetOptions} />
+          {targetOptions.data && <TargetCards data={targetOptions.data} />}
         </>
       )}
     </>
@@ -454,12 +463,14 @@ function TargetCards({ data }: { data: Target[] }) {
   );
 }
 function TargetList(ctx: Context) {
-  const { data, error, refresh } = useData(
+  const options = usePagedOptions(
     `/organizations/${ctx.org}/targets`,
     targetsSchema,
   );
+  const { data, error, refresh } = options;
   return (
     <>
+      <MoreOptions label="targets" options={options} />
       <h1>Targets</h1>
       <p>Every target needs explicit ownership and bounded scope.</p>
       {ctx.role !== 'viewer' && (
@@ -675,7 +686,7 @@ function CredentialEditor({
   );
 }
 function PolicyList(ctx: Context) {
-  const { data, error, refresh } = useData(
+  const options = usePagedOptions(
     `/organizations/${ctx.org}/policies`,
     policiesSchema,
   );
@@ -692,8 +703,10 @@ function PolicyList(ctx: Context) {
       setFeedback(errorText(e));
     }
   }
+  const { data, error, refresh } = options;
   return (
     <>
+      <MoreOptions label="policies" options={options} />
       <h1>Scan policies</h1>
       <p>
         Versioned limits and deterministic CI thresholds. Existing targets
@@ -964,14 +977,16 @@ function PolicyEditor(ctx: Context & { existing?: Policy }) {
 }
 function TargetWizard(ctx: Context) {
   const navigate = useNavigate();
-  const { data: projects, error: projectsError } = useData(
+  const projectOptions = usePagedOptions(
     `/organizations/${ctx.org}/projects`,
     projectsSchema,
   );
-  const { data: policies, error: policiesError } = useData(
+  const policyOptions = usePagedOptions(
     `/organizations/${ctx.org}/policies`,
     policiesSchema,
   );
+  const { data: projects, error: projectsError } = projectOptions;
+  const { data: policies, error: policiesError } = policyOptions;
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState('web_url');
   const [authType, setAuthType] = useState('none');
@@ -1088,6 +1103,8 @@ function TargetWizard(ctx: Context) {
     return (
       <>
         <h1>Register target</h1>
+        <MoreOptions label="projects" options={projectOptions} />
+        <MoreOptions label="policies" options={policyOptions} />
         <p role="alert">
           Permission denied. Your role cannot register targets.
         </p>
@@ -1097,6 +1114,8 @@ function TargetWizard(ctx: Context) {
     <>
       <Link to="/app/targets">← Targets</Link>
       <h1>Register target</h1>
+      <MoreOptions label="projects" options={projectOptions} />
+      <MoreOptions label="policies" options={policyOptions} />
       <ol className="wizard-steps" aria-label="Setup progress">
         {['Basics', 'Scope', 'Authentication', 'Review and authorize'].map(
           (s, i) => (

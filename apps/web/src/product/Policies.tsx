@@ -1,3 +1,5 @@
+import { usePagedOptions } from './usePagedOptions';
+import { MoreOptions } from './PagedOptions';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
@@ -89,34 +91,26 @@ const split = (text: string) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+const projectOptionsSchema = z.array(
+  z.object({ id: z.string(), name: z.string() }),
+);
+
 export default function Policies({ org, role }: { org: string; role: string }) {
-  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const projectOptions = usePagedOptions(
+    `/organizations/${org}/projects`,
+    projectOptionsSchema,
+  );
+  const projects = projectOptions.data;
   const [project, setProject] = useState('');
-  const [error, setError] = useState('');
   useEffect(() => {
-    let live = true;
-    void request(
-      `/organizations/${org}/projects`,
-      z.array(z.object({ id: z.string(), name: z.string() })),
-    )
-      .then((rows) => {
-        if (live) {
-          setProjects(rows);
-          const requested = new URLSearchParams(window.location.search).get(
-            'project',
-          );
-          setProject(
-            rows.find((p) => p.id === requested)?.id ?? rows[0]?.id ?? '',
-          );
-        }
-      })
-      .catch((e: unknown) => {
-        if (live) setError(String(e));
-      });
-    return () => {
-      live = false;
-    };
-  }, [org]);
+    if (!projects) return;
+    const requested = new URLSearchParams(window.location.search).get(
+      'project',
+    );
+    void Promise.resolve().then(() =>
+      setProject((current) => current || requested || projects[0]?.id || ''),
+    );
+  }, [projects]);
   return (
     <div className="policy-page">
       <p className="eyebrow">WORKSPACE / DETERMINISTIC GATES</p>
@@ -125,11 +119,16 @@ export default function Policies({ org, role }: { org: string; role: string }) {
         Versioned rules evaluate scanner evidence and reviewer states. AI
         guidance has no influence on outcomes.
       </p>
-      {error && <p role="alert">{error}</p>}
+      <MoreOptions label="projects" options={projectOptions} />
       <label>
         Project
         <select value={project} onChange={(e) => setProject(e.target.value)}>
-          {projects.map((p) => (
+          {project && !projects?.some((p) => p.id === project) && (
+            <option value={project}>
+              Selected project ({project.slice(0, 8)})
+            </option>
+          )}
+          {(projects ?? []).map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>

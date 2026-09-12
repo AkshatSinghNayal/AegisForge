@@ -8,6 +8,16 @@ The dashboard URL persists `organization`, `project`, `target`, `date_from`, `da
 
 Unless otherwise specified, scans belong to a window by creation time and findings by last observation time. Finding counts describe their **current state**, restricted to findings last observed in that window; they are not a historical reconstruction of state at the end date. Archived targets remain represented when their project is active, preserving retained evidence.
 
+## Selector pagination
+
+The former 200-record limit was a hardcoded truncation, not a tested pagination contract; it had no search or load-more fallback. This was corrected on 2026-09-12. The prior review's description of that cap as a non-blocking limitation was too lenient.
+
+Organization resource lists and configuration project/target/policy lists now accept a nonnegative `offset` and return at most 200 records **per page**, with stable ordering including a unique ID tie-breaker. Authorization is reapplied to every page. Dashboard target options additionally apply `project_id` on the server before pagination. Changing organization or project clears old options and restarts at offset zero; late responses from old scopes are ignored.
+
+The dashboard, policy-gate project selector, new-scan target/policy selectors, target-setup project/policy selectors, configuration lists and project-detail target list expose **Load more projects/targets/policies** when a full page is returned. The control states how many records are loaded and that more may be available. It fetches the next 200 records, appends/deduplicates them by ID, and preserves the selection. Dashboard and gate selectors retain URL-selected IDs visibly even before their option page has loaded; dashboard Refresh restarts option pagination without clearing the applied filters. Loading is announced; failure retains already loaded options and exposes a retry for the failed page. A short or empty page ends pagination. Exactly 200 records therefore require one empty follow-up request; the UI does not invent a total or claim a full page is the whole dataset.
+
+These are offset pages, not a frozen cross-request snapshot. Concurrent inserts/deletions may shift positions; reload the list after concurrent inventory changes. This does not affect dashboard aggregation, which still queries the full authorized population independently of which selector pages have been loaded. The project-overview API retains its bounded target preview; its UI loads the pageable target endpoint. This correction does not add pagination to unrelated scan-history endpoints.
+
 ## Metric definitions
 
 | Metric                           | Definition and exclusions                                                                                                                                                                                                                                                                                                                                  |

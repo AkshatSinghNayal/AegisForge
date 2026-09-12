@@ -1,3 +1,5 @@
+import { usePagedOptions } from './usePagedOptions';
+import { MoreOptions } from './PagedOptions';
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   Link,
@@ -173,10 +175,22 @@ function ScanList({ org, role }: { org: string; role: string }) {
   );
 }
 
+const targetOptionsSchema = z.array(targetSchema);
+const policyOptionsSchema = z.array(policySchema);
 function NewScan({ org, role }: { org: string; role: string }) {
   const navigate = useNavigate();
-  const [targets, setTargets] = useState<z.infer<typeof targetSchema>[]>([]);
-  const [policies, setPolicies] = useState<z.infer<typeof policySchema>[]>([]);
+  const targetOptions = usePagedOptions(
+    `/organizations/${org}/targets`,
+    targetOptionsSchema,
+  );
+  const policyOptions = usePagedOptions(
+    `/organizations/${org}/policies`,
+    policyOptionsSchema,
+  );
+  const targets = (targetOptions.data ?? []).filter(
+    (v) => v.status === 'active',
+  );
+  const policies = policyOptions.data ?? [];
   const [targetId, setTarget] = useState('');
   const [policyId, setPolicy] = useState('');
   const [step, setStep] = useState(0);
@@ -187,25 +201,6 @@ function NewScan({ org, role }: { org: string; role: string }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [key, setKey] = useState(() => crypto.randomUUID());
-  useEffect(() => {
-    let active = true;
-    void Promise.all([
-      request(`/organizations/${org}/targets`, z.array(targetSchema)),
-      request(`/organizations/${org}/policies`, z.array(policySchema)),
-    ])
-      .then(([t, p]) => {
-        if (active) {
-          setTargets(t.filter((v) => v.status === 'active'));
-          setPolicies(p);
-        }
-      })
-      .catch((e: unknown) => {
-        if (active) setError(errorText(e));
-      });
-    return () => {
-      active = false;
-    };
-  }, [org]);
   const target = targets.find((t) => t.id === targetId);
   const policy = policies.find((p) => p.id === policyId);
   async function submit(e: FormEvent) {
@@ -259,6 +254,8 @@ function NewScan({ org, role }: { org: string; role: string }) {
     <section>
       <p className="eyebrow">WORKSPACE / NEW SCAN</p>
       <h1>Review. Authorize. Run.</h1>
+      <MoreOptions label="targets" options={targetOptions} />
+      <MoreOptions label="policies" options={policyOptions} />
       <ol className="scan-stepper" aria-label="Scan setup steps">
         {['Target', 'Policy', 'Trigger & consent', 'Final review'].map(
           (name, i) => (
