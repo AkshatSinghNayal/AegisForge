@@ -472,5 +472,270 @@
     },
     "title": "FindingQuery",
     "type": "object"
+  },
+  "ReportSnapshot": {
+    "$defs": {
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "ai_analysis_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Ai Analysis Ids",
+            "type": "array"
+          },
+          "ai_label": {
+            "const": "Advisory AI guidance; not scanner evidence",
+            "default": "Advisory AI guidance; not scanner evidence",
+            "title": "Ai Label",
+            "type": "string"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "finding_id": {
+            "format": "uuid",
+            "title": "Finding Id",
+            "type": "string"
+          },
+          "occurrence_id": {
+            "format": "uuid",
+            "title": "Occurrence Id",
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/$defs/Severity"
+          }
+        },
+        "required": [
+          "finding_id",
+          "occurrence_id",
+          "artifact_id",
+          "severity",
+          "ai_analysis_ids"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "Severity": {
+        "enum": [
+          "informational",
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "title": "Severity",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false,
+    "properties": {
+      "captured_at": {
+        "format": "date-time",
+        "title": "Captured At",
+        "type": "string"
+      },
+      "completeness": {
+        "title": "Completeness",
+        "type": "string"
+      },
+      "created_at": {
+        "format": "date-time",
+        "title": "Created At",
+        "type": "string"
+      },
+      "evaluation_id": {
+        "anyOf": [
+          {
+            "format": "uuid",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Evaluation Id"
+      },
+      "evaluation_input_digest": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Evaluation Input Digest"
+      },
+      "evaluation_version": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Evaluation Version"
+      },
+      "evidence": {
+        "items": {
+          "$ref": "#/$defs/Evidence"
+        },
+        "title": "Evidence",
+        "type": "array"
+      },
+      "finished_at": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Finished At"
+      },
+      "gate_policy_id": {
+        "anyOf": [
+          {
+            "format": "uuid",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Gate Policy Id"
+      },
+      "limitations": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Limitations",
+        "type": "array"
+      },
+      "organization_id": {
+        "format": "uuid",
+        "title": "Organization Id",
+        "type": "string"
+      },
+      "policy_id": {
+        "format": "uuid",
+        "title": "Policy Id",
+        "type": "string"
+      },
+      "policy_result": {
+        "enum": [
+          "pass",
+          "warn",
+          "fail",
+          "incomplete"
+        ],
+        "title": "Policy Result",
+        "type": "string"
+      },
+      "policy_version": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Policy Version"
+      },
+      "project_id": {
+        "format": "uuid",
+        "title": "Project Id",
+        "type": "string"
+      },
+      "redaction_notice": {
+        "default": "Redacted: credentials, headers, cookies, response bodies and free-form scanner text are excluded. Evidence references require authorization in AegisForge.",
+        "title": "Redaction Notice",
+        "type": "string"
+      },
+      "scan_id": {
+        "format": "uuid",
+        "title": "Scan Id",
+        "type": "string"
+      },
+      "scan_state": {
+        "title": "Scan State",
+        "type": "string"
+      },
+      "scanner_versions": {
+        "items": {
+          "type": "string"
+        },
+        "title": "Scanner Versions",
+        "type": "array"
+      },
+      "schema_version": {
+        "const": "report-v1",
+        "default": "report-v1",
+        "title": "Schema Version",
+        "type": "string"
+      },
+      "severity_summary": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "propertyNames": {
+          "$ref": "#/$defs/Severity"
+        },
+        "title": "Severity Summary",
+        "type": "object"
+      },
+      "started_at": {
+        "anyOf": [
+          {
+            "format": "date-time",
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Started At"
+      },
+      "target_id": {
+        "format": "uuid",
+        "title": "Target Id",
+        "type": "string"
+      }
+    },
+    "required": [
+      "organization_id",
+      "scan_id",
+      "project_id",
+      "target_id",
+      "policy_id",
+      "policy_version",
+      "evaluation_id",
+      "scanner_versions",
+      "scan_state",
+      "completeness",
+      "created_at",
+      "started_at",
+      "finished_at",
+      "captured_at",
+      "severity_summary",
+      "evidence",
+      "policy_result",
+      "limitations"
+    ],
+    "title": "Snapshot",
+    "type": "object"
   }
 }

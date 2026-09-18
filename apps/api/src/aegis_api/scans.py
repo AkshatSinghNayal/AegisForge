@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Header, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select
 from starlette.responses import StreamingResponse
 
@@ -48,6 +48,20 @@ class Trigger(Payload):
 
 
 class ScanInput(Payload):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "target_id": "20000000-0000-4000-8000-000000000001",
+                    "target_version": 1,
+                    "policy_id": "30000000-0000-4000-8000-000000000001",
+                    "policy_version": 1,
+                    "trigger": {"source": "ci", "branch": "main"},
+                    "active_acknowledgement": False,
+                }
+            ]
+        }
+    )
     target_id: UUID
     target_version: int = Field(ge=1)
     policy_id: UUID

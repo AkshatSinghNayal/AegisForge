@@ -599,9 +599,17 @@ class PolicyEvaluation(TenantRecord):
 
 
 class Report(TenantRecord):
+    snapshot: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
+    generator_version: Mapped[str] = mapped_column(
+        String(32), default="report-v1", server_default="report-v1"
+    )
+    content_type: Mapped[str | None] = mapped_column(String(100))
+    version: Mapped[int] = mapped_column(default=1, server_default="1")
     __tablename__ = "reports"
     scan_id: Mapped[UUID] = mapped_column(Uuid)
-    evaluation_id: Mapped[UUID] = mapped_column(Uuid)
+    evaluation_id: Mapped[UUID | None] = mapped_column(Uuid)
     format: Mapped[str] = mapped_column(String(8))
     object_key: Mapped[str | None] = mapped_column(String(500))
     content_hash: Mapped[str | None] = mapped_column(String(64))
@@ -612,6 +620,9 @@ class Report(TenantRecord):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     failure_code: Mapped[str | None] = mapped_column(String(100))
     __table_args__ = scoped(
+        UniqueConstraint(
+            "organization_id", "scan_id", "version", name="uq_report_version"
+        ),
         parent("scan_id", "scans"),
         ForeignKeyConstraint(
             ["organization_id", "scan_id", "evaluation_id"],
@@ -633,6 +644,10 @@ class Report(TenantRecord):
 
 
 class NotificationDestination(TenantRecord):
+    subscriptions: Mapped[list[str]] = mapped_column(
+        ARRAY(String(64)), default=list, server_default="{}"
+    )
+    configuration_ciphertext: Mapped[str | None] = mapped_column(Text)
     __tablename__ = "notification_destinations"
     name: Mapped[str] = mapped_column(String(120))
     project_id: Mapped[UUID | None] = mapped_column(Uuid)
@@ -650,9 +665,13 @@ class NotificationDestination(TenantRecord):
 
 
 class NotificationDelivery(TenantRecord):
+    event_key: Mapped[str | None] = mapped_column(String(200))
+    payload: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
     __tablename__ = "notification_deliveries"
     destination_id: Mapped[UUID] = mapped_column(Uuid)
-    event_id: Mapped[UUID] = mapped_column(Uuid)
+    event_id: Mapped[UUID | None] = mapped_column(Uuid)
     template_version: Mapped[str] = mapped_column(String(32))
     state: Mapped[NotificationState] = mapped_column(
         enum_type(NotificationState), default=NotificationState.PENDING
@@ -661,6 +680,12 @@ class NotificationDelivery(TenantRecord):
     next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     failure_code: Mapped[str | None] = mapped_column(String(100))
     __table_args__ = scoped(
+        UniqueConstraint(
+            "organization_id",
+            "destination_id",
+            "event_key",
+            name="uq_delivery_event_key",
+        ),
         parent("destination_id", "notification_destinations"),
         parent("event_id", "scan_events"),
         UniqueConstraint(
@@ -687,9 +712,13 @@ class Integration(TenantRecord):
 
 
 class APIKey(TenantRecord):
+    name: Mapped[str] = mapped_column(
+        String(120), default="Legacy key", server_default="Legacy key"
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __tablename__ = "api_keys"
     issued_by_id: Mapped[UUID] = mapped_column(Uuid)
-    project_id: Mapped[UUID] = mapped_column(Uuid)
+    project_id: Mapped[UUID | None] = mapped_column(Uuid)
     permission_scopes: Mapped[list[str]] = mapped_column(ARRAY(String(64)))
     prefix: Mapped[str] = mapped_column(String(16))
     key_hash: Mapped[str] = mapped_column(String(64), unique=True)

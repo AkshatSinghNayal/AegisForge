@@ -1,6 +1,6 @@
 # Phase status
 
-Current phase: **Phase 12 — strict review CONDITIONAL PASS; fixed defects and remaining boundaries below (2026-09-11)**.
+Current phase: **Phase 13 — strict review CONDITIONAL PASS (2026-09-16)**.
 
 Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worker-side versioned normalization, immutable per-observation evidence provenance, conservative comparable-scan lifecycle, authenticated findings/filter/detail/comparison APIs, audited review and the findings workspace. Phase 10 adds on-demand schema-constrained advisory AI and retained feedback. Phase 11 implements deterministic project policies and retained evaluations; reports remain deferred. See [normalization](FINDING_NORMALIZATION.md) and [Phase 9 verification](PHASE9_TEST_REPORT.md).
 
@@ -387,3 +387,29 @@ Final Docker reclaimable storage: **Images 4.824GB (94%)**, **Build Cache 9.125G
 The 200-record selector cap was **silent truncation**, not a deliberate pagination boundary, and should not have been classified as non-blocking. It is now replaced by tested 200-record pages with visible Load more/loading/retry controls across dashboard, gate project, new-scan and target-setup selectors and configuration lists, including project-detail targets. Authorization applies on every page; dashboard targets are filtered by project before pagination. Later records remain selectable rather than disappearing. See [pagination contract](ANALYTICS.md#selector-pagination) and [actual verification](TEST_REPORT.md#selector-pagination-correction--2026-09-12). This supersedes only the earlier 200-record limitation; the other Phase 12 boundaries remain.
 
 Verification: **41 frontend unit tests**, **4 dashboard/policy browser journeys** (including record 201 and all four unchanged viewport snapshots), and **2 real configuration/scan journeys** passed. The real API regression run passed 91 tests with one malformed new fixture failure; after correcting the fixture, both selector boundary/HTTP tests passed. Those tests cover 201 records for each selector type, stable tied ordering, project/tenant permissions on later pages and invalid offsets. Type/lint/schema checks and the production frontend build passed. Test resources were cleaned up with volumes retained.
+
+## Phase 13 handoff — 2026-09-13
+
+Implemented asynchronous immutable PDF/JSON reports, local/private S3 storage, expiring signed downloads, encrypted email/Slack/HMAC webhook/GitHub PR destinations, subscribed durable delivery with retries/dead-letter/manual retry, one-time organization API keys and scoped typed public API access. Workspace forms, migration 0010, generated schemas, dependency lock, local setup and configuration/docs are updated. [Operational contract](REPORTING_ACCESS.md) and [exact verification](PHASE13_TEST_REPORT.md) supersede earlier statements that report/key/provider services are deferred.
+
+Verification: full container regression **467 passed** before the final four security cases; final focused suite **26 passed**. Final configured quality/build gate passed with **344 backend unit tests**, **43 frontend tests**, two runner checks, lint, strict types, schemas and both builds. Browser reporter: **62 passed, 7 opt-in skips**, with parent SIGTERM disclosed; final changed workflow rerun exited successfully. Final mobile/desktop screenshots and PDF pages were inspected. Non-root report-volume storage and fresh setup key preservation passed.
+
+No live third-party message, cloud object, ZAP or Gemini call was made. External provider credentials, S3 bucket lifecycle and workload identity are deployment prerequisites; at-least-once delivery and crash-orphan retention boundaries are documented. The shared test stack is cleaned up without deleting volumes. No later phase is started; Phase 14 requires a new prompt.
+
+Phase 13 Git handoff is blocked: ordinary staging failed on read-only `.git/index.lock`, and automatic approval review rejected escalation under the AGENTS.md protected-metadata rule. Verified changes remain unstaged in the working tree; no commit/push or metadata workaround occurred. See [Git blocker](PHASE13_TEST_REPORT.md#git-handoff-blocker).
+
+## Phase 13 strict review — 2026-09-16
+
+**CONDITIONAL PASS** after repairing report metadata immutability, latest-report/expiry status, API-key revocation revalidation, one-time secret retention and notification loading/response handling. Review changes stay within Phase 13. See [actual review results](TEST_REPORT.md#phase-13-strict-review--2026-09-16).
+
+Final sources passed **348 backend unit tests + 130 PostgreSQL integration tests**, **44 frontend unit tests**, lint, strict types, schema parity, Compose isolation, Vite/API package builds and API/mock-worker image builds. All **62 non-live browser scenarios** passed across the interrupted full run and a clean 17-test recovery batch; all **7 live identity/configuration/mock-scan journeys** passed in one clean run. Reports, API Keys and Integrations were visually inspected at **390/768/1280/1440px**, with axe and overflow assertions at every size. Initial lint/test-fixture failures, a public-page timeout, SIGTERM and orphan-server cleanup are disclosed in the report.
+
+Exact non-blocking limitations: third-party delivery/S3 boundaries use test doubles rather than live provider accounts; browser certification is Chromium and the full non-live suite required split-run recovery; production throughput is unmeasured. Git remains unstaged/uncommitted because protected metadata is read-only and the previous escalation was rejected. No Git workaround was attempted.
+
+Final Docker RECLAIMABLE: **Images 5.469GB (95%)**, **Build Cache 1.732GB**. Images exceed 5GB: suggest `docker image prune -a` before the next phase; `docker builder prune` is optional for cache housekeeping. Neither was run. Test containers/networks were removed with all five volumes retained. Phase 14 is the next unblocked phase and requires an explicit user prompt; stop after this review.
+
+## Phase 13 live security follow-up — 2026-09-18
+
+The earlier seven live journeys did **not** cover webhook HMAC delivery, notification SSRF rejection or API-key issuance/authentication. All three are now separately **PASS** through the running API and real local network transport: independently verified HTTPS HMAC delivery with a bad-signature 401 control; seven malicious destination POSTs rejected with 422 and no persistence; and browser one-time key display followed by cookie-free key authentication, database hash verification, stored-hash mutation/restoration, scope denial and revocation. See [exact evidence and failed harness attempts](TEST_REPORT.md#phase-13-live-security-follow-up--2026-09-18).
+
+The final harness exited 0 and cleaned up its disposable database, containers, network and temporary secrets while retaining existing volumes. This closes the three specified live local E2E gaps. Public-internet/provider/S3 certification and the protected Git commit restriction remain unchanged limitations. No production validation/transport was replaced or relaxed; no next phase began.

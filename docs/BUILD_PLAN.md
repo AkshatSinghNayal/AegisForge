@@ -81,3 +81,7 @@ The explicit Phase 11 prompt authorizes versioned deterministic project gate pol
 ## Phase 12 prompt override
 
 The explicit Phase 12 prompt adds the authenticated dashboard, safe workspace registries, full sidebar, organization/project/target/date filtering, metric documentation, CSV and responsive/browser verification. This supersedes the original provisional numbering for analytics. Scope and metric details are in [ANALYTICS](ANALYTICS.md), actual validation and remaining coverage in [PHASE12_TEST_REPORT](PHASE12_TEST_REPORT.md). Do not start a subsequent phase automatically.
+
+## Phase 13 prompt override
+
+The user's Phase 13 prompt authorizes asynchronous immutable PDF/JSON reports, local/S3 storage and signed downloads; email/Slack/HMAC webhook/GitHub PR adapters with durable subscriptions/retries; organization API key issuance and scoped public endpoints. Implementation and operational contracts are in [REPORTING_ACCESS](REPORTING_ACCESS.md). No subsequent phase starts automatically.

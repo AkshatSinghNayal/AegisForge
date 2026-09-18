@@ -2,7 +2,7 @@
 
 DevSecOps Vulnerability Intelligence Engine for authorized web applications and REST APIs.
 
-Phases 1–11 provide the React/FastAPI foundation, design system, public website, PostgreSQL schema, authentication/RBAC, authorized target configuration, scan orchestration, isolated ZAP collection, and evidence-preserving finding normalization/review. Phase 10 adds optional advisory AI guidance with strict validation and retained versions. Phase 11 adds versioned deterministic project gates, approved expiring exceptions, historical previews and immutable evaluation history. Reports remain future work. See the [phase status](docs/PHASE_STATUS.md), [normalization guide](docs/FINDING_NORMALIZATION.md), and [Phase 9 verification](docs/PHASE9_TEST_REPORT.md).
+Phases 1–11 provide the React/FastAPI foundation, design system, public website, PostgreSQL schema, authentication/RBAC, authorized target configuration, scan orchestration, isolated ZAP collection, and evidence-preserving finding normalization/review. Phase 10 adds optional advisory AI guidance with strict validation and retained versions. Phase 11 adds versioned deterministic project gates, approved expiring exceptions, historical previews and immutable evaluation history. Phase 12 adds dashboard analytics and workspace navigation. Phase 13 implements asynchronous PDF/JSON reports, private local/S3 storage, signed downloads, durable notification adapters, organization API keys and typed public API access. See [reporting and public API setup](docs/REPORTING_ACCESS.md). See the [phase status](docs/PHASE_STATUS.md), [normalization guide](docs/FINDING_NORMALIZATION.md), and [Phase 9 verification](docs/PHASE9_TEST_REPORT.md).
 
 ## Design and motion laboratories
 

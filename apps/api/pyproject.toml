@@ -17,6 +17,8 @@ dependencies = [
     "pyyaml>=6.0.3",
     "openapi-spec-validator>=0.9.0",
     "google-genai<3",
+    "reportlab>=5.0.1",
+    "boto3>=1.43.93",
 ]
 
 [build-system]
@@ -35,6 +37,9 @@ dev = [
     "mypy",
     "pyyaml",
     "types-pyyaml>=6.0.12.20260906",
+    "pypdf>=6.18.1",
+    "types-reportlab>=5.0.0.20260911",
+    "boto3-stubs[s3]>=1.43.93",
 ]
 
 [tool.pytest.ini_options]

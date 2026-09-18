@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/ui';
 import { ApiError, request } from './client';
+import DeliveryTools from './DeliveryTools';
 import { exportCSV } from './analyticsModels';
 const schema = z.object({
   items: z.array(
@@ -75,6 +76,21 @@ export default function Registry({ org, kind }: { org: string; kind: string }) {
       setBusy(false);
     }
   }
+  async function download(id: string) {
+    setBusy(true);
+    try {
+      const link = await request(
+        `/reports/${id}/download?organization_id=${org}`,
+        z.object({ url: z.string(), expires_at: z.string() }),
+        'POST',
+      );
+      window.location.assign(link.url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unable to download.');
+    } finally {
+      setBusy(false);
+    }
+  }
   function move(value: number) {
     const next = new URLSearchParams(params);
     next.set('page', String(value));
@@ -82,7 +98,7 @@ export default function Registry({ org, kind }: { org: string; kind: string }) {
     setParams(next);
   }
   return (
-    <section className="analytics-panel">
+    <section className="analytics-panel registry-panel">
       <h1>{titles[kind]}</h1>
       <p className="muted">
         Retained organization records. Sensitive evidence and credentials are
@@ -99,6 +115,17 @@ export default function Registry({ org, kind }: { org: string; kind: string }) {
           Loading records…
         </div>
       )}
+      {org && (
+        <DeliveryTools
+          key={`${org}:${kind}`}
+          org={org}
+          kind={kind}
+          onChange={() => setReload((v) => v + 1)}
+        />
+      )}
+      <Button variant="secondary" onClick={() => setReload((v) => v + 1)}>
+        Refresh records
+      </Button>
       {data && (
         <>
           <p>
@@ -149,6 +176,14 @@ export default function Registry({ org, kind }: { org: string; kind: string }) {
                         : '—'}
                     </td>
                     <td>
+                      {kind === 'reports' && r.status === 'complete' && (
+                        <Button
+                          disabled={busy}
+                          onClick={() => void download(r.id)}
+                        >
+                          Download report
+                        </Button>
+                      )}
                       {r.scan_id && (
                         <Link
                           to={`/app/scans/${r.scan_id}?organization=${org}`}

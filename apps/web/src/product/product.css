@@ -855,3 +855,58 @@
 .analytics-series table {
   min-width: 300px;
 }
+
+.delivery-tools {
+  margin-block: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.delivery-tools form {
+  display: grid;
+  gap: 1rem;
+  max-width: 48rem;
+}
+.delivery-tools label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.delivery-tools input:not([type='checkbox']),
+.delivery-tools select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+.delivery-tools fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+}
+.delivery-tools fieldset label {
+  flex-direction: row;
+  align-items: center;
+  min-height: 44px;
+}
+.delivery-tools input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+}
+
+.registry-panel .analytics-series table {
+  min-width: 580px;
+}
+.delivery-tools h2 {
+  margin-block: 1.4rem 0.65rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.delivery-tools > p {
+  margin-block: 0.65rem;
+}

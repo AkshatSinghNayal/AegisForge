@@ -13,6 +13,7 @@ services:
       test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/']
   api:
     environment:
+      AEGIS_REPORT_STORAGE: s3
       AEGIS_PROFILE: prod
       AEGIS_COOKIE_SECURE: true
       AEGIS_APP_ORIGIN: ${AEGIS_APP_ORIGIN:-https://localhost:8080}

@@ -45,6 +45,17 @@ class WorkerSettings(BaseSettings):
 
 
 class Settings(WorkerSettings):
+    reporting_enabled: bool = True
+    report_storage: Literal["local", "s3"] = "local"
+    report_root: str = "/var/lib/aegis/reports"
+    report_bucket: str = ""
+    report_kms_key_id: str = ""
+    report_signing_key: SecretStr = SecretStr("")
+    notification_encryption_key: SecretStr = SecretStr("")
+    report_retention_days: int = Field(default=30, ge=1, le=365)
+    report_url_seconds: int = Field(default=60, ge=10, le=300)
+    api_key_rate_limit: int = Field(default=120, ge=1, le=10000)
+
     ai_provider: Literal["none", "mock", "gemini"] = "none"
     ai_model: str = Field(
         default="gemini-2.5-flash",

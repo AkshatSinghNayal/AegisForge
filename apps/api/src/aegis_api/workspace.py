@@ -99,9 +99,7 @@ async def registry(
             for r in integrations
         ]
     elif kind == "api-keys":
-        kq = select(APIKey).where(
-            APIKey.organization_id == member.organization_id, APIKey.project_id.in_(ids)
-        )
+        kq = select(APIKey).where(APIKey.organization_id == member.organization_id)
         total = await db.scalar(select(func.count()).select_from(kq.subquery()))
         keys = (
             await db.scalars(
@@ -115,7 +113,7 @@ async def registry(
         items = [
             RegistryRow(
                 id=r.id,
-                label=r.prefix,
+                label=f"{r.name} ({r.prefix})",
                 status="revoked"
                 if r.revoked_at
                 else "expired"

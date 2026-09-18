@@ -57,9 +57,20 @@ def create_app(
             if config.scan_coordinator_enabled
             else None
         )
+        from aegis_api.report_jobs import coordinate as report_coordinate
+
+        report_jobs = (
+            asyncio.create_task(report_coordinate(app.state.sessions, config))
+            if config.reporting_enabled
+            else None
+        )
         try:
             yield
         finally:
+            if report_jobs:
+                report_jobs.cancel()
+                with suppress(asyncio.CancelledError):
+                    await report_jobs
             if coordinator:
                 coordinator.cancel()
                 with suppress(asyncio.CancelledError):
@@ -97,6 +108,15 @@ def create_app(
     app.include_router(ai_router)
     app.include_router(analytics_router)
     app.include_router(workspace_router)
+    from aegis_api import api_keys, notifications, public_api, reporting
+
+    for router in (
+        api_keys.router,
+        notifications.router,
+        public_api.router,
+        reporting.router,
+    ):
+        app.include_router(router)
     app.add_exception_handler(APIError, api_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(HTTPException, http_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
