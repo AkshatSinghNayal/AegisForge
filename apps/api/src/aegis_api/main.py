@@ -108,10 +108,12 @@ def create_app(
     app.include_router(ai_router)
     app.include_router(analytics_router)
     app.include_router(workspace_router)
-    from aegis_api import api_keys, notifications, public_api, reporting
+    from aegis_api import api_keys, ci, github, notifications, public_api, reporting
 
     for router in (
         api_keys.router,
+        ci.router,
+        github.router,
         notifications.router,
         public_api.router,
         reporting.router,

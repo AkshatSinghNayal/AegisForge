@@ -104,7 +104,7 @@ test('report, notification and one-time key controls', async ({
   });
   for (const kind of ['reports', 'api-keys', 'integrations']) {
     await page.goto(`/app/${kind}?organization=${org}`);
-    await expect(page.locator('.delivery-tools')).toBeVisible();
+    await expect(page.locator('.delivery-tools').first()).toBeVisible();
     for (const width of [390, 768, 1280, 1440]) {
       await page.setViewportSize({ width, height: 1000 });
       expect(

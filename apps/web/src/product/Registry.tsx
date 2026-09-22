@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Button } from '@/ui';
 import { ApiError, request } from './client';
 import DeliveryTools from './DeliveryTools';
+import GitHubIntegration from './GitHubIntegration';
 import { exportCSV } from './analyticsModels';
 const schema = z.object({
   items: z.array(
@@ -114,6 +115,9 @@ export default function Registry({ org, kind }: { org: string; kind: string }) {
         <div className="skeleton" role="status">
           Loading records…
         </div>
+      )}
+      {org && kind === 'integrations' && (
+        <GitHubIntegration key={org} org={org} />
       )}
       {org && (
         <DeliveryTools

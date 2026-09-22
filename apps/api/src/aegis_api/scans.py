@@ -41,6 +41,10 @@ WRITE = [Depends(csrf)]
 
 class Trigger(Payload):
     source: Literal["manual", "ci"] = "manual"
+    repository: str | None = Field(
+        default=None, max_length=200, pattern=r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    )
+    pull_request: int | None = Field(default=None, ge=1)
     branch: str | None = Field(
         default=None, max_length=120, pattern=r"^[A-Za-z0-9._/\-]+$"
     )
@@ -294,6 +298,18 @@ async def create_scan(
     db: DB,
     idempotency_key: Annotated[str | None, Header()] = None,
 ) -> ScanView:
+    return await submit_scan(body, request, member, db, idempotency_key)
+
+
+async def submit_scan(
+    body: ScanInput,
+    request: Request,
+    member: OrganizationMember,
+    db: DB,
+    idempotency_key: str | None,
+    *,
+    commit: bool = True,
+) -> ScanView:
     require(member, "scans.write")
 
     async def create(id: UUID) -> None:
@@ -404,7 +420,10 @@ async def create_scan(
         create=create,
     )
     scan = await resource(result.resource_id, member, db)
-    await db.commit()
+    if commit:
+        await db.commit()
+    else:
+        await db.flush()
     return await view(scan, db)
 
 

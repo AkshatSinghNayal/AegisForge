@@ -1,6 +1,8 @@
 # Phase status
 
-Current phase: **Phase 13 — strict review CONDITIONAL PASS (2026-09-16)**.
+Current phase: **Phase 14 — implemented and verified (2026-09-22)**.
+
+Phase 14 adds the reusable GitHub Actions workflow, API-key CLI, deterministic redacted CI summaries, optional PR comment updates, signed/deduplicated inbound webhooks and administrator setup UI. See [setup and examples](GITHUB_ACTIONS.md) and [verification](PHASE14_TEST_REPORT.md). All configured quality checks/builds passed; 373 backend non-integration tests, 135 integration tests, 46 frontend tests and 2 relevant Chromium journeys passed. Eight opt-in live ZAP tests were skipped. No live GitHub publication was performed. Phase 15 requires an explicit prompt and has not started.
 
 Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worker-side versioned normalization, immutable per-observation evidence provenance, conservative comparable-scan lifecycle, authenticated findings/filter/detail/comparison APIs, audited review and the findings workspace. Phase 10 adds on-demand schema-constrained advisory AI and retained feedback. Phase 11 implements deterministic project policies and retained evaluations; reports remain deferred. See [normalization](FINDING_NORMALIZATION.md) and [Phase 9 verification](PHASE9_TEST_REPORT.md).
 
@@ -421,3 +423,9 @@ No live GitHub repository is available in this environment, and a live GitHub re
 **Verified against simulated GitHub payloads, not a live GitHub repository:** eight tests passed for local `pull_request` and `workflow_run` deliveries, GitHub's published signature test vector, and rejection of tampered bodies, incorrect secrets, missing signatures, SHA-1 signatures and the incompatible AegisForge timestamp-prefixed signature scheme. The fixture uses `X-Hub-Signature-256: sha256=<hex HMAC-SHA256(secret, raw body)>`, UTF-8 bytes and constant-time comparison, following [GitHub's validation documentation](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries).
 
 These are test-only payload/receiver simulations. A signed `workflow_run` event does not demonstrate that an Actions workflow actually ran. Phase 13 implements an outbound GitHub PR-comment adapter; it does not implement an incoming GitHub webhook endpoint or an Actions runner. The fixture tests do not claim production webhook ingestion, repository permissions or GitHub-hosted execution. No later-phase endpoint or workflow was added.
+
+## Phase 14 handoff — 2026-09-22
+
+Implemented only the requested DevSecOps CI/CD integration. Migration 0011 retains tenant-safe GitHub mappings and delivery receipts; webhook enqueue and replay use the existing organization transaction boundary. Passive automation reuses current authorization and frozen deterministic policies; active scans retain the existing one-use confirmation path. API keys and webhook secrets are displayed only at issuance. Redacted outputs and comments contain fixed text, counts and internal links.
+
+Validation, exact commands, corrected intermediate failures, manual review and limitations are recorded in [PHASE14_TEST_REPORT](PHASE14_TEST_REPORT.md). Setup, push/PR examples, optional comment permissions, lifecycle and replay/cancellation bounds are in [GITHUB_ACTIONS](GITHUB_ACTIONS.md). README, decisions, environment example, build plan, test matrix and generated schemas are current. PostgreSQL and Redis started for tests were stopped without deleting volumes. No Phase 15 work was started.

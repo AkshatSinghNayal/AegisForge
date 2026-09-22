@@ -85,3 +85,7 @@ The explicit Phase 12 prompt adds the authenticated dashboard, safe workspace re
 ## Phase 13 prompt override
 
 The user's Phase 13 prompt authorizes asynchronous immutable PDF/JSON reports, local/S3 storage and signed downloads; email/Slack/HMAC webhook/GitHub PR adapters with durable subscriptions/retries; organization API key issuance and scoped public endpoints. Implementation and operational contracts are in [REPORTING_ACCESS](REPORTING_ACCESS.md). No subsequent phase starts automatically.
+
+## Phase 14 prompt override
+
+The explicit Phase 14 prompt authorizes the reusable GitHub Actions workflow, checked-in API-key CLI, deterministic CI results/artifacts/summaries, optional update-in-place PR comments, signed/deduplicated inbound webhooks and administrator repository-mapping UI. See [GITHUB_ACTIONS](GITHUB_ACTIONS.md) and [PHASE14_TEST_REPORT](PHASE14_TEST_REPORT.md). No Phase 15 work is authorized.

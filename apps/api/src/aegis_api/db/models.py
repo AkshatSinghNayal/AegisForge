@@ -788,3 +788,45 @@ class FindingReview(TenantRecord):
         parent("actor_id", "organization_members"),
         parent("scan_id", "scans"),
     )
+
+
+class GitHubMapping(TenantRecord):
+    __tablename__ = "github_mappings"
+    integration_id: Mapped[UUID] = mapped_column(Uuid)
+    creator_id: Mapped[UUID] = mapped_column(Uuid)
+    project_id: Mapped[UUID] = mapped_column(Uuid)
+    target_id: Mapped[UUID] = mapped_column(Uuid)
+    policy_id: Mapped[UUID] = mapped_column(Uuid)
+    gate_policy_id: Mapped[UUID] = mapped_column(Uuid)
+    target_version: Mapped[int] = mapped_column(Integer)
+    policy_version: Mapped[int] = mapped_column(Integer)
+    repository: Mapped[str] = mapped_column(String(200))
+    branch: Mapped[str] = mapped_column(String(120))
+    environment: Mapped[str] = mapped_column(String(64))
+    events: Mapped[list[str]] = mapped_column(ARRAY(String(32)))
+    secret_ciphertext: Mapped[str] = mapped_column(Text)
+    __table_args__ = scoped(
+        parent("integration_id", "integrations"),
+        parent("creator_id", "organization_members"),
+        parent("project_id", "projects"),
+        parent("target_id", "targets"),
+        parent("policy_id", "scan_policies"),
+        parent("gate_policy_id", "gate_policies"),
+        UniqueConstraint("organization_id", "integration_id"),
+    )
+
+
+class GitHubDelivery(TenantRecord):
+    __tablename__ = "github_deliveries"
+    mapping_id: Mapped[UUID] = mapped_column(Uuid)
+    delivery_id: Mapped[UUID] = mapped_column(Uuid)
+    payload_digest: Mapped[str] = mapped_column(String(64))
+    event: Mapped[str] = mapped_column(String(32))
+    state: Mapped[str] = mapped_column(String(32))
+    scan_id: Mapped[UUID | None] = mapped_column(Uuid)
+    __table_args__ = scoped(
+        parent("mapping_id", "github_mappings"),
+        parent("scan_id", "scans"),
+        UniqueConstraint("organization_id", "mapping_id", "delivery_id"),
+        UniqueConstraint("organization_id", "mapping_id", "payload_digest", "event"),
+    )
