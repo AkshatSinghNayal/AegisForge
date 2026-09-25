@@ -309,6 +309,7 @@ async def submit_scan(
     idempotency_key: str | None,
     *,
     commit: bool = True,
+    command_digest: str | None = None,
 ) -> ScanView:
     require(member, "scans.write")
 
@@ -414,7 +415,7 @@ async def submit_scan(
     ).execute(
         operation="POST /api/v1/scans",
         key=idempotency_key,
-        digest=fingerprint(body),
+        digest=command_digest or fingerprint(body),
         resource_id=uuid4(),
         status=202,
         create=create,

@@ -89,7 +89,7 @@ test('GitHub setup, secret dismissal, connection test, delivery history and disa
     page.getByText('Local readiness verified. Send a signed GitHub ping.'),
   ).toBeVisible();
   await expect(page.locator('.github-tools')).toContainText('ping · ping');
-  for (const width of [390, 1440]) {
+  for (const width of [390, 768, 1280, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(
       await page.evaluate(

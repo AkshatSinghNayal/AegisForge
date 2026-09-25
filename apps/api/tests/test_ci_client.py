@@ -263,3 +263,106 @@ def test_actual_sigterm_keeps_incomplete_artifact(tmp_path):
         if process.poll() is None:
             process.kill()
             process.wait()
+
+
+def test_polling_writes_one_final_job_summary(tmp_path, monkeypatch):
+    options, scan = args(tmp_path), str(uuid4())
+    polls = iter(["queued", "passive_scanning", "completed"])
+
+    def call(self, method, path, body=None, key=None, retry=True):
+        if path.endswith("context"):
+            return {
+                **body,
+                "target_version": 1,
+                "policy_version": 1,
+                "gate_policy_version": 1,
+                "gate_policy_id": str(uuid4()),
+            }
+        if path.endswith("/scans"):
+            return {"id": scan}
+        state = next(polls)
+        return result(scan, "pass" if state == "completed" else "incomplete", state)
+
+    monkeypatch.setattr(cli.Client, "call", call)
+    monkeypatch.setattr(cli.time, "sleep", lambda _: None)
+    monkeypatch.setenv("AEGISFORGE_API_KEY", "synthetic")
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(tmp_path / "job.md"))
+    assert cli.run(options) == 0
+    text = (tmp_path / "job.md").read_text()
+    assert text.count("### AegisForge scan") == 1
+    assert "**incomplete**" not in text and "**pass**" in text
+
+
+@pytest.mark.parametrize("phase", ["open", "read"])
+def test_total_request_deadline_includes_slow_network(phase):
+    import time
+    from io import BytesIO
+
+    class SlowBody(BytesIO):
+        def read(self, *args):
+            if phase == "read":
+                time.sleep(0.15)
+            return super().read(*args)
+
+    def open_response(*args, **kwargs):
+        if phase == "open":
+            time.sleep(0.15)
+        return SlowBody(b'{"ok":true}')
+
+    client = cli.Client(
+        "https://api.example.test", "synthetic", time.monotonic() + 0.04
+    )
+    client.opener.open = open_response
+    with pytest.raises(TimeoutError):
+        client.call("GET", "/summary")
+
+
+def test_passing_summary_requires_counts():
+    scan = str(uuid4())
+    with pytest.raises(cli.Failure):
+        cli.summary({**result(scan), "counts": None}, scan)
+
+
+def test_trickling_http_body_cannot_extend_deadline():
+    import threading
+    import time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    stopping = threading.Event()
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Length", "100")
+            self.end_headers()
+            try:
+                for _ in range(100):
+                    if stopping.wait(0.01):
+                        break
+                    self.wfile.write(b" ")
+                    self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        client = cli.Client(
+            "https://api.example.test", "synthetic", time.monotonic() + 0.15
+        )
+        # Only the controlled test endpoint uses HTTP; production origin validation
+        # remains HTTPS-only. Real urllib response reads receive a byte every 10ms.
+        client.base = f"http://127.0.0.1:{server.server_port}"
+        started = time.monotonic()
+        with pytest.raises(TimeoutError):
+            client.call("GET", "/summary")
+        assert time.monotonic() - started < 0.6
+    finally:
+        stopping.set()
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)

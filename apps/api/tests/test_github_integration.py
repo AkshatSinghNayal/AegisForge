@@ -341,3 +341,155 @@ async def test_mapping_foreign_keys_deny_cross_tenant_links(client, db, monkeypa
         json={**body, "target_id": str(target.id)},
     )
     assert denied.status_code == 404
+
+
+@pytest.mark.integration
+async def test_ci_reused_key_cannot_replay_another_gate_version(
+    client, db, monkeypatch
+):
+    from datetime import timedelta
+
+    from aegis_api.auth import now
+
+    org, body, _ = await setup(client, db, monkeypatch)
+    key = await client.post(
+        f"/api/v1/api-keys?organization_id={org}",
+        json={
+            "name": "Review",
+            "scopes": ["scans:create", "scans:read"],
+            "expires_at": (now() + timedelta(days=1)).isoformat(),
+        },
+    )
+    headers = {
+        "Authorization": "Bearer " + key.json()["secret"],
+        "Idempotency-Key": "unchanged-client-key",
+    }
+    selection = {
+        k: body[k] for k in ["project_id", "target_id", "policy_id", "environment"]
+    }
+    context = (
+        await client.post("/api/public/v1/ci/context", json=selection, headers=headers)
+    ).json()
+    first = await client.post(
+        "/api/public/v1/ci/scans",
+        json={**context, "trigger": {"source": "ci"}},
+        headers=headers,
+    )
+    assert first.status_code == 202
+    path = f"/api/v1/organizations/{org}/projects/{body['project_id']}/gate-policies"
+    gate = (
+        await client.post(path, json={"policy": {"incomplete_outcome": "fail"}})
+    ).json()
+    assert (
+        await client.post(path + "/activation", json={"policy_id": gate["id"]})
+    ).status_code == 200
+    changed = (
+        await client.post("/api/public/v1/ci/context", json=selection, headers=headers)
+    ).json()
+    assert changed["gate_policy_id"] != context["gate_policy_id"]
+    replay = await client.post(
+        "/api/public/v1/ci/scans",
+        json={**changed, "trigger": {"source": "ci"}},
+        headers=headers,
+    )
+    assert replay.status_code == 409, replay.text
+
+
+@pytest.mark.integration
+async def test_delivery_id_conflict_wins_over_matching_payload(client, db, monkeypatch):
+    _, _, mapping = await setup(client, db, monkeypatch)
+    first_id, second_id = str(uuid4()), str(uuid4())
+    first = json.dumps({"repository": {"full_name": "unsupported/repo"}}).encode()
+    second = json.dumps({"repository": {"full_name": "owner/repo"}}).encode()
+
+    async def send(raw, delivery_id):
+        return await client.post(
+            mapping["webhook_path"],
+            content=raw,
+            headers={
+                "X-GitHub-Event": "ping",
+                "X-GitHub-Delivery": delivery_id,
+                "X-Hub-Signature-256": "sha256="
+                + hmac.digest(mapping["secret"].encode(), raw, "sha256").hex(),
+            },
+        )
+
+    assert (await send(first, first_id)).status_code == 422
+    assert (await send(second, second_id)).status_code == 200
+    # The OR query must not depend on which legal PostgreSQL plan finds a row first.
+    from sqlalchemy import text
+
+    await db.execute(text("SET LOCAL enable_indexscan = off"))
+    await db.execute(text("SET LOCAL enable_bitmapscan = off"))
+    conflict = await send(first, second_id)
+    assert conflict.status_code == 409, conflict.text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "failure,status",
+    [
+        ("missing_signature", 401),
+        ("wrong_signature", 401),
+        ("missing_delivery", 400),
+        ("invalid_delivery", 400),
+        ("unsupported_event", 422),
+        ("expired_target", 200),
+        ("demoted_creator", 403),
+        ("inactive_organization", 403),
+    ],
+)
+async def test_webhook_failures_never_enqueue_or_log_secrets(
+    client, db, monkeypatch, caplog, failure, status
+):
+    from datetime import timedelta
+
+    from aegis_api.auth import now
+    from aegis_api.db.enums import RecordState, Role
+    from aegis_api.db.models import Organization, OrganizationMember
+
+    org, body, mapping = await setup(client, db, monkeypatch)
+    raw = json.dumps(
+        {
+            "repository": {"full_name": "owner/repo"},
+            "ref": "refs/heads/main",
+            "after": "a" * 40,
+            "body": "synthetic-review-secret-canary",
+        }
+    ).encode()
+    headers = {
+        "X-GitHub-Event": "push",
+        "X-GitHub-Delivery": str(uuid4()),
+        "X-Hub-Signature-256": "sha256="
+        + hmac.digest(mapping["secret"].encode(), raw, "sha256").hex(),
+    }
+    if failure == "missing_signature":
+        headers.pop("X-Hub-Signature-256")
+    elif failure == "wrong_signature":
+        headers["X-Hub-Signature-256"] = "sha256=" + "0" * 64
+    elif failure == "missing_delivery":
+        headers.pop("X-GitHub-Delivery")
+    elif failure == "invalid_delivery":
+        headers["X-GitHub-Delivery"] = "invalid"
+    elif failure == "unsupported_event":
+        headers["X-GitHub-Event"] = "workflow_run"
+    elif failure == "expired_target":
+        target = await db.get(Target, UUID(body["target_id"]))
+        target.authorized_until = now() - timedelta(seconds=1)
+    elif failure == "demoted_creator":
+        row = await db.get(GitHubMapping, UUID(mapping["id"]))
+        member = await db.get(OrganizationMember, row.creator_id)
+        member.role = Role.VIEWER
+    else:
+        row = await db.get(Organization, UUID(org))
+        row.status = RecordState.DEACTIVATED
+    await db.flush()
+    response = await client.post(mapping["webhook_path"], content=raw, headers=headers)
+    assert response.status_code == status
+    if status == 200:
+        assert response.json() == {"state": "blocked", "scan_id": None}
+    assert not (
+        await db.scalars(select(Scan).where(Scan.organization_id == UUID(org)))
+    ).all()
+    assert "synthetic-review-secret-canary" not in response.text + caplog.text
+    assert mapping["secret"] not in response.text + caplog.text

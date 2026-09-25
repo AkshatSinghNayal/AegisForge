@@ -14,6 +14,7 @@ from aegis_api.configuration import get_policy, scoped_target
 from aegis_api.conventions import APIError
 from aegis_api.db.enums import Completeness, ScanMode, ScanState
 from aegis_api.db.models import OrganizationMember, PolicyEvaluation
+from aegis_api.normalization import digest
 from aegis_api.policy_engine import Inputs
 from aegis_api.policy_service import active_policy
 from aegis_api.public_api import Create, Read
@@ -105,6 +106,7 @@ async def submit(
         db,
         key,
         commit=commit,
+        command_digest=digest(body.model_dump(mode="json")),
     )
 
 

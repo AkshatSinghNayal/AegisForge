@@ -12,6 +12,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from contextlib import contextmanager
 from pathlib import Path
 from uuid import UUID
 
@@ -62,6 +63,29 @@ def origin(value):
     return value.rstrip("/")
 
 
+@contextmanager
+def request_deadline(seconds):
+    """Bound DNS, TLS, headers and a trickling body on the Linux Actions runner."""
+
+    def expired(signum, frame):
+        raise TimeoutError("Request deadline exceeded")
+
+    started = time.monotonic()
+    previous_handler = signal.signal(signal.SIGALRM, expired)
+    previous_timer = signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)
+        if previous_timer[0]:
+            signal.setitimer(
+                signal.ITIMER_REAL,
+                max(0.000001, previous_timer[0] - (time.monotonic() - started)),
+                previous_timer[1],
+            )
+
+
 class Client:
     def __init__(self, base, token, deadline):
         self.base, self.token, self.deadline = origin(base), token, deadline
@@ -88,7 +112,10 @@ class Client:
                 data=json.dumps(body).encode() if body is not None else None,
             )
             try:
-                with self.opener.open(request, timeout=min(15, remaining)) as response:
+                with (
+                    request_deadline(remaining),
+                    self.opener.open(request, timeout=min(15, remaining)) as response,
+                ):
                     raw = response.read(2 * 1024 * 1024 + 1)
                     if len(raw) > 2 * 1024 * 1024:
                         raise Failure("Response too large")
@@ -97,7 +124,8 @@ class Client:
                 if error.code not in {429, 500, 502, 503, 504}:
                     raise Failure("Request rejected") from None
             except (urllib.error.URLError, OSError):
-                pass
+                if time.monotonic() >= self.deadline:
+                    raise TimeoutError("Request deadline exceeded") from None
             if attempt == (3 if retry else 0):
                 raise Failure("Request unavailable")
             time.sleep(min(2**attempt, max(0, self.deadline - time.monotonic())))
@@ -143,6 +171,8 @@ def summary(data, scan_id):
     ):
         raise Failure("Invalid summary")
     counts = data.get("counts")
+    if counts is None and data["outcome"] in {"pass", "warn"}:
+        raise Failure("Complete evidence counts required")
     if counts is not None:
         if not isinstance(counts, dict) or any(
             type(counts.get(k)) is not int or not 0 <= counts[k] <= 10000000
@@ -200,7 +230,7 @@ def markdown(result, app_origin):
 def save(result, path, app_origin):
     Path(path).write_text(json.dumps(result, indent=2) + "\n")
     if os.environ.get("GITHUB_STEP_SUMMARY"):
-        with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as stream:
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "w") as stream:
             stream.write(markdown(result, app_origin))
 
 

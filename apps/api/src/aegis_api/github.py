@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
-from sqlalchemy import or_, select
+from sqlalchemy import select
 
 from aegis_api import ci, scans
 from aegis_api.auth import DB, csrf
@@ -398,17 +398,22 @@ async def receive(identity: UUID, request: Request, db: DB) -> dict[str, str | N
             403, "integration_inactive", "Integration authorization is inactive."
         )
     digest = hashlib.sha256(raw).hexdigest()
-    previous = await db.scalar(
-        select(GitHubDelivery).where(
-            GitHubDelivery.organization_id == row.organization_id,
-            GitHubDelivery.mapping_id == row.id,
-            or_(
-                GitHubDelivery.delivery_id == delivery_id,
-                (GitHubDelivery.payload_digest == digest)
-                & (GitHubDelivery.event == event_name),
-            ),
-        )
+    receipt_scope = select(GitHubDelivery).where(
+        GitHubDelivery.organization_id == row.organization_id,
+        GitHubDelivery.mapping_id == row.id,
     )
+    # Check the claimed delivery ID first. An OR query can return a different
+    # payload-matching receipt and hide a conflicting ID, depending on the plan.
+    previous = await db.scalar(
+        receipt_scope.where(GitHubDelivery.delivery_id == delivery_id)
+    )
+    if previous is None:
+        previous = await db.scalar(
+            receipt_scope.where(
+                GitHubDelivery.payload_digest == digest,
+                GitHubDelivery.event == event_name,
+            )
+        )
     if previous:
         if previous.payload_digest != digest or previous.event != event_name:
             raise APIError(409, "delivery_conflict", "Delivery ID was already used.")
