@@ -1,0 +1,154 @@
+name: AegisForge local test
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Registered project UUID
+        type: string
+        required: true
+      target:
+        description: Currently authorized target UUID
+        type: string
+        required: true
+      policy:
+        description: Passive scanner policy UUID (not the project gate UUID)
+        type: string
+        required: true
+      environment:
+        description: Exact registered target environment
+        type: string
+        default: development
+      timeout:
+        description: Total scan wait in seconds
+        type: number
+        default: 900
+      pull-request:
+        description: Optional same-repository PR number; zero disables comments
+        type: number
+        default: 0
+      pr-comment:
+        description: Publish or update a redacted comment on that PR
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      project:
+        description: Registered project UUID
+        type: string
+        required: true
+      target:
+        description: Currently authorized target UUID
+        type: string
+        required: true
+      policy:
+        description: Passive scanner policy UUID (not the project gate UUID)
+        type: string
+        required: true
+      environment:
+        description: Exact registered target environment
+        type: string
+        default: development
+      timeout:
+        description: Total scan wait in seconds
+        type: number
+        default: 900
+      pull-request:
+        description: Optional same-repository PR number; zero disables comments
+        type: number
+        default: 0
+      pr-comment:
+        description: Publish or update a redacted comment on that PR
+        type: boolean
+        default: false
+    secrets:
+      AEGISFORGE_API_KEY:
+        required: true
+permissions: {}
+# Serialize the same target/PR so two comment writers cannot create duplicates.
+concurrency:
+  group: aegisforge-${{ github.repository }}-${{ inputs.target }}-${{ inputs.pull-request || github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  scan:
+    if: github.repository == 'AkshatSinghNayal/AegisForge' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    timeout-minutes: 360
+    permissions:
+      contents: read
+    env:
+      AEGISFORGE_API_URL: http://127.0.0.1:8000
+      AEGISFORGE_APP_URL: http://127.0.0.1:5173
+      AEGISFORGE_PROJECT: ${{ inputs.project }}
+      AEGISFORGE_TARGET: ${{ inputs.target }}
+      AEGISFORGE_POLICY: ${{ inputs.policy }}
+      AEGISFORGE_COMMIT: ${{ github.sha }}
+      AEGISFORGE_BRANCH: ${{ github.ref_name }}
+      AEGISFORGE_PULL_REQUEST: ${{ inputs.pull-request }}
+      AEGISFORGE_ENVIRONMENT: ${{ inputs.environment }}
+      AEGISFORGE_TIMEOUT: ${{ inputs.timeout }}
+      AEGISFORGE_POLL_INTERVAL: '5'
+      AEGISFORGE_WARN_EXIT: '2'
+      AEGISFORGE_FAIL_EXIT: '1'
+      AEGISFORGE_INCOMPLETE_EXIT: '3'
+    steps:
+      - name: Check local runner runtime
+        run: python3 -c 'import sys; assert sys.platform == "linux" and sys.version_info >= (3, 12), "Linux and Python 3.12+ required"'
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/aegisforge_ci.py
+            scripts/aegisforge_ci_local_test.py
+          sparse-checkout-cone-mode: false
+      - name: Run authorized passive scan
+        id: scan
+        env:
+          AEGISFORGE_API_KEY: ${{ secrets.AEGISFORGE_API_KEY }}
+        shell: bash
+        run: |
+          rm -f aegisforge-summary.json
+          set +e
+          python3 scripts/aegisforge_ci_local_test.py
+          code=$?
+          echo "AegisForge CLI exit code: $code"
+          exit "$code"
+      - name: Retain redacted result
+        if: always() && steps.scan.outcome != 'skipped' && steps.scan.outcome != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: aegisforge-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.target }}
+          path: aegisforge-summary.json
+          if-no-files-found: error
+          retention-days: 7
+  comment:
+    needs: scan
+    if: always() && !cancelled() && inputs.pr-comment && inputs.pull-request > 0 && needs.scan.result != 'skipped'
+    runs-on: self-hosted
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Check local runner runtime
+        run: python3 -c 'import sys; assert sys.platform == "linux" and sys.version_info >= (3, 12), "Linux and Python 3.12+ required"'
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/aegisforge_ci.py
+            scripts/aegisforge_ci_local_test.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: aegisforge-${{ github.run_id }}-${{ github.run_attempt }}-${{ inputs.target }}
+      - name: Update redacted PR comment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AEGISFORGE_APP_URL: http://127.0.0.1:5173
+          AEGISFORGE_PROJECT: ${{ inputs.project }}
+          AEGISFORGE_TARGET: ${{ inputs.target }}
+          AEGISFORGE_PULL_REQUEST: ${{ inputs.pull-request }}
+        run: python3 scripts/aegisforge_ci_local_test.py --comment-only

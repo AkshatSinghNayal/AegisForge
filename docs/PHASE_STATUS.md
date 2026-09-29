@@ -10,6 +10,10 @@ Exact non-blocking limits: eight opt-in live ZAP tests skipped; no real GitHub-h
 
 Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worker-side versioned normalization, immutable per-observation evidence provenance, conservative comparable-scan lifecycle, authenticated findings/filter/detail/comparison APIs, audited review and the findings workspace. Phase 10 adds on-demand schema-constrained advisory AI and retained feedback. Phase 11 implements deterministic project policies and retained evaluations; reports remain deferred. See [normalization](FINDING_NORMALIZATION.md) and [Phase 9 verification](PHASE9_TEST_REPORT.md).
 
+## Local runner follow-up — 2026-09-29
+
+Added a separate manually dispatched/reusable self-hosted test workflow and a local-only CLI adapter for the exact Compose loopback origins. The production workflow and CLI remain unchanged. See [local setup and end-to-end checks](GITHUB_LOCAL_TEST.md). No deployment, key creation or live GitHub scan/comment was performed. Local verification passed: 29 focused CLI tests, 389 backend tests, 46 frontend tests, configured lint/type/schema checks and builds, and actionlint. The unauthenticated loopback readiness probe returned connection refused; restore the local API before dispatch. See [test report](TEST_REPORT.md).
+
 ## Execution checklist
 
 - [x] Phase 0 — documentation baseline

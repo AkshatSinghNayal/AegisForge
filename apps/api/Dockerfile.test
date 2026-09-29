@@ -3,7 +3,7 @@ FROM python:3.12.14-slim
 COPY --from=uv /uv /usr/local/bin/uv
 WORKDIR /app
 COPY apps/api .
-COPY scripts/aegisforge_ci.py scripts/aegisforge_ci.py
+COPY scripts/aegisforge_ci.py scripts/aegisforge_ci_local_test.py scripts/
 RUN uv sync --frozen && useradd --uid 10001 --create-home aegis && chown -R aegis:aegis /app
 ENV PATH="/app/.venv/bin:$PATH"
 USER aegis

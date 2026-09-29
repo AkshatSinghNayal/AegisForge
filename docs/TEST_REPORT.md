@@ -1,3 +1,16 @@
+# Phase 14 local self-hosted test follow-up — 2026-09-29
+
+Added `.github/workflows/aegisforge-scan-local-test.yml` and a dedicated local CLI adapter. Both jobs use `self-hosted`; dispatch is restricted to this repository's main branch. Production workflow, production CLI and Compose configuration are unchanged. The adapter allows only the exact HTTP loopback origins on ports 8000 and 5173, preserving all existing gate, redaction, retry and comment behavior. The test Dockerfile copies both scripts so test collection remains reproducible.
+
+Verification:
+
+- `make check build` with the configured Node runtime PATH and `UV_CACHE_DIR=/tmp/aegis-local-test-uv`: formatting, lint, TypeScript, mypy (51 files), schema freshness, 2 Compose-runner tests, 46 frontend tests and 389 backend tests passed; 8 opt-in live ZAP tests skipped, 145 integration tests deselected. Web production and API package builds passed.
+- `apps/api/.venv/bin/pytest -c apps/api/pyproject.toml apps/api/tests/test_ci_client.py apps/api/tests/test_ci_local_test.py -q`: 29 passed, covering existing transport/cancellation/redaction/comment regressions and 11 local-origin tests.
+- Ruff lint/format on the local adapter and actionlint 1.7.12 on the new workflow passed. `git diff --check` passed; no diff in the production workflow, production CLI or Compose file.
+- `curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8000/health/ready`: exit 7, connection refused. The source binding is correct but no reachable local API was available at verification time. No stack was started, key generated, real scan dispatched, artifact published or PR comment posted.
+
+This is local code/workflow validation, not a claimed live GitHub end-to-end pass. Database/browser suites were not rerun for this isolated adapter/workflow change; no application API, schema or UI changed. See [exact setup, secrets and trigger instructions](GITHUB_LOCAL_TEST.md). No next phase or deployment was started.
+
 # Phase 14 strict review — 2026-09-25
 
 **CONDITIONAL PASS — safe to begin the next explicitly requested phase.** Five confirmed blockers were reproduced, fixed and regression-tested. No next-phase work was started. This review supersedes the original [Phase 14 handoff](PHASE14_TEST_REPORT.md); historical reports below remain unchanged.

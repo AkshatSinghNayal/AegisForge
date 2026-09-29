@@ -2,6 +2,8 @@
 
 Phase 14 provides `.github/workflows/aegisforge-scan.yml`, a reusable workflow, and `scripts/aegisforge_ci.py`, a dependency-free Python 3.12+ client for Linux runners (run on the main thread; deadlines use POSIX interval timers). It calls the real organization-key API. It never starts a scanner locally, builds PR code, sends evidence to GitHub, or invents a gate verdict. Configure a running API, coordinator and authorized scanner as described in [SCANNER](SCANNER.md). Mock/demo scans remain nonpassing.
 
+For a runner on the same host as the local Compose stack, use the separate [self-hosted local test](GITHUB_LOCAL_TEST.md) workflow and loopback-only entry point. The cloud example below remains HTTPS-only.
+
 ## Setup
 
 1. Apply migration 0011 with `docker compose -p aegisforge run --rm api alembic upgrade head`. PostgreSQL stores mappings, encrypted webhook secrets and safe delivery receipts. There are no new Python/npm dependencies.
