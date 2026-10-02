@@ -92,7 +92,7 @@ jobs:
       AEGISFORGE_INCOMPLETE_EXIT: '3'
     steps:
       - name: Check local runner runtime
-        run: python3 -c 'import sys; assert sys.platform == "linux" and sys.version_info >= (3, 12), "Linux and Python 3.12+ required"'
+        run: python3.12 -c 'import sys; assert sys.platform == "linux" and sys.version_info >= (3, 12), "Linux and Python 3.12+ required"'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.sha }}
@@ -109,7 +109,7 @@ jobs:
         run: |
           rm -f aegisforge-summary.json
           set +e
-          python3 scripts/aegisforge_ci_local_test.py
+          python3.12 scripts/aegisforge_ci_local_test.py
           code=$?
           echo "AegisForge CLI exit code: $code"
           exit "$code"
@@ -132,7 +132,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Check local runner runtime
-        run: python3 -c 'import sys; assert sys.platform == "linux" and sys.version_info >= (3, 12), "Linux and Python 3.12+ required"'
+        run: python3.12 -c 'import sys; assert sys.platform == "linux" and sys.version_info >= (3, 12), "Linux and Python 3.12+ required"'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.sha }}
@@ -151,4 +151,4 @@ jobs:
           AEGISFORGE_PROJECT: ${{ inputs.project }}
           AEGISFORGE_TARGET: ${{ inputs.target }}
           AEGISFORGE_PULL_REQUEST: ${{ inputs.pull-request }}
-        run: python3 scripts/aegisforge_ci_local_test.py --comment-only
+        run: python3.12 scripts/aegisforge_ci_local_test.py --comment-only
