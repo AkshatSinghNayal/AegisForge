@@ -64,6 +64,10 @@ docker compose -p aegisforge -f docker-compose.scanner-demo.yml --profile scanne
 
 The training fixture is `http://172.30.88.10:8000`, reachable only on internal network `aegis-scanner-fixture`. It has reflected input and deliberately missing security headers. It stores no real user data. Configure the exact allowlist `["http://172.30.88.10:8000"]`, the egress network `aegis-scanner-fixture` and an authorized internal-test policy. The fixture publishes no ports and cannot contact the internet. The application target-validation service also needs an appropriately isolated validation path to onboard a private target; do not join the API to this scanner network. The live test harness constructs worker contracts directly for the disposable fixture and exercises the API/database handoff separately.
 
+**Known limitation — target registration:** the current Compose topology does not provide the API's target-registration validator a path to `172.30.88.10`. Starting the training fixture alone therefore does not enable its normal Phase 6 registration/consent flow. Resolve this later through a deliberate, documented Compose networking design, such as a narrowly scoped validation-only path that preserves scanner/API isolation and target egress controls. Do not attach the API directly to the scanner network or bypass validation with fabricated database authorization records as an ad hoc workaround.
+
+For the current Phase 14 verification, the user selected the public test target `http://testphp.vulnweb.com` instead. Register it through the normal consent/validation flow using a passive/baseline policy and configure the scanner's exact-origin allowlist and appropriate egress separately. This records the selected verification target, not a completed registration or successful scan; public active scanning remains prohibited. No networking changes or scan execution were performed as part of this documentation update.
+
 ```sh
 AEGIS_RUN_ZAP_LIVE=1 uv run --project apps/api pytest apps/api/tests/test_zap_live.py -v
 docker compose -p aegisforge -f docker-compose.scanner-demo.yml --profile scanner-demo down

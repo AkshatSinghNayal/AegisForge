@@ -14,6 +14,8 @@ Phases 0–8 remain implemented under their explicit prompts. Phase 9 adds worke
 
 Added a separate manually dispatched/reusable self-hosted test workflow and a local-only CLI adapter for the exact Compose loopback origins. The production workflow and CLI remain unchanged. See [local setup and end-to-end checks](GITHUB_LOCAL_TEST.md). No deployment, key creation or live GitHub scan/comment was performed. Local verification passed: 29 focused CLI tests, 389 backend tests, 46 frontend tests, configured lint/type/schema checks and builds, and actionlint. The unauthenticated loopback readiness probe returned connection refused; restore the local API before dispatch. See [test report](TEST_REPORT.md).
 
+Known deferred limitation: the target-registration validator cannot reach the isolated Phase 8 fixture at `172.30.88.10` under the current Compose topology. A future documented networking decision must provide a narrowly scoped validation path while preserving isolation; no ad hoc network attachment or authorization bypass is planned. The user selected `http://testphp.vulnweb.com` for current Phase 14 passive verification instead; this selection is not a claim of successful registration or scan completion. See [scanner limitation and verification target](SCANNER.md#intentionally-vulnerable-demo).
+
 ## Execution checklist
 
 - [x] Phase 0 — documentation baseline
