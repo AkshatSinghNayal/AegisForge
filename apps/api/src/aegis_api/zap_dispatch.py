@@ -61,7 +61,12 @@ async def envelope(db: AsyncSession, scan: Scan, config: Settings) -> SecretStr:
     policy.max_duration_seconds = min(
         policy.max_duration_seconds, target.configuration["timeout_seconds"]
     )
+    from aegis_api.admin_controls import controls
+
+    limits = await controls(db, scan.organization_id)
     payload = Execution(
+        allow_networks=limits.allow_networks,
+        deny_networks=limits.deny_networks,
         organization_id=scan.organization_id,
         scan_id=scan.id,
         job_id=scan.job_id,
@@ -147,13 +152,18 @@ async def collected(db: AsyncSession, scan: Scan, receipt: ArtifactReceipt) -> N
         or receipt.redacted_object_key != f"{prefix}.json"
     ):
         raise ValueError("Artifact key mismatch")
+    from aegis_api.admin_controls import controls
+
+    limits = await controls(db, scan.organization_id)
     db.add(
         RawScanArtifact(
             **receipt.model_dump(exclude={"normalizer", "observations"}),
             artifact_kind="zap-raw-v1",
             content_type="application/json",
-            restricted_expires_at=now() + timedelta(days=7),
-            redacted_expires_at=now() + timedelta(days=90),
+            restricted_expires_at=now()
+            + timedelta(days=min(7, limits.raw_retention_days)),
+            redacted_expires_at=now()
+            + timedelta(days=min(90, limits.raw_retention_days)),
         )
     )
     # Complete evidence does not imply AI, policy or report availability.

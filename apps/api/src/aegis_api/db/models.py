@@ -112,6 +112,9 @@ class User(Base):
 
 
 class Organization(Base):
+    administration: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default="{}"
+    )
     __tablename__ = "organizations"
     name: Mapped[str] = mapped_column(String(120))
     slug: Mapped[str] = mapped_column(String(120), unique=True)
@@ -732,6 +735,10 @@ class APIKey(TenantRecord):
 
 
 class AuditLog(TenantRecord):
+    result: Mapped[str] = mapped_column(
+        String(16), default="success", server_default="success"
+    )
+    source_ip: Mapped[str | None] = mapped_column(String(45))
     __tablename__ = "audit_logs"
     actor_id: Mapped[UUID | None] = mapped_column(Uuid)
     action: Mapped[str] = mapped_column(String(100))
@@ -829,4 +836,16 @@ class GitHubDelivery(TenantRecord):
         parent("scan_id", "scans"),
         UniqueConstraint("organization_id", "mapping_id", "delivery_id"),
         UniqueConstraint("organization_id", "mapping_id", "payload_digest", "event"),
+    )
+
+
+class ArtifactPurge(TenantRecord):
+    """Deletion receipt separate from immutable evidence provenance."""
+
+    __tablename__ = "artifact_purges"
+    artifact_id: Mapped[UUID] = mapped_column(Uuid)
+    kind: Mapped[str] = mapped_column(String(16))
+    __table_args__ = scoped(
+        parent("artifact_id", "raw_scan_artifacts"),
+        UniqueConstraint("organization_id", "artifact_id", "kind"),
     )

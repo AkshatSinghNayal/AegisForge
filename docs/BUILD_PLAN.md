@@ -89,3 +89,7 @@ The user's Phase 13 prompt authorizes asynchronous immutable PDF/JSON reports, l
 ## Phase 14 prompt override
 
 The explicit Phase 14 prompt authorizes the reusable GitHub Actions workflow, checked-in API-key CLI, deterministic CI results/artifacts/summaries, optional update-in-place PR comments, signed/deduplicated inbound webhooks and administrator repository-mapping UI. See [GITHUB_ACTIONS](GITHUB_ACTIONS.md) and [PHASE14_TEST_REPORT](PHASE14_TEST_REPORT.md). No Phase 15 work is authorized.
+
+## Explicit Phase 15 scope
+
+The explicit prompt authorizes organization administration, audited policy availability, tenant scan safety/network/retention controls, safe job review, audit filtering/export, database tamper resistance and bounded maintenance. See [ADMINISTRATION](ADMINISTRATION.md) and [PHASE15_TEST_REPORT](PHASE15_TEST_REPORT.md). Stop after Phase 15; no deployment or subsequent phase is authorized.

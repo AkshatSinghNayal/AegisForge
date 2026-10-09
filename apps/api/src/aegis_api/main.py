@@ -37,6 +37,7 @@ def create_app(
 ) -> FastAPI:
     from redis.asyncio import Redis
 
+    import aegis_api.audit  # noqa: F401
     from aegis_api.auth import router as auth_router
     from aegis_api.configuration import router as configuration_router
     from aegis_api.db.session import database
@@ -97,6 +98,9 @@ def create_app(
 
     app.add_middleware(ConfigurationBodyLimit)
     app.state.config = config
+    from aegis_api.administration import router as admin_router
+
+    app.include_router(admin_router)
     app.include_router(auth_router)
     app.include_router(organization_router)
     app.include_router(configuration_router)
@@ -130,6 +134,13 @@ def create_app(
         # Generate server-owned IDs; do not trust or log incoming header values.
         request_id = str(uuid4())
         token = correlation_id.set(request_id)
+        from aegis_api.audit import source_ip
+
+        ip_token = source_ip.set(
+            request.client.host
+            if config.audit_source_ip_enabled and request.client
+            else None
+        )
         try:
             response = await call_next(request)
             response.headers["X-Request-ID"] = request_id
@@ -153,6 +164,7 @@ def create_app(
             response.headers["Cache-Control"] = "no-store"
             return response
         finally:
+            source_ip.reset(ip_token)
             correlation_id.reset(token)
 
     @app.get("/health/live", response_model=Health)

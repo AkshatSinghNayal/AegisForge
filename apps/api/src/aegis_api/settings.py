@@ -65,6 +65,9 @@ class Settings(WorkerSettings):
     )
     gemini_api_key: SecretStr = SecretStr("")
     scan_coordinator_enabled: bool = True
+    audit_source_ip_enabled: bool = False
+    emergency_stop: bool = False
+    active_scans_enabled: bool = True
     scan_concurrency: int = Field(default=3, ge=1, le=100)
     scan_daily_quota: int = Field(default=100, ge=1, le=10000)
     scan_stage_timeout_seconds: int = Field(default=30, ge=30, le=300)

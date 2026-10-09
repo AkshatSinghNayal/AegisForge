@@ -1,5 +1,11 @@
 import { lazy } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useParams,
+} from 'react-router-dom';
 import { App } from '@/App';
 const Auth = lazy(() => import('@/product/Auth'));
 const Workspace = lazy(() => import('@/product/Workspace'));
@@ -12,10 +18,22 @@ const Home = lazy(() => import('@/marketing/Home'));
 const Pages = lazy(() => import('@/marketing/Pages'));
 const Docs = lazy(() => import('@/marketing/Docs'));
 const Legal = lazy(() => import('@/marketing/Legal'));
+function AdminAlias() {
+  const { section } = useParams();
+  const { search } = useLocation();
+  const path =
+    section === 'users'
+      ? 'team'
+      : section === 'policies'
+        ? 'policies'
+        : 'admin';
+  return <Navigate replace to={`/app/${path}${search}`} />;
+}
 export function RootRoutes() {
   return (
     <Routes>
       <Route path="/auth/:action" element={<Auth />} />
+      <Route path="/admin/:section" element={<AdminAlias />} />
       <Route path="/app/*" element={<Workspace />} />
       <Route path="/status" element={<App />} />
       <Route element={<MarketingLayout />}>

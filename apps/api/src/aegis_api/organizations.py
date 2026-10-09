@@ -231,6 +231,10 @@ async def members(member: Member, db: DB) -> list[MemberView]:
             .order_by(User.display_name)
         )
     ).all()
+    from aegis_api.administration import audit
+
+    audit(db, member, "membership.read", "organization", member.organization_id)
+    await db.commit()
     return [
         MemberView(
             id=m.id,

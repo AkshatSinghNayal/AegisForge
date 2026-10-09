@@ -126,6 +126,10 @@ async def validate(
     require(member, "scans.write")
     target = await scoped_target(body.target_id, member, db, True)
     policy = await get_policy(body.policy_id, member, db)
+    from aegis_api.admin_controls import controls
+
+    if policy.id in (await controls(db, member.organization_id)).disabled_policy_ids:
+        raise APIError(409, "policy_deactivated", "Scan policy is deactivated.")
     if (
         target.status != RecordState.ACTIVE
         or not target.verified_at
@@ -323,6 +327,21 @@ async def submit_scan(
             digest([fingerprint(body), str(gate.id)]) if gate else fingerprint(body)
         )
         cfg = request.app.state.config
+        from aegis_api.admin_controls import check_enabled, controls
+
+        limits = await controls(db, member.organization_id)
+        check_enabled(limits, cfg, policy.mode)
+        target_running = await db.scalar(
+            select(func.count())
+            .select_from(Scan)
+            .where(
+                Scan.organization_id == member.organization_id,
+                Scan.target_id == target.id,
+                Scan.state.not_in(TERMINAL),
+            )
+        )
+        if (target_running or 0) >= limits.target_concurrency:
+            raise APIError(429, "scan_quota", "Target concurrency limit reached.")
         running = await db.scalar(
             select(func.count())
             .select_from(Scan)
@@ -339,9 +358,9 @@ async def submit_scan(
                 Scan.created_at > now() - timedelta(days=1),
             )
         )
-        if (running or 0) >= cfg.scan_concurrency or (
+        if (running or 0) >= min(cfg.scan_concurrency, limits.concurrency) or (
             daily or 0
-        ) >= cfg.scan_daily_quota:
+        ) >= min(cfg.scan_daily_quota, limits.daily_quota):
             raise APIError(
                 429, "scan_quota", "Scan concurrency or daily quota reached."
             )

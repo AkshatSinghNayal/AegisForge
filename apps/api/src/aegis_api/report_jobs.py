@@ -440,6 +440,19 @@ async def expire_one(db: AsyncSession, config: Settings) -> None:
         if row.object_key:
             await asyncio.to_thread(ReportStore(config).delete, row.object_key)
         row.state = ReportState.EXPIRED
+        from aegis_api.db.models import AuditLog
+
+        db.add(
+            AuditLog(
+                organization_id=row.organization_id,
+                actor_id=None,
+                action="report.expired",
+                resource_type="report",
+                resource_id=row.id,
+                request_id=uuid4(),
+                changed_fields=["state"],
+            )
+        )
         await sync_scan_status(db, row)
 
 

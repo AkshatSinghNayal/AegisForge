@@ -357,6 +357,9 @@ async def create(
         )
         or 0
     ) + 1
+    from aegis_api.admin_controls import controls
+
+    limits = await controls(db, member.organization_id)
     row = Report(
         id=uuid4(),
         organization_id=member.organization_id,
@@ -368,7 +371,12 @@ async def create(
         generator_version=GENERATOR,
         state=ReportState.PENDING,
         expires_at=now()
-        + timedelta(days=request.app.state.config.report_retention_days),
+        + timedelta(
+            days=min(
+                request.app.state.config.report_retention_days,
+                limits.report_retention_days,
+            )
+        ),
     )
     scan.report_status = ReportState.PENDING
     db.add(row)

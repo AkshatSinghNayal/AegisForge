@@ -34,6 +34,8 @@ class Credential(Closed):
 
 
 class Execution(Closed):
+    allow_networks: list[str] = Field(default_factory=list, max_length=100)
+    deny_networks: list[str] = Field(default_factory=list, max_length=100)
     organization_id: UUID
     scan_id: UUID
     job_id: UUID

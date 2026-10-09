@@ -142,6 +142,14 @@ class ZapScannerProvider:
         )
         import ipaddress
 
+        from aegis_api.network_policy import network_allowed
+
+        if not addresses or any(
+            not network_allowed(ip, e.allow_networks, e.deny_networks)
+            for ip in addresses
+        ):
+            raise RuntimeFailure("target_network_denied")
+
         if policy.mode == ScanMode.ACTIVE and (
             not e.active_confirmation_digest
             or not policy.active_warning_acknowledged

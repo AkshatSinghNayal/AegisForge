@@ -1,6 +1,12 @@
 # Phase status
 
-Current phase: **Phase 14 — strict review CONDITIONAL PASS (2026-09-25)**.
+Current phase: **Phase 15 — administration and audit controls implemented (2026-10-10)**.
+
+Administration now includes member activation/session revocation, policy availability, tenant scan controls, audited administration, safe job review and retention/credential maintenance. Migration 0012 adds audit metadata and immutable artifact purge receipts. See [operating guide](ADMINISTRATION.md) and [verification](PHASE15_TEST_REPORT.md). Production runtime-role grants and maintenance scheduling remain operator configuration. No subsequent phase or deployment was started.
+
+## Phase 14 strict-review history
+
+Phase 14 — strict review CONDITIONAL PASS (2026-09-25).
 
 Phase 14 adds the reusable GitHub Actions workflow, API-key CLI, deterministic redacted CI summaries, optional PR comment updates, signed/deduplicated inbound webhooks and administrator setup UI. The strict review fixed five reproduced blockers: incomplete server CI replay fingerprints, order-dependent webhook delivery conflicts, unbounded trickling network requests, accumulated contradictory job summaries, and acceptance of passing summaries without evidence counts. See [setup and examples](GITHUB_ACTIONS.md), [current strict-review results](TEST_REPORT.md) and the [original implementation report](PHASE14_TEST_REPORT.md).
 

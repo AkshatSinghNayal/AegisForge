@@ -415,6 +415,9 @@ async def retry(delivery_id: UUID, member: Member, db: DB) -> DeliveryView:
         )
     row.state = NotificationState.PENDING
     row.next_attempt_at = now()
+    from aegis_api.administration import audit
+
+    audit(db, member, "notification.retry", "notification_delivery", row.id, ["state"])
     # Keep lifetime attempts; each manual retry permits one additional attempt.
     await db.commit()
     return DeliveryView.model_validate(row, from_attributes=True)

@@ -18,7 +18,7 @@ export default defineConfig({
     {
       name: 'production',
       testMatch:
-        /health|production|marketing|findings|policies|dashboard|reporting|github/,
+        /health|production|marketing|findings|policies|dashboard|reporting|github|administration/,
     },
     {
       name: 'labs',

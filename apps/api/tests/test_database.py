@@ -108,6 +108,7 @@ def test_migration_roundtrip(migrated_database: str) -> None:
             "gate_activations",
             "github_mappings",
             "github_deliveries",
+            "artifact_purges",
         }
     ) | {"alembic_version"}
     assert asyncio.run(marker())

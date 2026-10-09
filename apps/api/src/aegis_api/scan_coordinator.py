@@ -132,6 +132,14 @@ async def prepare(
 ) -> "Job | None":
     if scan.state in TERMINAL:
         return None
+    if config and scan.dispatched_at is None:
+        from aegis_api.admin_controls import check_enabled, controls
+
+        try:
+            check_enabled(await controls(db, scan.organization_id), config, scan.mode)
+        except APIError:
+            transition(db, scan, ScanState.FAILED, "configuration_changed", now())
+            return None
     if scan.deadline_at <= now():
         transition(db, scan, ScanState.TIMED_OUT, "deadline_expired", now())
         return None

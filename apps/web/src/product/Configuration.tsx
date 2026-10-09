@@ -766,6 +766,7 @@ function PolicyList(ctx: Context) {
   );
 }
 function PolicyDetail(ctx: Context) {
+  const [availability, setAvailability] = useState('');
   const { id } = useParams();
   const { data, error, refresh } = useData(
     `/organizations/${ctx.org}/policies/${id}`,
@@ -776,6 +777,37 @@ function PolicyDetail(ctx: Context) {
       <Feedback error={error} />
       {!data && (
         <LoadingDetail title="Scan policy" error={error} retry={refresh} />
+      )}
+      {data && canAdmin(ctx.role) && (
+        <section aria-label="Policy availability">
+          <p role="status">{availability}</p>
+          <p>
+            Publication permits this immutable version to be used for new scans.
+          </p>
+          {(['publish', 'deactivate'] as const).map((operation) => (
+            <Button
+              key={operation}
+              variant="secondary"
+              onClick={() => {
+                void request(
+                  `/admin/policies/${data.id}/${operation}?organization_id=${ctx.org}`,
+                  z.object({ message: z.string() }),
+                  'POST',
+                )
+                  .then((result) => setAvailability(result.message))
+                  .catch((e: unknown) =>
+                    setAvailability(
+                      e instanceof Error ? e.message : 'Operation failed.',
+                    ),
+                  );
+              }}
+            >
+              {operation === 'publish'
+                ? 'Publish version'
+                : 'Deactivate version'}
+            </Button>
+          ))}
+        </section>
       )}
       {data && <PolicyEditor {...ctx} existing={data} />}
     </>

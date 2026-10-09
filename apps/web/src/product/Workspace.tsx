@@ -17,6 +17,7 @@ import Findings from './Findings';
 import Policies from './Policies';
 import Dashboard from './Dashboard';
 import Registry from './Registry';
+import Administration from './Administration';
 const progressSchema = z.object({
   create_project: z.boolean(),
   register_target: z.boolean(),
@@ -143,6 +144,7 @@ export default function Workspace() {
           'api-keys',
           'team',
           'audit-log',
+          'admin',
           'settings',
         ].map((path) => (
           <NavLink
@@ -241,7 +243,14 @@ export default function Workspace() {
             </div>
           )}
 
-          {org && location.pathname === '/app/dashboard' ? (
+          {org &&
+          ['/app/admin', '/app/audit-log'].includes(location.pathname) ? (
+            <Administration
+              key={`${org.id}-${location.pathname}`}
+              org={org.id}
+              auditOnly={location.pathname === '/app/audit-log'}
+            />
+          ) : org && location.pathname === '/app/dashboard' ? (
             <Dashboard key={org.id} org={org.id} />
           ) : org &&
             /^\/app\/(reports|integrations|api-keys|audit-log)$/.test(
@@ -631,6 +640,43 @@ function OrganizationSettings({
                 <span>
                   {m.email} · {m.role} · {m.status}
                 </span>
+                {m.role !== 'owner' &&
+                  (org?.role === 'owner' || m.role !== 'admin') && (
+                    <>
+                      {m.status !== 'active' && (
+                        <Button
+                          disabled={busy}
+                          onClick={() =>
+                            void action(
+                              `/admin/members/${m.id}/activate?organization_id=${organizationId}`,
+                              'POST',
+                            )
+                          }
+                        >
+                          Activate {m.display_name}
+                        </Button>
+                      )}
+                      {org?.role === 'owner' && (
+                        <Button
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                `Revoke all sessions for ${m.display_name}, including other organizations?`,
+                              )
+                            )
+                              void action(
+                                `/admin/members/${m.id}/revoke-sessions?organization_id=${organizationId}`,
+                                'POST',
+                              );
+                          }}
+                        >
+                          Revoke sessions for {m.display_name}
+                        </Button>
+                      )}
+                    </>
+                  )}
                 {m.role !== 'owner' &&
                   m.status === 'active' &&
                   (org?.role === 'owner' || m.role !== 'admin') && (
