@@ -1,2 +1,8 @@
 packages:
   - apps/web
+
+# Phase 16: patched transitive versions until upstream ranges refresh.
+overrides:
+  'undici@>=8.0.0 <8.10.2': '8.10.2'
+  'brace-expansion@>=4.0.0 <5.0.12': '5.0.12'
+  'source-map-js@>=1.0.0 <1.2.2': '1.2.2'

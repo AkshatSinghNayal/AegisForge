@@ -274,9 +274,11 @@ AND (exception->>'expires_at')::timestamptz<:end ORDER BY label,path LIMIT 10)
     parts = []
     for name, sql in queries.items():
         if name in {"totals", "total"}:
-            value = f"(SELECT to_jsonb(row) FROM ({sql}) row)"
+            # Only fixed SQL fragments; all user filters are bound parameters.
+            value = f"(SELECT to_jsonb(row) FROM ({sql}) row)"  # nosec B608
         else:
-            value = f"COALESCE((SELECT jsonb_agg(row) FROM ({sql}) row),'[]'::jsonb)"
+            # Only fixed SQL fragments; all user filters are bound parameters.
+            value = f"COALESCE((SELECT jsonb_agg(row) FROM ({sql}) row),'[]'::jsonb)"  # nosec B608
         parts.append(f"'{name}',{value}")
     result = await db.scalar(
         text(SCOPE + " SELECT jsonb_build_object(" + ",".join(parts) + ")"), params

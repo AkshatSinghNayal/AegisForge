@@ -13,3 +13,6 @@ __pycache__/
 playwright-report/
 test-results/
 *.egg-info/
+
+# Generated local security inventory; CI publishes SBOM artifacts separately.
+output/security-phase16/

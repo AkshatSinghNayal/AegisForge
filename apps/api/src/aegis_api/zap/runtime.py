@@ -175,7 +175,8 @@ print(json.dumps(sorted({str(row[4][0]) for row in rows})))
             "no-new-privileges",
             "--read-only",
             "--tmpfs",
-            "/tmp:rw,nosuid,nodev,size=256m",
+            # Fixed path inside a disposable isolated container tmpfs.
+            "/tmp:rw,nosuid,nodev,size=256m",  # nosec B108
             *labels,
         ]
         self.resources.append(("container", self.gateway))
@@ -243,7 +244,9 @@ print(json.dumps(sorted({str(row[4][0]) for row in rows})))
                 try:
                     self.check()
                     self.command(
-                        ["exec", self.gateway, "touch", "/tmp/lease"], timeout=3
+                        ["exec", self.gateway, "touch", "/tmp/lease"],  # nosec B108
+                        # Fixed path inside a disposable isolated container tmpfs.
+                        timeout=3,
                     )
                 except Exception:
                     # Gateway independently cuts egress within ten seconds.
@@ -398,7 +401,8 @@ sys.stdout.buffer.write(b)
                 raise RuntimeFailure("scanner_proxy_failed")
 
     def file(self, path: str, content: str) -> None:
-        if path != "/tmp/openapi.json":
+        # Fixed path inside a disposable isolated container tmpfs.
+        if path != "/tmp/openapi.json":  # nosec B108
             raise RuntimeFailure("invalid_scanner_path")
         self.command(
             [
@@ -415,7 +419,8 @@ sys.stdout.buffer.write(b)
 
     def stats(self) -> dict[str, Any]:
         data = json.loads(
-            self.command(["exec", self.gateway, "cat", "/tmp/stats.json"])
+            # Fixed path inside a disposable isolated container tmpfs.
+            self.command(["exec", self.gateway, "cat", "/tmp/stats.json"])  # nosec B108
         )
         if not isinstance(data, dict):
             raise RuntimeFailure("invalid_gateway_response")

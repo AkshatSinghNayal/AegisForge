@@ -1,13 +1,10 @@
 """Opaque credentials, transactional rotation and reusable authorization boundaries."""
 
-import asyncio
 import hashlib
 import hmac
 import secrets
-import smtplib
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
-from email.message import EmailMessage
 from typing import Annotated
 from uuid import UUID, uuid4
 
@@ -21,7 +18,6 @@ from aegis_api.auth_models import (
     AccessCredential,
     IdentityAudit,
     IdentityToken,
-    MailDelivery,
 )
 from aegis_api.conventions import APIError
 from aegis_api.db.enums import RecordState
@@ -171,6 +167,8 @@ async def csrf(request: Request, db: DB) -> None:
     if (
         origin != request.app.state.config.app_origin
         or len(cookie) < 32
+        or not cookie.isascii()
+        or not header.isascii()
         or not hmac.compare_digest(cookie, header)
     ):
         raise APIError(403, "csrf_failed", "Request could not be verified.")
@@ -276,39 +274,13 @@ async def deliver(
     purpose: str,
     token: str,
     user_id: UUID | None = None,
+    organization_id: UUID | None = None,
 ) -> None:
-    config = request.app.state.config
-    route = {
-        "reset": "reset-password",
-        "verify": "verify-email",
-        "invite": "accept-invite",
-    }[purpose]
-    message = EmailMessage()
-    message["From"], message["To"] = config.smtp_sender, email
-    message["Subject"] = f"AegisForge: {purpose}"
-    message.set_content(
-        f"Open this single-use link: {config.app_origin}/auth/{route}#token={token}\n"
-        "If you did not request this, ignore this message."
+    from aegis_api.identity_mail import enqueue
+
+    await enqueue(
+        db, request.app.state.config, email, purpose, token, user_id, organization_id
     )
-
-    def send() -> None:
-        with smtplib.SMTP(config.smtp_host, config.smtp_port, timeout=10) as smtp:
-            if config.smtp_starttls:
-                smtp.starttls()
-            if config.smtp_username:
-                smtp.login(
-                    config.smtp_username, config.smtp_password.get_secret_value()
-                )
-            smtp.send_message(message)
-
-    status = "unconfigured"
-    if config.smtp_host:
-        try:
-            await asyncio.to_thread(send)
-            status = "sent"
-        except (OSError, smtplib.SMTPException):
-            status = "failed"
-    db.add(MailDelivery(user_id=user_id, purpose=purpose, status=status))
 
 
 async def identity_token(
@@ -362,6 +334,7 @@ async def register(body: Register, request: Request, db: DB) -> Message:
         audit(db, request, "authentication.registered", user.id)
         await identity_token(request, db, user, "verify")
     else:
+        await deliver(request, db, body.email, "verify", "")
         audit(db, request, "authentication.registration_requested")
     await db.commit()
     return Message(
@@ -487,6 +460,8 @@ async def forgot(body: EmailPayload, request: Request, db: DB) -> Message:
     user = await db.scalar(select(User).where(User.normalized_email == body.email))
     if user and user.status == RecordState.ACTIVE:
         await identity_token(request, db, user, "reset")
+    else:
+        await deliver(request, db, body.email, "reset", "")
     audit(db, request, "authentication.password_reset_requested")
     await db.commit()
     return Message(message="If the account is available, a reset link will be sent.")

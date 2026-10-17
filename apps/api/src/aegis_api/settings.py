@@ -102,10 +102,23 @@ class Settings(WorkerSettings):
             or "experimental" in self.ai_model.lower()
         ):
             raise ValueError("Use a stable model ID")
+        if self.profile == "prod" and self.smtp_host and not self.smtp_starttls:
+            raise ValueError("Production SMTP requires verified STARTTLS")
         from urllib.parse import urlsplit
 
         origin = urlsplit(self.app_origin)
-        if origin.scheme not in {"http", "https"} or not origin.netloc or origin.path:
+        if (
+            origin.scheme not in {"http", "https"}
+            or not origin.hostname
+            or origin.port == 0
+            or origin.path
+            or origin.query
+            or origin.fragment
+            or origin.username is not None
+            or origin.password is not None
+            or any(c.isspace() or ord(c) < 32 for c in self.app_origin)
+            or "\\" in self.app_origin
+        ):
             raise ValueError("Use an HTTP origin without a path")
         if self.profile == "prod" and (
             not self.cookie_secure or origin.scheme != "https"

@@ -14,3 +14,6 @@ docs/security/
 
 # Reproducible generator formatting is verified by make schema-check.
 docs/generated/
+
+# Generated CycloneDX output is retained verbatim.
+output/security-phase16/

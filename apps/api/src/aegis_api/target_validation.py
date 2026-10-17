@@ -3,6 +3,7 @@
 import asyncio
 import ipaddress
 import json
+import math
 import re
 import socket
 from typing import Any
@@ -220,10 +221,36 @@ async def probe_url(
         raise invalid("Target is unreachable or TLS validation failed.") from None
 
 
+def unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if not isinstance(key, str) or key in result:
+            raise ValueError("Ambiguous object keys")
+        result[key] = value
+    return result
+
+
+class UniqueSafeLoader(yaml.SafeLoader):
+    def construct_mapping(self, node: yaml.MappingNode, deep: bool = False) -> Any:
+        return unique_object(
+            [
+                (
+                    self.construct_object(k, deep=deep),
+                    self.construct_object(v, deep=deep),
+                )
+                for k, v in node.value
+            ]
+        )
+
+
 def sanitize_openapi(content: bytes, filename: str) -> dict[str, Any]:
     if len(content) > MAX_SPEC:
         raise invalid("OpenAPI documents must be at most 1 MiB.")
-    if not filename.lower().endswith((".json", ".yaml", ".yml")):
+    if (
+        not filename.lower().endswith((".json", ".yaml", ".yml"))
+        or len(filename) > 255
+        or any(c in filename for c in ("/", "\\", "\x00", "\r", "\n"))
+    ):
         raise invalid("Upload a JSON or YAML OpenAPI document.")
     try:
         text = content.decode("utf-8")
@@ -248,9 +275,10 @@ def sanitize_openapi(content: bytes, filename: str) -> dict[str, Any]:
             }:
                 depth -= 1
         doc = (
-            json.loads(text)
+            json.loads(text, object_pairs_hook=unique_object)
             if filename.lower().endswith(".json")
-            else yaml.safe_load(text)
+            # UniqueSafeLoader subclasses SafeLoader and rejects duplicate keys.
+            else yaml.load(text, Loader=UniqueSafeLoader)  # nosec B506
         )
         if not isinstance(doc, dict) or not (
             doc.get("swagger") == "2.0"
@@ -343,6 +371,8 @@ def sanitize_openapi(content: bytes, filename: str) -> dict[str, Any]:
                 return [
                     walk(v, level + 1, parent == "security", sanitize) for v in value
                 ]
+            if isinstance(value, float) and not math.isfinite(value):
+                raise ValueError
             if value is not None and not isinstance(value, (str, int, float, bool)):
                 raise ValueError
             return value

@@ -115,7 +115,7 @@ services:
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
   postgres:
-    image: postgres:17.6-alpine
+    image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
     environment:
       POSTGRES_DB: aegis
       POSTGRES_USER: aegis
@@ -128,7 +128,7 @@ services:
       timeout: 3s
       retries: 10
   redis:
-    image: redis:7.4.5-alpine
+    image: redis:7.4.11-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Run make setup first}
     command:
@@ -149,7 +149,7 @@ services:
       timeout: 3s
       retries: 10
   prometheus:
-    image: prom/prometheus:v3.14.0
+    image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
     command:
       [
         '--config.file=/etc/prometheus/prometheus.yml',
@@ -167,7 +167,7 @@ services:
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
   grafana:
-    image: grafana/grafana:13.2.1
+    image: grafana/grafana:13.2.3@sha256:b28bae15e219c998fb0e0424ed724930cc61b1f61fb404d47c862f9a23f9e572
     volumes:
       - ./infra/grafana/provisioning/datasources/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
       - grafana_data:/var/lib/grafana

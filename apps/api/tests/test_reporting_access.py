@@ -727,9 +727,18 @@ async def test_report_storage_failure_is_not_ready(db, tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "kind,status", [("slack", 200), ("slack", 429), ("github", 201), ("github", 403)]
+    "kind,status,encoding",
+    [
+        ("slack", 200, "identity"),
+        ("slack", 429, "identity"),
+        ("github", 201, "identity"),
+        ("github", 403, "identity"),
+        ("github", 201, "gzip"),
+    ],
 )
-async def test_adapter_success_and_rejection(kind, status, tmp_path, monkeypatch):
+async def test_adapter_success_and_rejection(
+    kind, status, encoding, tmp_path, monkeypatch
+):
     cfg = config(tmp_path)
     org, identity = uuid4(), uuid4()
     address = (
@@ -755,6 +764,7 @@ async def test_adapter_success_and_rejection(kind, status, tmp_path, monkeypatch
     class Response:
         def __init__(self, status):
             self.status = status
+            self.headers = {"Content-Encoding": encoding}
             self.content = SimpleNamespace(
                 read=AsyncMock(
                     side_effect=[
@@ -773,6 +783,7 @@ async def test_adapter_success_and_rejection(kind, status, tmp_path, monkeypatch
 
     class Client:
         def __init__(self, **kwargs):
+            assert kwargs["auto_decompress"] is False
             self.connector = kwargs["connector"]
 
         async def __aenter__(self):
@@ -796,6 +807,11 @@ async def test_adapter_success_and_rejection(kind, status, tmp_path, monkeypatch
         resource_id=uuid4(),
         link="https://aegis.example/app/scans",
     )
+    if encoding != "identity":
+        with pytest.raises(ValueError):
+            await notifications.send(cfg, row, payload, uuid4())
+        assert not captured  # Reject before decompression or the outbound POST.
+        return
     if status >= 400:
         with pytest.raises(ValueError):
             await notifications.send(cfg, row, payload, uuid4())

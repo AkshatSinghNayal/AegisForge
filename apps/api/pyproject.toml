@@ -40,6 +40,8 @@ dev = [
     "pypdf>=6.18.1",
     "types-reportlab>=5.0.0.20260911",
     "boto3-stubs[s3]>=1.43.93",
+    "bandit==1.9.4",
+    "pip-audit==2.10.1",
 ]
 
 [tool.pytest.ini_options]

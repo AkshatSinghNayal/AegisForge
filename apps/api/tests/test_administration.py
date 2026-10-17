@@ -96,7 +96,8 @@ async def test_controls_quota_stop_and_audit(client, db, monkeypatch):
     assert logs.status_code == 200
     assert len(logs.json()) == 2
     assert all(r["request_id"] for r in logs.json())
-    assert "scans_enabled" in logs.json()[0]["changed_fields"]
+    # The shared test transaction gives both rows the same database timestamp.
+    assert any("scans_enabled" in row["changed_fields"] for row in logs.json())
     assert (
         await client.get(f"/api/v1/admin/audit?organization_id={uuid4()}")
     ).status_code == 404

@@ -149,3 +149,9 @@ Open `/app/dashboard` after signing in. Select an organization and use URL-persi
 All Compose commands use the fixed `aegisforge` project, including reviews and E2E runs. `make test-auth-e2e` validates the persistent `AEGIS_LOCAL_SECRET_KEY` before touching the stack, then temporarily configures the shared stack for testing and stops it afterward, retaining volumes and the configured encryption key. Run `make dev` to restore development services. Historical test reports record commands executed before this rule; use `-p aegisforge` for all new runs.
 
 Phase 15 administration is available in the authenticated workspace: [operator switches, audit permissions and retention jobs](docs/ADMINISTRATION.md), with [verification results](docs/PHASE15_TEST_REPORT.md). Maintenance preserves evidence metadata; no production scheduler or infrastructure is provisioned automatically.
+
+## Phase 16 security hardening
+
+See [security review](docs/security/SECURITY_REVIEW.md) for abuse coverage, confirmed fixes, exact verification, remaining release blockers and safe-scanning rules. Run `make security-static security-audit test-security` with Node 24 and Chromium installed. High/critical image findings fail the new security workflow; SBOM generation is not a security certification.
+
+The Phase 16 strict review adds migration `0013` for encrypted identity-mail delivery. Keep `AEGIS_NOTIFICATION_ENCRYPTION_KEY` stable while jobs are pending. Auth requests enqueue mail; the API coordinator delivers it with verified STARTTLS, bounded retries and payload expiry. Inspect `mail_deliveries.status` for delivery failures; provider exceptions and tokens are never logged.

@@ -64,3 +64,20 @@ schema-check:
 .PHONY: test-auth-e2e
 test-auth-e2e:
 	COMPOSE="$(COMPOSE)" python3 scripts/test_auth_e2e.py
+
+.PHONY: security-static security-audit test-security
+security-static:
+	$(UV) run --project apps/api python scripts/check_security_ci.py
+	$(UV) run --project apps/api bandit -r apps/api/src scripts/aegisforge_ci.py scripts/aegisforge_ci_local_test.py -ll
+
+security-audit:
+	$(PNPM) audit --audit-level low
+	@audit_file=$$(mktemp); trap 'rm -f "$$audit_file"' EXIT; \
+	$(UV) export --project apps/api --frozen --no-emit-project --no-hashes -o "$$audit_file" && \
+	$(UV) run --project apps/api pip-audit --no-deps --disable-pip -r "$$audit_file"
+
+test-security: test test-integration compose-config test-security-browser
+
+.PHONY: test-security-browser
+test-security-browser:
+	$(PNPM) --filter @aegisforge/web exec playwright test --project production security.spec.ts findings.spec.ts reporting.spec.ts policies.spec.ts github.spec.ts administration.spec.ts

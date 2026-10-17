@@ -265,13 +265,15 @@ class ZapScannerProvider:
                 )
             self.emit(ScanState.SPIDERING)
             if spec:
-                self.runtime.file("/tmp/openapi.json", json.dumps(spec))
+                # Fixed path inside a disposable isolated container tmpfs.
+                self.runtime.file("/tmp/openapi.json", json.dumps(spec))  # nosec B108
                 OpenApiImport.model_validate(
                     self.runtime.call(
                         "openapi",
                         "action",
                         "importFile",
-                        file="/tmp/openapi.json",
+                        # Fixed path inside a disposable isolated container tmpfs.
+                        file="/tmp/openapi.json",  # nosec B108
                         target=e.target_url,
                         contextId=context,
                         maxMessages=str(policy.max_requests),

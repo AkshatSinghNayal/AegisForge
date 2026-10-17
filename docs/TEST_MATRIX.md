@@ -143,3 +143,9 @@ Phase 10 strict review adds independently parameterized credential/PII cases, pr
 ## Phase 15 verification
 
 `test_administration.py` covers closed control schemas, network deny precedence, operator/tenant scan stops, admin RBAC and cross-tenant denial, audit redaction, retention scope/eligibility, session cleanup and independent-connection concurrent scan admission. Existing authentication, policy, notification and scan suites remain regression gates. `administration.spec.ts` exercises controls, report retry, audit JSON download, responsive overflow and axe checks using explicitly synthetic API fixtures. Migration roundtrips include 0012 and immutable deletion receipts. Live provider checks and production database-role provisioning are not browser-fixture claims.
+
+## Phase 16 security review
+
+The [security review matrix](security/SECURITY_REVIEW.md#threats-tested-and-evidence-map) maps all requested abuse categories to executable tests and explicitly retained limits. `test_security_review.py` adds a non-vacuous nested-route auth/CSRF/closed-schema inventory, issuer-status and prefix binding, strict origin/headers/CORS, bounded upload/compression, duplicate parser keys, unsafe filenames and invalid token regressions. Browser CSP injection coverage and CI static/dependency/secret/container gates supplement the full existing suite. See the review for actual results; unavailable live checks are never counted as passes.
+
+Phase 16 strict review adds `test_identity_mail.py`: no SMTP on public requests, generic known/unknown responses, verified TLS and certificate failure, encrypted envelope/tenant binding, rollback, committed-job recovery across sessions, skip-locked worker claims, bounded retries, expiry and ciphertext erasure. Migration 0013 is covered by full migration roundtrips and metadata drift checks.

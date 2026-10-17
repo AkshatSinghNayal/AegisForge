@@ -65,9 +65,17 @@ def create_app(
             if config.reporting_enabled
             else None
         )
+        from aegis_api.identity_mail import coordinate as mail_coordinate
+
+        # Cleanup still runs if SMTP is disabled after jobs were enqueued.
+        mail_jobs = asyncio.create_task(mail_coordinate(app.state.sessions, config))
         try:
             yield
         finally:
+            if mail_jobs:
+                mail_jobs.cancel()
+                with suppress(asyncio.CancelledError):
+                    await mail_jobs
             if report_jobs:
                 report_jobs.cancel()
                 with suppress(asyncio.CancelledError):
@@ -189,4 +197,7 @@ def create_app(
             return Health(status="unavailable")
         return Health(status="ready")
 
+    from aegis_api.security_headers import SecurityHeaders
+
+    app.add_middleware(SecurityHeaders, secure=config.profile == "prod")
     return app

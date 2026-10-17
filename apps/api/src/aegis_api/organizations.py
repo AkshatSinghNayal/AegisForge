@@ -268,7 +268,9 @@ async def invite(body: Invite, request: Request, member: Member, db: DB) -> Mess
     db.add(invitation)
     await db.flush()
     event(db, member, "membership.invited", invitation.id)
-    await deliver(request, db, body.email, "invite", token)
+    await deliver(
+        request, db, body.email, "invite", token, organization_id=member.organization_id
+    )
     await db.commit()
     return Message(
         message="Invitation created. Delivery requires configured email service."

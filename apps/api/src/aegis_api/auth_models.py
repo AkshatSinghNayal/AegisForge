@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, Uuid
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
 from aegis_api.db.enums import Role
@@ -47,11 +47,20 @@ class IdentityAudit(Base):
 
 
 class MailDelivery(Base):
-    """No token persistence: delivery failures are observable without message bodies."""
+    """Global identity mail: short-lived encrypted payloads, never plaintext tokens."""
 
     __tablename__ = "mail_deliveries"
     user_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT")
     )
+    organization_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("organizations.id", ondelete="RESTRICT")
+    )
     purpose: Mapped[str] = mapped_column(String(24))
     status: Mapped[str] = mapped_column(String(24))
+    payload_ciphertext: Mapped[str | None] = mapped_column(Text)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    retry_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), index=True
+    )
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")

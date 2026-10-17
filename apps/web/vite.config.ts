@@ -1,8 +1,19 @@
 import { fileURLToPath, URL } from 'node:url';
+import { readFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
+// Exercise the production edge CSP in browser regressions, without weakening dev HMR.
+const nginx = readFileSync(
+  new URL('../../infra/nginx.conf', import.meta.url),
+  'utf8',
+);
+const csp = nginx.match(
+  /add_header Content-Security-Policy "([^"]+)" always;/,
+)?.[1];
+if (!csp) throw new Error('Production CSP missing');
 export default defineConfig({
+  preview: { headers: { 'Content-Security-Policy': csp } },
   plugins: [react(), tailwindcss()],
   envDir: '../..',
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },

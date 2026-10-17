@@ -1,0 +1,77 @@
+name: Security hardening gates
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '23 4 * * 1'
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: '0.12.10'
+          python-version: '3.12'
+      - run: npm install -g pnpm@11.19.0
+      - run: pnpm install --frozen-lockfile && uv sync --project apps/api --frozen
+      - name: Static analysis and dependency audits (including development tools)
+        run: |
+          make security-static security-audit
+      - name: Secret scan
+        run: |
+          bash scripts/install_trivy.sh "$RUNNER_TEMP/trivy"
+          "$RUNNER_TEMP/trivy/trivy" fs --scanners secret --exit-code 1 --format json --output "$RUNNER_TEMP/source-secrets.json" --skip-dirs node_modules --skip-dirs apps/api/.venv --skip-dirs .git .
+      - name: Full abuse and integration suite
+        run: |
+          python3 scripts/setup_env.py
+          pnpm --filter @aegisforge/web exec playwright install --with-deps chromium
+          make test-security
+      - if: always()
+        run: docker compose -p aegisforge down
+  containers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          [api, worker, scanner, web, zap, postgres, redis, prometheus, grafana]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install pinned scanner
+        run: bash scripts/install_trivy.sh "$RUNNER_TEMP/trivy"
+      - name: Build or select the actual runtime image
+        env:
+          COMPONENT: ${{ matrix.component }}
+        run: |
+          case "$COMPONENT" in
+            api) docker build -f apps/api/Dockerfile -t aegis-security:review . ;;
+            worker) docker build -f apps/api/Dockerfile.worker -t aegis-security:review . ;;
+            scanner) docker build -f apps/api/Dockerfile.scanner -t aegis-security:review . ;;
+            web) docker build -f apps/web/Dockerfile --target production -t aegis-security:review . ;;
+            zap|postgres|redis|prometheus|grafana) image=$(docker compose -p aegisforge config --no-interpolate --format json | python3 -c 'import json,os,sys; print(json.load(sys.stdin)["services"][os.environ["COMPONENT"]]["image"])'); docker pull "$image"; docker tag "$image" aegis-security:review ;;
+          esac
+      - name: Generate SBOM
+        run: |
+          "$RUNNER_TEMP/trivy/trivy" image --timeout 15m --format cyclonedx --output sbom.cdx.json aegis-security:review
+      - name: Gate container vulnerabilities and embedded secrets
+        run: |
+          "$RUNNER_TEMP/trivy/trivy" image --timeout 15m --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 1 --format json --output "$RUNNER_TEMP/image-findings.json" aegis-security:review
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom-${{ matrix.component }}
+          path: sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 14

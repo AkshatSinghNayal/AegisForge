@@ -65,7 +65,9 @@ async def client(db, monkeypatch):
     app.dependency_overrides[auth.session] = session
     deliveries = []
 
-    async def deliver(request, session, email, purpose, token, user_id=None):
+    async def deliver(
+        request, session, email, purpose, token, user_id=None, organization_id=None
+    ):
         deliveries.append((email, purpose, token))
 
     monkeypatch.setattr(auth, "deliver", deliver)

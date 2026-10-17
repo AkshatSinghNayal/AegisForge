@@ -16,7 +16,7 @@ from sqlalchemy import select
 from aegis_api.auth import DB, Payload, csrf, now
 from aegis_api.conventions import APIError
 from aegis_api.db.enums import RecordState
-from aegis_api.db.models import APIKey, AuditLog, Organization, OrganizationMember
+from aegis_api.db.models import APIKey, AuditLog, Organization, OrganizationMember, User
 from aegis_api.organizations import ADMIN, Member
 
 router = APIRouter(
@@ -164,7 +164,11 @@ def access(
         ):
             raise APIError(401, "api_key_invalid", "Valid API key required.")
         digest = hashlib.sha256(credential.credentials.encode()).hexdigest()
-        row = await db.scalar(select(APIKey).where(APIKey.key_hash == digest))
+        row = await db.scalar(
+            select(APIKey).where(
+                APIKey.prefix == credential.credentials[:16], APIKey.key_hash == digest
+            )
+        )
         if (
             not row
             or row.revoked_at
@@ -185,7 +189,14 @@ def access(
                 OrganizationMember.status == RecordState.ACTIVE,
             )
         )
-        if not org or not member or member.role not in ADMIN:
+        user = await db.get(User, member.user_id) if member else None
+        if (
+            not org
+            or not member
+            or member.role not in ADMIN
+            or not user
+            or user.status != RecordState.ACTIVE
+        ):
             raise APIError(401, "api_key_invalid", "Valid API key required.")
         script = (
             "local n=redis.call('INCR',KEYS[1]); "
@@ -224,12 +235,14 @@ def access(
         )
         await db.refresh(row)
         await db.refresh(member)
+        await db.refresh(user)
         if (
             not org
             or row.revoked_at
             or row.expires_at <= now()
             or member.status != RecordState.ACTIVE
             or member.role not in ADMIN
+            or user.status != RecordState.ACTIVE
         ):
             raise APIError(401, "api_key_invalid", "Valid API key required.")
         if scope not in row.permission_scopes:

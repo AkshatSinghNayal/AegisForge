@@ -212,7 +212,8 @@ for (const role of ['owner', 'developer', 'viewer']) {
     await page.getByRole('button', { name: 'Retry', exact: true }).click();
     await expect(page.getByText('8', { exact: true })).toBeVisible();
     if (role === 'owner') {
-      await page.goto(`/app/audit-log?organization=${org}`);
+      // Audit log has a dedicated Phase 15 screen; exercise registry history on reports.
+      await page.goto(`/app/reports?organization=${org}`);
       await expect(
         page.getByText('Synthetic record page 1', { exact: true }),
       ).toBeVisible();

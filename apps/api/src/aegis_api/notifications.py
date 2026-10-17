@@ -8,6 +8,7 @@ import json
 import re
 import smtplib
 import socket
+import ssl
 from datetime import datetime
 from email.message import EmailMessage
 from typing import Literal
@@ -232,7 +233,7 @@ async def send(
                 raise ValueError("SMTP unavailable")
             with smtplib.SMTP(config.smtp_host, config.smtp_port, timeout=10) as smtp:
                 if config.smtp_starttls:
-                    smtp.starttls()
+                    smtp.starttls(context=ssl.create_default_context())
                 if config.smtp_username:
                     smtp.login(
                         config.smtp_username, config.smtp_password.get_secret_value()
@@ -259,7 +260,10 @@ async def send(
         raise ValueError("Unknown adapter")
     connector = aiohttp.TCPConnector(resolver=PublicResolver(), use_dns_cache=False)
     async with aiohttp.ClientSession(
-        connector=connector, timeout=aiohttp.ClientTimeout(total=15), trust_env=False
+        connector=connector,
+        timeout=aiohttp.ClientTimeout(total=15),
+        trust_env=False,
+        auto_decompress=False,
     ) as client:
         if destination.kind == "github":
             async with client.get(
@@ -267,7 +271,11 @@ async def send(
                 headers=headers,
                 allow_redirects=False,
             ) as response:
-                if response.status != 200:
+                if (
+                    response.status != 200
+                    or response.headers.get("Content-Encoding", "identity")
+                    != "identity"
+                ):
                     raise ValueError("PR unavailable")
                 raw = b""
                 while len(raw) <= 65536:

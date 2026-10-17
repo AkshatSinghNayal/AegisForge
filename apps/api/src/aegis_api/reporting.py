@@ -472,6 +472,8 @@ async def content(
     config = request.app.state.config
     if (
         config.report_storage != "local"
+        or len(signature) != 64
+        or not signature.isascii()
         or expires <= int(now().timestamp())
         or expires > int(now().timestamp()) + config.report_url_seconds
     ):

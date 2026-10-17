@@ -1,6 +1,12 @@
 # Phase status
 
-Current phase: **Phase 15 — administration and audit controls implemented (2026-10-10)**.
+Current phase: **Phase 16 — strict review FAIL (2026-10-11); container release blockers remain**.
+
+Strict review fixed unverified SMTP TLS and SMTP-dependent account-enumeration timing. Migration **0013** adds transactional encrypted identity-mail jobs with bound invitation organization scope, short retention, retries and terminal-payload cleanup. Both mail transports verify certificates and production requires STARTTLS. See [strict review and actual results](TEST_REPORT.md) and [security evidence](security/SECURITY_REVIEW.md).
+
+Verification: **427 backend unit/security tests, 168 integration tests, 46 frontend tests and all 42 production plus 7 real-backend browser journeys passed**; eight live-ZAP tests skipped. Lint/types/build/static/dependency/secret checks passed. Migration roundtrips and all new mail failure cases passed. The real-backend journeys also verify SSE reconnect/replay, failing demo gates and cancellation. The ZAP image gate still fails with 670 high/critical package-advisory occurrences; other retained runtime findings also remain blocking. These are not non-blocking risk acceptances. Docker housekeeping: Images have 7.315GB reclaimable and Build Cache 1.449GB; image cleanup is a non-blocking recommendation. Git metadata is read-only. No next phase or deployment is authorized by this verdict.
+
+## Phase 15 baseline
 
 Administration now includes member activation/session revocation, policy availability, tenant scan controls, audited administration, safe job review and retention/credential maintenance. Migration 0012 adds audit metadata and immutable artifact purge receipts. See [operating guide](ADMINISTRATION.md) and [verification](PHASE15_TEST_REPORT.md). Production runtime-role grants and maintenance scheduling remain operator configuration. No subsequent phase or deployment was started.
 
