@@ -28,6 +28,10 @@ Added a separate manually dispatched/reusable self-hosted test workflow and a lo
 
 Known deferred limitation: the target-registration validator cannot reach the isolated Phase 8 fixture at `172.30.88.10` under the current Compose topology. A future documented networking decision must provide a narrowly scoped validation path while preserving isolation; no ad hoc network attachment or authorization bypass is planned. The user selected `http://testphp.vulnweb.com` for current Phase 14 passive verification instead; this selection is not a claim of successful registration or scan completion. See [scanner limitation and verification target](SCANNER.md#intentionally-vulnerable-demo).
 
+## Local scanner setup follow-up — 2026-10-02
+
+An opt-in isolated static frontend and fixed Unix-socket validation relay are implemented in separate Compose files; no production workflow, target-validation bypass, application network attachment for ZAP or direct database authorization was added. Setup builds real images, uses the dedicated rootless daemon and retains scanner resource limits. **Live validation is blocked:** the current host delegates only memory/pids, and Docker rejects NanoCPUs. An administrator must enable CPU delegation before starting the target/runtime or claiming end-to-end verification. Unit tests and image builds do not constitute a passing real scan. See [exact host fix and startup steps](LOCAL_SCANNER.md). No target was registered and no scan or Actions run was started in this follow-up.
+
 ## Execution checklist
 
 - [x] Phase 0 — documentation baseline

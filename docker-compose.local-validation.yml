@@ -1,0 +1,35 @@
+# Overlay on the DEFAULT daemon only. Does not join the scanner network.
+services:
+  api:
+    networks:
+      validation: {}
+  validation-relay:
+    image: aegisforge-local-target:phase14
+    user: '${AEGIS_LOCAL_UID:?Set the local host UID}:${AEGIS_LOCAL_GID:?Set the local host GID}'
+    environment:
+      AEGIS_LOCAL_ROLE: relay
+    read_only: true
+    volumes:
+      - ./.local-scanner/bridge:/bridge:ro
+    networks:
+      validation:
+        aliases: [aegis-local-target]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: 0.25
+    mem_limit: 128m
+    pids_limit: 64
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request; r=urllib.request.Request('http://127.0.0.1:8080/', headers={'Host':'aegis-local-target:8080'}); urllib.request.urlopen(r, timeout=3)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  validation:
+    internal: true

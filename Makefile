@@ -20,6 +20,8 @@ lint:
 	$(PNPM) --filter @aegisforge/web lint
 	$(UV) run --project apps/api ruff check apps/api
 	$(UV) run --project apps/api ruff format --check apps/api
+	$(UV) run --project apps/api ruff check scripts/setup_local_scanner.py scripts/check_local_scanner.py scripts/test_local_scanner.py infra/local-scanner/server.py
+	$(UV) run --project apps/api ruff format --check scripts/setup_local_scanner.py scripts/check_local_scanner.py scripts/test_local_scanner.py infra/local-scanner/server.py
 
 typecheck:
 	$(PNPM) --filter @aegisforge/web typecheck
@@ -27,6 +29,7 @@ typecheck:
 
 test:
 	python3 scripts/test_compose_runner.py
+	python3 scripts/test_local_scanner.py
 	$(PNPM) --filter @aegisforge/web test
 	$(UV) run --project apps/api pytest -c apps/api/pyproject.toml apps/api/tests -m 'not integration'
 

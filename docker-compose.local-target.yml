@@ -1,0 +1,34 @@
+# Run ONLY on the dedicated rootless daemon. No application networks or ports.
+name: aegisforge
+services:
+  local-target:
+    image: aegisforge-local-target:phase14
+    environment:
+      AEGIS_LOCAL_ROLE: target
+    user: '0:0' # rootless UID 0 maps to the host user; owns the 0600 socket.
+    read_only: true
+    volumes:
+      - ./.local-scanner/bridge:/bridge
+    networks:
+      target:
+        aliases: [aegis-local-target]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 64
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/', timeout=3)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  target:
+    name: aegis-local-scan-target
+    internal: true

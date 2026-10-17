@@ -14,5 +14,8 @@ playwright-report/
 test-results/
 *.egg-info/
 
+# Local scanner Unix-socket bridge (never commit runtime state)
+.local-scanner/
+
 # Generated local security inventory; CI publishes SBOM artifacts separately.
 output/security-phase16/
